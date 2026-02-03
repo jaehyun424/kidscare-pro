@@ -1,15 +1,26 @@
 // ============================================
 // KidsCare Pro - Authentication Context
-// With Demo Mode for Development
+// Real Firebase Auth Integration
 // ============================================
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import type { User as FirebaseUser } from 'firebase/auth';
+import {
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut as firebaseSignOut,
+    onAuthStateChanged,
+    sendPasswordResetEmail,
+    updateProfile,
+} from 'firebase/auth';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../services/firebase';
 import type { User, UserRole } from '../types';
 
-// Demo mode - set to false and configure Firebase for production
-const DEMO_MODE = true;
+// Demo mode flag from environment
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 
-// Demo users for testing different roles
+// Demo users for testing (only used when DEMO_MODE is true)
 const DEMO_USERS: Record<string, User> = {
     'hotel': {
         id: 'demo-hotel-1',
@@ -57,23 +68,9 @@ const DEMO_USERS: Record<string, User> = {
             phone: '+82-10-1234-5678',
             phoneVerified: true,
             preferredLanguage: 'ko',
-            avatarUrl: '',
         },
         sitterInfo: {
-            tier: 'gold',
-            rating: 4.9,
-            totalSessions: 247,
-            safetyRecord: { incidentFreeDays: 365, lastIncidentDate: null, totalIncidents: 0 },
-            certifications: [
-                { name: 'CPR', issuedBy: 'Red Cross', issuedDate: new Date('2023-01-15'), expiryDate: new Date('2025-01-15'), verified: true },
-                { name: 'First Aid', issuedBy: 'Red Cross', issuedDate: new Date('2023-01-15'), expiryDate: new Date('2025-01-15'), verified: true },
-            ],
-            languages: [
-                { code: 'ko', name: 'Korean', proficiency: 'native' },
-                { code: 'en', name: 'English', proficiency: 'fluent' },
-                { code: 'ja', name: 'Japanese', proficiency: 'basic' },
-            ],
-            availability: [],
+            sitterId: 'sitter-1',
         },
         notifications: { push: true, email: true, sms: true },
         createdAt: new Date(),
@@ -86,7 +83,7 @@ const DEMO_USERS: Record<string, User> = {
 // ----------------------------------------
 interface AuthContextType {
     user: User | null;
-    firebaseUser: unknown | null;
+    firebaseUser: FirebaseUser | null;
     isLoading: boolean;
     isAuthenticated: boolean;
     signIn: (email: string, password: string) => Promise<void>;
@@ -118,12 +115,41 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // ----------------------------------------
 export function AuthProvider({ children }: AuthProviderProps) {
     const [user, setUser] = useState<User | null>(null);
-    const [firebaseUser, setFirebaseUser] = useState<unknown | null>(null);
+    const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Initialize - check for saved demo session
+    // Fetch user data from Firestore
+    const fetchUserData = useCallback(async (fbUser: FirebaseUser): Promise<User | null> => {
+        try {
+            const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
+
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                return {
+                    id: fbUser.uid,
+                    email: fbUser.email || '',
+                    role: userData.role,
+                    hotelId: userData.hotelId,
+                    profile: userData.profile,
+                    parentInfo: userData.parentInfo,
+                    sitterInfo: userData.sitterInfo,
+                    notifications: userData.notifications,
+                    createdAt: userData.createdAt?.toDate() || new Date(),
+                    lastLoginAt: userData.lastLoginAt?.toDate() || new Date(),
+                } as User;
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            return null;
+        }
+    }, []);
+
+    // Listen to auth state changes
     useEffect(() => {
         if (DEMO_MODE) {
+            // Demo mode: check localStorage
             const savedRole = localStorage.getItem('demo-user-role') as 'hotel' | 'parent' | 'sitter' | null;
             if (savedRole && DEMO_USERS[savedRole]) {
                 setUser(DEMO_USERS[savedRole]);
@@ -132,13 +158,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
             return;
         }
 
-        // Non-demo mode would use Firebase auth
-        // For now, just set loading to false
-        setIsLoading(false);
-    }, []);
+        // Real Firebase auth
+        const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+            setFirebaseUser(fbUser);
 
-    // Demo login
+            if (fbUser) {
+                const userData = await fetchUserData(fbUser);
+                setUser(userData);
+
+                // Update last login time
+                if (userData) {
+                    await setDoc(
+                        doc(db, 'users', fbUser.uid),
+                        { lastLoginAt: serverTimestamp() },
+                        { merge: true }
+                    );
+                }
+            } else {
+                setUser(null);
+            }
+
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [fetchUserData]);
+
+    // Demo login (for testing)
     const demoLogin = useCallback((role: 'hotel' | 'parent' | 'sitter') => {
+        if (!DEMO_MODE) {
+            console.warn('Demo login is only available in demo mode');
+            return;
+        }
         const demoUser = DEMO_USERS[role];
         if (demoUser) {
             setUser(demoUser);
@@ -146,31 +197,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
     }, []);
 
-    // Sign in
+    // Sign in with email/password
     const signIn = useCallback(async (email: string, password: string) => {
         setIsLoading(true);
         try {
             if (DEMO_MODE) {
-                // In demo mode, check email pattern to determine role
-                await new Promise((r) => setTimeout(r, 500)); // Simulate network delay
-
-                if (email.includes('hotel')) {
-                    demoLogin('hotel');
-                } else if (email.includes('sitter')) {
-                    demoLogin('sitter');
-                } else {
-                    demoLogin('parent');
-                }
-            } else {
-                // Real Firebase sign in would go here
-                throw new Error('Firebase not configured. Enable DEMO_MODE for testing.');
+                await new Promise((r) => setTimeout(r, 500));
+                if (email.includes('hotel')) demoLogin('hotel');
+                else if (email.includes('sitter')) demoLogin('sitter');
+                else demoLogin('parent');
+                return;
             }
+
+            // Real Firebase sign in
+            await signInWithEmailAndPassword(auth, email, password);
         } finally {
             setIsLoading(false);
         }
     }, [demoLogin]);
 
-    // Sign up
+    // Sign up with email/password
     const signUp = useCallback(async (
         email: string,
         password: string,
@@ -181,7 +227,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
             if (DEMO_MODE) {
                 await new Promise((r) => setTimeout(r, 500));
-                // Create temporary user
                 const newUser: User = {
                     id: 'demo-new-' + Date.now(),
                     email,
@@ -198,7 +243,48 @@ export function AuthProvider({ children }: AuthProviderProps) {
                     lastLoginAt: new Date(),
                 };
                 setUser(newUser);
+                return;
             }
+
+            // Real Firebase sign up
+            const { user: fbUser } = await createUserWithEmailAndPassword(auth, email, password);
+
+            // Update Firebase profile
+            await updateProfile(fbUser, {
+                displayName: `${profile.firstName} ${profile.lastName}`,
+            });
+
+            // Create user document in Firestore
+            const userData = {
+                email,
+                role,
+                profile: {
+                    firstName: profile.firstName,
+                    lastName: profile.lastName,
+                    phone: profile.phone || '',
+                    phoneVerified: false,
+                    preferredLanguage: profile.preferredLanguage || 'en',
+                },
+                notifications: {
+                    push: true,
+                    email: true,
+                    sms: false,
+                },
+                createdAt: serverTimestamp(),
+                lastLoginAt: serverTimestamp(),
+            };
+
+            // Add role-specific fields
+            if (role === 'parent') {
+                Object.assign(userData, {
+                    parentInfo: {
+                        emergencyContact: '',
+                        emergencyPhone: '',
+                    },
+                });
+            }
+
+            await setDoc(doc(db, 'users', fbUser.uid), userData);
         } finally {
             setIsLoading(false);
         }
@@ -209,8 +295,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setIsLoading(true);
         try {
             if (DEMO_MODE) {
-                await new Promise((r) => setTimeout(r, 300));
                 localStorage.removeItem('demo-user-role');
+            } else {
+                await firebaseSignOut(auth);
             }
             setUser(null);
             setFirebaseUser(null);
@@ -226,7 +313,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             console.log('Demo mode: Password reset email would be sent to', email);
             return;
         }
-        throw new Error('Firebase not configured');
+        await sendPasswordResetEmail(auth, email);
     }, []);
 
     // Update user profile
@@ -234,11 +321,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (!user) return;
 
         if (DEMO_MODE) {
-            await new Promise((r) => setTimeout(r, 300));
             setUser({ ...user, profile: { ...user.profile, ...data } });
             return;
         }
-    }, [user]);
+
+        if (!firebaseUser) return;
+
+        const updatedProfile = { ...user.profile, ...data };
+
+        await setDoc(
+            doc(db, 'users', firebaseUser.uid),
+            { profile: updatedProfile },
+            { merge: true }
+        );
+
+        setUser({ ...user, profile: updatedProfile });
+    }, [firebaseUser, user]);
 
     const value: AuthContextType = {
         user,
