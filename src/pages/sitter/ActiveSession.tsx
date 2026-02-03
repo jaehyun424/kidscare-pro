@@ -1,5 +1,5 @@
 // Sitter Active Session Page
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { useToast } from '../../contexts/ToastContext';

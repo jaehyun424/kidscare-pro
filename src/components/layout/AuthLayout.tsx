@@ -2,7 +2,7 @@
 // KidsCare Pro - Auth Layout (Login/Register)
 // ============================================
 
-import React from 'react';
+
 import { Outlet } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { IconButton } from '../common/Button';

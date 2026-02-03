@@ -2,7 +2,7 @@
 // KidsCare Pro - Hotel Layout (Sidebar + Content)
 // ============================================
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';

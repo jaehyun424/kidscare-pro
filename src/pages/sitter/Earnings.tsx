@@ -1,5 +1,5 @@
 // Sitter Earnings Page
-import React from 'react';
+
 import { Card, CardBody } from '../../components/common/Card';
 
 const EARNINGS_DATA = {

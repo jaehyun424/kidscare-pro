@@ -2,7 +2,7 @@
 // KidsCare Pro - Empty State Component
 // ============================================
 
-import React from 'react';
+
 import { Button } from './Button';
 
 // ----------------------------------------

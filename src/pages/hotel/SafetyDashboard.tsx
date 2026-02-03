@@ -2,7 +2,7 @@
 // KidsCare Pro - Safety Dashboard Page
 // ============================================
 
-import React from 'react';
+
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { SafetyBadge, Badge } from '../../components/common/Badge';
 

@@ -2,7 +2,7 @@
 // KidsCare Pro - Card Component
 // ============================================
 
-import React from 'react';
+
 
 // ----------------------------------------
 // Types

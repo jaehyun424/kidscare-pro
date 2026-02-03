@@ -1,5 +1,5 @@
 // Parent Trust Check-In Page
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';

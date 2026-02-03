@@ -2,7 +2,7 @@
 // KidsCare Pro - Badge Component
 // ============================================
 
-import React from 'react';
+
 
 // ----------------------------------------
 // Types

@@ -2,7 +2,7 @@
 // KidsCare Pro - Sitter App Layout
 // ============================================
 
-import React from 'react';
+
 import { NavLink, Outlet } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { IconButton } from '../common/Button';
@@ -63,7 +63,7 @@ const navItems = [
 // Component
 export function SitterLayout() {
     const { isDark, toggleTheme } = useTheme();
-    const { user } = useAuth();
+    useAuth(); // Keep auth context active
 
     return (
         <div className="sitter-layout">

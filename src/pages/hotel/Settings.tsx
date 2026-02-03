@@ -2,8 +2,8 @@
 // KidsCare Pro - Hotel Settings Page
 // ============================================
 
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardBody, CardFooter } from '../../components/common/Card';
+import { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Input, Select, Textarea } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { useToast } from '../../contexts/ToastContext';

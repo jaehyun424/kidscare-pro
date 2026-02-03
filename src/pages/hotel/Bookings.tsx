@@ -2,8 +2,8 @@
 // KidsCare Pro - Hotel Bookings Page
 // ============================================
 
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
+import { useState } from 'react';
+import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input, Select } from '../../components/common/Input';
 import { Badge, StatusBadge, TierBadge } from '../../components/common/Badge';
@@ -218,7 +218,7 @@ export default function Bookings() {
                             {selectedBooking.children.map((child, i) => (
                                 <p key={i}>
                                     {child.name} ({child.age} years)
-                                    {child.allergies && ` - Allergies: ${child.allergies.join(', ')}`}
+                                    {'allergies' in child && child.allergies && ` - Allergies: ${child.allergies.join(', ')}`}
                                 </p>
                             ))}
                         </div>

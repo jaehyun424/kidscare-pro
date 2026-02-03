@@ -1,5 +1,5 @@
 // Parent Profile Page
-import React from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';

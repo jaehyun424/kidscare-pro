@@ -1,5 +1,5 @@
 // Parent Live Status Page
-import React from 'react';
+
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -7,7 +7,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { TierBadge } from '../../components/common/Badge';
 
 export default function LiveStatus() {
-    const { bookingId } = useParams();
+    useParams(); // Keep for future use
 
     return (
         <div className="live-status animate-fade-in">

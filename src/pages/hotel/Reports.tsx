@@ -2,7 +2,7 @@
 // KidsCare Pro - Reports Page (Stub)
 // ============================================
 
-import React from 'react';
+
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 

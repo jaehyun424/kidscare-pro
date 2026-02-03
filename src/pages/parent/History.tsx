@@ -1,5 +1,5 @@
 // Parent History Page
-import React from 'react';
+
 import { Card, CardBody } from '../../components/common/Card';
 import { StatusBadge } from '../../components/common/Badge';
 

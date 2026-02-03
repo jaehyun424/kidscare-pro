@@ -2,7 +2,7 @@
 // KidsCare Pro - Parent App Layout (Bottom Nav)
 // ============================================
 
-import React from 'react';
+
 import { NavLink, Outlet } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { IconButton } from '../common/Button';

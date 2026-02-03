@@ -2,7 +2,7 @@
 // KidsCare Pro - Skeleton Loading Components
 // ============================================
 
-import React from 'react';
+
 
 // ----------------------------------------
 // Types

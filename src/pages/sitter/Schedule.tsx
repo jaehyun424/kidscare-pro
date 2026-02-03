@@ -1,5 +1,5 @@
 // Sitter Schedule Page
-import React from 'react';
+
 import { Card, CardBody } from '../../components/common/Card';
 import { StatusBadge, TierBadge, SafetyBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';

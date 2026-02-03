@@ -2,7 +2,7 @@
 // KidsCare Pro - Spinner Component
 // ============================================
 
-import React from 'react';
+
 
 // ----------------------------------------
 // Types

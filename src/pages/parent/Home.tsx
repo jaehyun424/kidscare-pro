@@ -2,7 +2,7 @@
 // KidsCare Pro - Parent Home Page
 // ============================================
 
-import React from 'react';
+
 import { Link } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';

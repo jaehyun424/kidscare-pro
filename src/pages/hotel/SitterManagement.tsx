@@ -2,8 +2,8 @@
 // KidsCare Pro - Sitter Management Page
 // ============================================
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
+
+import { Card, CardBody } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
 import { TierBadge, Badge, SafetyBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';

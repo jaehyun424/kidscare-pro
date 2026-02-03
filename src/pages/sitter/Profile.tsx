@@ -1,10 +1,10 @@
 // Sitter Profile Page
-import React from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
-import { TierBadge, SafetyBadge, Badge } from '../../components/common/Badge';
+import { TierBadge, Badge } from '../../components/common/Badge';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function Profile() {
