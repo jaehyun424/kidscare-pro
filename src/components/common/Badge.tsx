@@ -3,7 +3,7 @@
 // ============================================
 
 
-
+import { useTranslation } from 'react-i18next';
 // ----------------------------------------
 // Types
 // ----------------------------------------
@@ -55,24 +55,25 @@ export function Badge({
 // ----------------------------------------
 // Status Badge
 // ----------------------------------------
-const statusConfig: Record<StatusBadgeProps['status'], { variant: BadgeVariant; label: string }> = {
-    pending: { variant: 'warning', label: 'Pending' },
-    confirmed: { variant: 'primary', label: 'Confirmed' },
-    in_progress: { variant: 'primary', label: 'In Progress' },
-    active: { variant: 'success', label: 'Active' },
-    completed: { variant: 'success', label: 'Completed' },
-    cancelled: { variant: 'neutral', label: 'Cancelled' },
-    no_show: { variant: 'error', label: 'No Show' },
-    emergency: { variant: 'error', label: 'Emergency' },
+const statusConfig: Record<StatusBadgeProps['status'], { variant: BadgeVariant; labelKey: string }> = {
+    pending: { variant: 'warning', labelKey: 'status.pending' },
+    confirmed: { variant: 'primary', labelKey: 'status.confirmed' },
+    in_progress: { variant: 'primary', labelKey: 'status.inProgress' },
+    active: { variant: 'success', labelKey: 'status.active' },
+    completed: { variant: 'success', labelKey: 'status.completed' },
+    cancelled: { variant: 'neutral', labelKey: 'status.cancelled' },
+    no_show: { variant: 'error', labelKey: 'status.noShow' },
+    emergency: { variant: 'error', labelKey: 'status.emergency' },
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {
+    const { t } = useTranslation();
     const config = statusConfig[status];
 
     return (
         <Badge variant={config.variant}>
             <span className={`status-dot status-dot-${config.variant === 'success' ? 'success' : config.variant === 'error' ? 'error' : config.variant === 'warning' ? 'warning' : 'neutral'}`} />
-            {config.label}
+            {t(config.labelKey)}
         </Badge>
     );
 }
@@ -99,11 +100,13 @@ interface SafetyBadgeProps {
 }
 
 export function SafetyBadge({ days }: SafetyBadgeProps) {
+    const { t } = useTranslation();
     return (
         <div className="safety-badge">
             <span className="safety-badge-icon">🛡️</span>
             <span className="safety-badge-text">
-                <strong>{days}</strong> days safe
+                <strong style={{ marginRight: '4px' }}>{days}</strong>
+                {t('hotel.daysWithoutIncident').replace('{{count}}', '')}
             </span>
         </div>
     );

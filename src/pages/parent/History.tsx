@@ -1,5 +1,6 @@
 // Parent History Page
 
+import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { StatusBadge } from '../../components/common/Badge';
 
@@ -10,12 +11,13 @@ const HISTORY = [
 ];
 
 export default function History() {
+    const { t } = useTranslation();
     const formatCurrency = (amount: number) => `₩${amount.toLocaleString()}`;
 
     return (
         <div className="history-page animate-fade-in">
-            <h1 className="page-title">Booking History</h1>
-            <p className="page-subtitle">{HISTORY.length} completed sessions</p>
+            <h1 className="page-title">{t('parent.bookingHistory')}</h1>
+            <p className="page-subtitle">{HISTORY.length} {t('sitter.completedSessions').toLowerCase()}</p>
 
             <div className="history-list">
                 {HISTORY.map((item) => (

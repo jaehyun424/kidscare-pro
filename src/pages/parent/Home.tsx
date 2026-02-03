@@ -8,25 +8,43 @@ import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { StatusBadge } from '../../components/common/Badge';
 
-const UPCOMING_BOOKING = {
-  id: '1',
-  confirmationCode: 'KCP-2025-0042',
-  dateKey: 'tonight',
-  time: '18:00 - 22:00',
-  hotel: 'Grand Hyatt Seoul',
-  room: '2305',
-  sitter: { name: 'Kim Minjung', rating: 4.9 },
-  children: ['Emma (5y)'],
-  status: 'confirmed' as const,
-};
 
-const RECENT_SESSIONS = [
-  { id: '1', date: 'Jan 10, 2025', hotel: 'Grand Hyatt Seoul', duration: '4 hours', rating: 5 },
-  { id: '2', date: 'Dec 28, 2024', hotel: 'Park Hyatt Busan', duration: '3 hours', rating: 5 },
-];
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const UPCOMING_BOOKING = {
+    id: '1',
+    confirmationCode: 'KCP-2025-0042',
+    dateKey: 'tonight',
+    time: '18:00 - 22:00',
+    hotel: 'Grand Hyatt Seoul',
+    room: '2305',
+    sitter: { name: 'Kim Minjung', rating: 4.9 },
+    children: ['Emma (' + t('common.yearsOld', { count: 5 }) + ')'],
+    status: 'confirmed' as const,
+  };
+
+  const RECENT_SESSIONS = [
+    {
+      id: '1',
+      date: new Date('2025-01-10'),
+      hotel: 'Grand Hyatt Seoul',
+      duration: t('common.hours', { count: 4 }), // Requires plural handling or simple string replacement
+      rating: 5
+    },
+    {
+      id: '2',
+      date: new Date('2024-12-28'),
+      hotel: 'Park Hyatt Busan',
+      duration: t('common.hours', { count: 3 }),
+      rating: 5
+    },
+  ];
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+  };
 
   // Get time of day for greeting
   const getTimeOfDay = () => {
@@ -69,13 +87,11 @@ export default function Home() {
               <StatusBadge status={UPCOMING_BOOKING.status} />
             </div>
             <div className="upcoming-details">
-              <div className="detail-row">
-                <span>📅</span>
-                <span>{t('parent.tonight')} • {UPCOMING_BOOKING.time}</span>
-              </div>
+              <span>📅</span>
+              <span>{t('parent.tonight')} • {UPCOMING_BOOKING.time}</span>
               <div className="detail-row">
                 <span>🏨</span>
-                <span>{UPCOMING_BOOKING.hotel} - Room {UPCOMING_BOOKING.room}</span>
+                <span>{UPCOMING_BOOKING.hotel} - {t('common.room')} {UPCOMING_BOOKING.room}</span>
               </div>
               <div className="detail-row">
                 <span>👩‍🍼</span>
@@ -105,11 +121,11 @@ export default function Home() {
             <CardBody>
               <div className="session-info">
                 <div>
-                  <span className="session-date">{session.date}</span>
+                  <span className="session-date">{formatDate(session.date)}</span>
                   <span className="session-hotel">{session.hotel}</span>
                 </div>
                 <div className="session-meta">
-                  <span>{session.duration}</span>
+                  <span>{session.duration.replace('hours', t('common.hours1', { defaultValue: 'hours' }))}</span>
                   <span>{'⭐'.repeat(session.rating)}</span>
                 </div>
               </div>

@@ -4,29 +4,30 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { Button } from '../../components/common/Button';
 import { Input, Select } from '../../components/common/Input';
+import { LanguageSwitcher } from '../../components/common/LanguageSwitcher';
 import type { UserRole } from '../../types';
-
-const ROLE_OPTIONS = [
-    { value: 'parent', label: '👨‍👩‍👧 Parent / Guardian' },
-    { value: 'sitter', label: '👩‍🍼 Babysitter' },
-    { value: 'hotel_staff', label: '🏨 Hotel Staff' },
-];
-
-const LANGUAGE_OPTIONS = [
-    { value: 'en', label: '🇺🇸 English' },
-    { value: 'ko', label: '🇰🇷 한국어' },
-    { value: 'ja', label: '🇯🇵 日本語' },
-    { value: 'zh', label: '🇨🇳 中文' },
-];
 
 export default function RegisterPage() {
     const navigate = useNavigate();
     const { signUp } = useAuth();
     const { success, error } = useToast();
+    const { t, i18n } = useTranslation();
+
+    const ROLE_OPTIONS = [
+        { value: 'parent', label: '👨‍👩‍👧 ' + t('auth.parentGuardian') },
+        { value: 'sitter', label: '👩‍🍼 ' + t('auth.sitter') },
+        { value: 'hotel_staff', label: '🏨 ' + t('auth.hotelStaff') },
+    ];
+
+    const LANGUAGE_OPTIONS = [
+        { value: 'en', label: '🇺🇸 English' },
+        { value: 'ko', label: '🇰🇷 한국어' },
+    ];
 
     const [formData, setFormData] = useState({
         email: '',
@@ -35,7 +36,7 @@ export default function RegisterPage() {
         firstName: '',
         lastName: '',
         role: 'parent' as UserRole,
-        language: 'en',
+        language: i18n.language || 'en',
     });
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -47,33 +48,37 @@ export default function RegisterPage() {
         if (errors[name]) {
             setErrors((prev) => ({ ...prev, [name]: '' }));
         }
+        // Change language when language select changes
+        if (name === 'language') {
+            i18n.changeLanguage(value);
+        }
     };
 
     const validate = () => {
         const newErrors: Record<string, string> = {};
 
         if (!formData.firstName.trim()) {
-            newErrors.firstName = 'First name is required';
+            newErrors.firstName = t('errors.required');
         }
 
         if (!formData.lastName.trim()) {
-            newErrors.lastName = 'Last name is required';
+            newErrors.lastName = t('errors.required');
         }
 
         if (!formData.email) {
-            newErrors.email = 'Email is required';
+            newErrors.email = t('errors.required');
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Invalid email format';
+            newErrors.email = t('errors.invalidEmail');
         }
 
         if (!formData.password) {
-            newErrors.password = 'Password is required';
+            newErrors.password = t('errors.required');
         } else if (formData.password.length < 8) {
-            newErrors.password = 'Password must be at least 8 characters';
+            newErrors.password = t('auth.atLeast8Chars');
         }
 
         if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = 'Passwords do not match';
+            newErrors.confirmPassword = t('errors.passwordTooShort');
         }
 
         setErrors(newErrors);
@@ -93,7 +98,7 @@ export default function RegisterPage() {
                 preferredLanguage: formData.language as 'en' | 'ko' | 'ja' | 'zh',
             });
 
-            success('Account created!', 'Welcome to KidsCare Pro.');
+            success(t('auth.createAccount') + '!', t('auth.welcomeBack'));
 
             // Redirect based on role
             const roleRedirects: Record<string, string> = {
@@ -103,8 +108,8 @@ export default function RegisterPage() {
             };
             navigate(roleRedirects[formData.role] || '/login');
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Failed to create account';
-            error('Registration failed', message);
+            const message = err instanceof Error ? err.message : t('errors.unknownError');
+            error(t('errors.unknownError'), message);
         } finally {
             setIsLoading(false);
         }
@@ -112,13 +117,16 @@ export default function RegisterPage() {
 
     return (
         <div className="register-page">
-            <h2 className="register-title">Create Account</h2>
-            <p className="register-subtitle">Join KidsCare Pro today</p>
+            <div className="register-lang-switch">
+                <LanguageSwitcher />
+            </div>
+            <h2 className="register-title">{t('auth.createAccount')}</h2>
+            <p className="register-subtitle">{t('auth.joinToday')}</p>
 
             <form onSubmit={handleSubmit} className="register-form">
                 <div className="form-row">
                     <Input
-                        label="First Name"
+                        label={t('auth.firstName')}
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
@@ -126,7 +134,7 @@ export default function RegisterPage() {
                         error={errors.firstName}
                     />
                     <Input
-                        label="Last Name"
+                        label={t('auth.lastName')}
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
@@ -136,7 +144,7 @@ export default function RegisterPage() {
                 </div>
 
                 <Input
-                    label="Email"
+                    label={t('auth.email')}
                     type="email"
                     name="email"
                     value={formData.email}
@@ -147,29 +155,29 @@ export default function RegisterPage() {
                 />
 
                 <Input
-                    label="Password"
+                    label={t('auth.password')}
                     type="password"
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="At least 8 characters"
+                    placeholder={t('auth.atLeast8Chars')}
                     error={errors.password}
                     autoComplete="new-password"
                 />
 
                 <Input
-                    label="Confirm Password"
+                    label={t('auth.confirmPassword')}
                     type="password"
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    placeholder="Confirm your password"
+                    placeholder={t('auth.confirmYourPassword')}
                     error={errors.confirmPassword}
                     autoComplete="new-password"
                 />
 
                 <Select
-                    label="I am a..."
+                    label={t('auth.iAmA')}
                     name="role"
                     value={formData.role}
                     onChange={handleChange}
@@ -177,7 +185,7 @@ export default function RegisterPage() {
                 />
 
                 <Select
-                    label="Preferred Language"
+                    label={t('auth.preferredLanguage')}
                     name="language"
                     value={formData.language}
                     onChange={handleChange}
@@ -190,12 +198,12 @@ export default function RegisterPage() {
                     fullWidth
                     isLoading={isLoading}
                 >
-                    Create Account
+                    {t('auth.createAccount')}
                 </Button>
             </form>
 
             <p className="register-footer">
-                Already have an account? <Link to="/login">Sign in</Link>
+                {t('auth.hasAccount')} <Link to="/login">{t('auth.signIn')}</Link>
             </p>
         </div>
     );
@@ -205,6 +213,12 @@ export default function RegisterPage() {
 const registerStyles = `
 .register-page {
   animation: fadeIn var(--transition-slow);
+}
+
+.register-lang-switch {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
 }
 
 .register-title {

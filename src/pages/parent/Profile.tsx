@@ -1,6 +1,7 @@
 // Parent Profile Page
 
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
@@ -9,6 +10,7 @@ import { useAuth } from '../../contexts/AuthContext';
 export default function Profile() {
     const navigate = useNavigate();
     const { user, signOut } = useAuth();
+    const { t } = useTranslation();
 
     const handleSignOut = async () => {
         await signOut();
@@ -33,18 +35,18 @@ export default function Profile() {
             {/* Children */}
             <Card>
                 <CardBody>
-                    <h3 className="section-title">My Children</h3>
+                    <h3 className="section-title">{t('parent.myChildren')}</h3>
                     <div className="children-list">
                         <div className="child-item">
                             <span className="child-avatar">👧</span>
                             <div className="child-info">
                                 <span className="child-name">Emma</span>
-                                <span className="child-age">5 years old</span>
+                                <span className="child-age">{t('common.yearsOld', { count: 5 })}</span>
                             </div>
-                            <Button variant="ghost" size="sm">Edit</Button>
+                            <Button variant="ghost" size="sm">{t('common.edit')}</Button>
                         </div>
                     </div>
-                    <Button variant="secondary" fullWidth>+ Add Child</Button>
+                    <Button variant="secondary" fullWidth>+ {t('parent.addChild')}</Button>
                 </CardBody>
             </Card>
 
@@ -52,18 +54,18 @@ export default function Profile() {
             <Card>
                 <CardBody>
                     <div className="settings-menu">
-                        <button className="menu-item"><span>🔔</span> Notifications</button>
-                        <button className="menu-item"><span>🌐</span> Language</button>
-                        <button className="menu-item"><span>💳</span> Payment Methods</button>
-                        <button className="menu-item"><span>📄</span> Terms of Service</button>
-                        <button className="menu-item"><span>🔒</span> Privacy Policy</button>
-                        <button className="menu-item"><span>❓</span> Help & Support</button>
+                        <button className="menu-item"><span>🔔</span> {t('parent.notifications')}</button>
+                        <button className="menu-item"><span>🌐</span> {t('auth.preferredLanguage')}</button>
+                        <button className="menu-item"><span>💳</span> {t('parent.paymentMethods')}</button>
+                        <button className="menu-item"><span>📄</span> {t('parent.termsOfService')}</button>
+                        <button className="menu-item"><span>🔒</span> {t('parent.privacyPolicy')}</button>
+                        <button className="menu-item"><span>❓</span> {t('parent.help')}</button>
                     </div>
                 </CardBody>
             </Card>
 
             <Button variant="secondary" fullWidth onClick={handleSignOut}>
-                Sign Out
+                {t('auth.signOut')}
             </Button>
         </div>
     );

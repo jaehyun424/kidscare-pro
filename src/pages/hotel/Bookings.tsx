@@ -3,6 +3,7 @@
 // ============================================
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input, Select } from '../../components/common/Input';
@@ -62,14 +63,7 @@ const BOOKINGS_DATA = [
     },
 ];
 
-const STATUS_OPTIONS = [
-    { value: '', label: 'All Statuses' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'confirmed', label: 'Confirmed' },
-    { value: 'in_progress', label: 'In Progress' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' },
-];
+
 
 // Icons
 const SearchIcon = () => (
@@ -87,9 +81,19 @@ const PlusIcon = () => (
 );
 
 export default function Bookings() {
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [selectedBooking, setSelectedBooking] = useState<typeof BOOKINGS_DATA[0] | null>(null);
+
+    const STATUS_OPTIONS = [
+        { value: '', label: t('common.allStatuses') },
+        { value: 'pending', label: t('status.pending') },
+        { value: 'confirmed', label: t('status.confirmed') },
+        { value: 'in_progress', label: t('status.inProgress') },
+        { value: 'completed', label: t('status.completed') },
+        { value: 'cancelled', label: t('status.cancelled') },
+    ];
 
     const filteredBookings = BOOKINGS_DATA.filter((booking) => {
         const matchesSearch =
@@ -112,11 +116,11 @@ export default function Bookings() {
         <div className="bookings-page animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Bookings</h1>
-                    <p className="page-subtitle">Manage all childcare bookings</p>
+                    <h1 className="page-title">{t('nav.bookings')}</h1>
+                    <p className="page-subtitle">{t('hotel.manageBookings')}</p>
                 </div>
                 <Button variant="gold" icon={<PlusIcon />}>
-                    New Booking
+                    {t('hotel.newBooking')}
                 </Button>
             </div>
 
@@ -125,7 +129,7 @@ export default function Bookings() {
                 <CardBody>
                     <div className="filters-row">
                         <Input
-                            placeholder="Search by code, name, or room..."
+                            placeholder={t('hotel.searchByCodeNameRoom')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             icon={<SearchIcon />}
@@ -144,12 +148,12 @@ export default function Bookings() {
                 <CardBody>
                     <div className="bookings-table">
                         <div className="table-header">
-                            <span>Booking</span>
-                            <span>Guest / Room</span>
-                            <span>Children</span>
-                            <span>Sitter</span>
-                            <span>Status</span>
-                            <span>Amount</span>
+                            <span>{t('hotel.bookingCode')}</span>
+                            <span>{t('hotel.guestRoom')}</span>
+                            <span>{t('hotel.childrenInfo')}</span>
+                            <span>{t('auth.sitter')}</span>
+                            <span>{t('hotel.status')}</span>
+                            <span>{t('hotel.amount')}</span>
                         </div>
                         {filteredBookings.map((booking) => (
                             <div
@@ -164,7 +168,7 @@ export default function Bookings() {
                                 </div>
                                 <div className="table-cell">
                                     <span className="guest-name">{booking.parent.name}</span>
-                                    <span className="room-number">Room {booking.room}</span>
+                                    <span className="room-number">{t('common.room')} {booking.room}</span>
                                 </div>
                                 <div className="table-cell">
                                     {booking.children.map((child, i) => (
@@ -183,7 +187,7 @@ export default function Bookings() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <Button variant="secondary" size="sm">Assign</Button>
+                                        <Button variant="secondary" size="sm">{t('hotel.assign')}</Button>
                                     )}
                                 </div>
                                 <div className="table-cell">

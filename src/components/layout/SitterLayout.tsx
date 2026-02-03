@@ -4,10 +4,12 @@
 
 
 import { NavLink, Outlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
 import { IconButton } from '../common/Button';
 import { TierBadge } from '../common/Badge';
 import { useAuth } from '../../contexts/AuthContext';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
 
 // Icons (same pattern)
 const CalendarIcon = () => (
@@ -52,18 +54,19 @@ const MoonIcon = () => (
     </svg>
 );
 
-// Navigation Items
-const navItems = [
-    { to: '/sitter', icon: <CalendarIcon />, label: 'Schedule', end: true },
-    { to: '/sitter/active', icon: <ActiveIcon />, label: 'Active' },
-    { to: '/sitter/earnings', icon: <EarningsIcon />, label: 'Earnings' },
-    { to: '/sitter/profile', icon: <ProfileIcon />, label: 'Profile' },
-];
-
 // Component
 export function SitterLayout() {
     const { isDark, toggleTheme } = useTheme();
+    const { t } = useTranslation();
     useAuth(); // Keep auth context active
+
+    // Navigation Items with translations
+    const navItems = [
+        { to: '/sitter', icon: <CalendarIcon />, labelKey: 'nav.schedule', end: true },
+        { to: '/sitter/active', icon: <ActiveIcon />, labelKey: 'nav.active' },
+        { to: '/sitter/earnings', icon: <EarningsIcon />, labelKey: 'nav.earnings' },
+        { to: '/sitter/profile', icon: <ProfileIcon />, labelKey: 'nav.profile' },
+    ];
 
     return (
         <div className="sitter-layout">
@@ -75,6 +78,7 @@ export function SitterLayout() {
                 </div>
                 <div className="sitter-header-right">
                     <TierBadge tier="gold" showLabel={false} />
+                    <LanguageSwitcher />
                     <IconButton
                         icon={isDark ? <SunIcon /> : <MoonIcon />}
                         onClick={toggleTheme}
@@ -100,7 +104,7 @@ export function SitterLayout() {
                         }
                     >
                         <span className="bottom-nav-icon">{item.icon}</span>
-                        <span className="bottom-nav-label">{item.label}</span>
+                        <span className="bottom-nav-label">{t(item.labelKey)}</span>
                     </NavLink>
                 ))}
             </nav>

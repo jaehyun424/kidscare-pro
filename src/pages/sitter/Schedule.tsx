@@ -1,5 +1,6 @@
 // Sitter Schedule Page
 
+import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { StatusBadge, TierBadge, SafetyBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -20,17 +21,19 @@ const WEEK_SCHEDULE = [
 ];
 
 export default function Schedule() {
+    const { t } = useTranslation();
+
     return (
         <div className="sitter-schedule animate-fade-in">
             {/* Stats */}
             <div className="stats-row">
                 <div className="stat-item">
                     <span className="stat-value">247</span>
-                    <span className="stat-label">Sessions</span>
+                    <span className="stat-label">{t('hotel.sessions')}</span>
                 </div>
                 <div className="stat-item">
                     <span className="stat-value">4.9</span>
-                    <span className="stat-label">Rating</span>
+                    <span className="stat-label">{t('common.rating')}</span>
                 </div>
                 <div className="stat-item gold">
                     <TierBadge tier="gold" />
@@ -40,7 +43,7 @@ export default function Schedule() {
             <SafetyBadge days={365} />
 
             {/* Today's Schedule */}
-            <h2 className="section-title">Today's Schedule</h2>
+            <h2 className="section-title">{t('sitter.todaySchedule')}</h2>
             {TODAY_SESSIONS.length > 0 ? (
                 <div className="sessions-list">
                     {TODAY_SESSIONS.map((session) => (
@@ -51,15 +54,15 @@ export default function Schedule() {
                                     <StatusBadge status={session.status} />
                                 </div>
                                 <div className="session-info">
-                                    <span>🏨 {session.hotel} - Room {session.room}</span>
+                                    <span>🏨 {session.hotel} - {t('common.room')} {session.room}</span>
                                     <span>👶 {session.children.join(', ')}</span>
                                 </div>
                                 <div className="session-actions">
                                     {session.status === 'confirmed' && (
-                                        <Button variant="gold" fullWidth>Start Session</Button>
+                                        <Button variant="gold" fullWidth>{t('sitter.startSession')}</Button>
                                     )}
                                     {session.status === 'pending' && (
-                                        <Button variant="secondary" fullWidth disabled>Pending Confirmation</Button>
+                                        <Button variant="secondary" fullWidth disabled>{t('status.pending')}</Button>
                                     )}
                                 </div>
                             </CardBody>
@@ -67,11 +70,11 @@ export default function Schedule() {
                     ))}
                 </div>
             ) : (
-                <Card><CardBody><p className="no-sessions">No sessions scheduled for today</p></CardBody></Card>
+                <Card><CardBody><p className="no-sessions">{t('sitter.noSessionsToday')}</p></CardBody></Card>
             )}
 
             {/* Week View */}
-            <h2 className="section-title">This Week</h2>
+            <h2 className="section-title">{t('sitter.thisWeek')}</h2>
             <div className="week-grid">
                 {WEEK_SCHEDULE.map((day, i) => (
                     <div key={i} className={`day-item ${day.sessions > 0 ? 'has-sessions' : ''}`}>

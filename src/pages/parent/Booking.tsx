@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input, Select } from '../../components/common/Input';
@@ -26,17 +27,10 @@ const TIME_SLOTS = [
     { value: '21:00', label: '21:00' },
 ];
 
-const DURATION_OPTIONS = [
-    { value: '2', label: '2 hours' },
-    { value: '3', label: '3 hours' },
-    { value: '4', label: '4 hours' },
-    { value: '5', label: '5 hours' },
-    { value: '6', label: '6 hours' },
-];
-
 export default function Booking() {
     const navigate = useNavigate();
     const { success } = useToast();
+    const { t } = useTranslation();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -49,6 +43,20 @@ export default function Booking() {
         notes: '',
     });
 
+    const DURATION_OPTIONS = [
+        { value: '2', label: `2 ${t('common.hours')}` },
+        { value: '3', label: `3 ${t('common.hours')}` },
+        { value: '4', label: `4 ${t('common.hours')}` },
+        { value: '5', label: `5 ${t('common.hours')}` },
+        { value: '6', label: `6 ${t('common.hours')}` },
+    ];
+
+    const STEP_LABELS = [
+        t('booking.bookingDetails'),
+        t('parent.children'),
+        t('common.confirm')
+    ];
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -57,7 +65,7 @@ export default function Booking() {
         setIsLoading(true);
         await new Promise((r) => setTimeout(r, 1500));
         setIsLoading(false);
-        success('Booking Confirmed!', 'Your booking has been submitted successfully.');
+        success(t('booking.bookingConfirmed'), t('booking.bookingConfirmed'));
         navigate('/parent');
     };
 
@@ -69,11 +77,11 @@ export default function Booking() {
 
     return (
         <div className="booking-page animate-fade-in">
-            <h1 className="page-title">Book Childcare</h1>
+            <h1 className="page-title">{t('booking.newBooking')}</h1>
 
             {/* Progress Steps */}
             <div className="progress-steps">
-                {['Details', 'Children', 'Confirm'].map((label, i) => (
+                {STEP_LABELS.map((label, i) => (
                     <div key={i} className={`step ${i + 1 <= step ? 'step-active' : ''}`}>
                         <span className="step-number">{i + 1}</span>
                         <span className="step-label">{label}</span>
@@ -85,25 +93,25 @@ export default function Booking() {
             {step === 1 && (
                 <Card className="booking-card animate-fade-in">
                     <CardBody>
-                        <h2>Booking Details</h2>
+                        <h2>{t('booking.bookingDetails')}</h2>
                         <div className="form-stack">
                             <Select
-                                label="Select Hotel"
+                                label={t('booking.selectHotel')}
                                 name="hotel"
                                 value={formData.hotel}
                                 onChange={handleInputChange}
                                 options={HOTELS}
-                                placeholder="Choose your hotel..."
+                                placeholder={t('booking.chooseHotel')}
                             />
                             <Input
-                                label="Room Number"
+                                label={t('common.room')}
                                 name="room"
                                 value={formData.room}
                                 onChange={handleInputChange}
                                 placeholder="e.g., 2305"
                             />
                             <Input
-                                label="Date"
+                                label={t('common.date')}
                                 name="date"
                                 type="date"
                                 value={formData.date}
@@ -111,15 +119,15 @@ export default function Booking() {
                             />
                             <div className="time-row">
                                 <Select
-                                    label="Start Time"
+                                    label={t('booking.startTime')}
                                     name="startTime"
                                     value={formData.startTime}
                                     onChange={handleInputChange}
                                     options={TIME_SLOTS}
-                                    placeholder="Select..."
+                                    placeholder={t('common.search') + '...'}
                                 />
                                 <Select
-                                    label="Duration"
+                                    label={t('booking.duration')}
                                     name="duration"
                                     value={formData.duration}
                                     onChange={handleInputChange}
@@ -128,7 +136,7 @@ export default function Booking() {
                             </div>
                         </div>
                         <Button variant="gold" fullWidth onClick={() => setStep(2)}>
-                            Continue
+                            {t('common.next')}
                         </Button>
                     </CardBody>
                 </Card>
@@ -138,28 +146,28 @@ export default function Booking() {
             {step === 2 && (
                 <Card className="booking-card animate-fade-in">
                     <CardBody>
-                        <h2>Select Children</h2>
+                        <h2>{t('booking.selectChildren')}</h2>
                         <div className="children-selection">
                             {CHILDREN.map((child) => (
                                 <label key={child.id} className="child-option">
                                     <input type="checkbox" defaultChecked={child.selected} />
                                     <div className="child-info">
                                         <span className="child-name">{child.name}</span>
-                                        <span className="child-age">{child.age} years old</span>
+                                        <span className="child-age">{child.age} {t('common.age')}</span>
                                     </div>
                                 </label>
                             ))}
                         </div>
                         <Input
-                            label="Special Instructions (Optional)"
+                            label={t('booking.specialRequests')}
                             name="notes"
                             value={formData.notes}
                             onChange={handleInputChange}
-                            placeholder="Allergies, preferences, bedtime..."
+                            placeholder={t('booking.allergiesOrNeeds')}
                         />
                         <div className="button-row">
-                            <Button variant="secondary" onClick={() => setStep(1)}>Back</Button>
-                            <Button variant="gold" onClick={() => setStep(3)}>Continue</Button>
+                            <Button variant="secondary" onClick={() => setStep(1)}>{t('common.back')}</Button>
+                            <Button variant="gold" onClick={() => setStep(3)}>{t('common.next')}</Button>
                         </div>
                     </CardBody>
                 </Card>
@@ -169,40 +177,40 @@ export default function Booking() {
             {step === 3 && (
                 <Card className="booking-card animate-fade-in">
                     <CardBody>
-                        <h2>Confirm Booking</h2>
+                        <h2>{t('booking.reviewBooking')}</h2>
                         <div className="confirmation-summary">
                             <div className="summary-row">
-                                <span>Hotel</span>
+                                <span>{t('booking.selectHotel')}</span>
                                 <span>{HOTELS.find((h) => h.value === formData.hotel)?.label || 'Grand Hyatt Seoul'}</span>
                             </div>
                             <div className="summary-row">
-                                <span>Room</span>
+                                <span>{t('common.room')}</span>
                                 <span>{formData.room || '2305'}</span>
                             </div>
                             <div className="summary-row">
-                                <span>Date & Time</span>
-                                <span>{formData.date || 'Today'} at {formData.startTime || '18:00'}</span>
+                                <span>{t('booking.dateTime')}</span>
+                                <span>{formData.date || t('time.today')} {formData.startTime || '18:00'}</span>
                             </div>
                             <div className="summary-row">
-                                <span>Duration</span>
-                                <span>{formData.duration} hours</span>
+                                <span>{t('booking.duration')}</span>
+                                <span>{formData.duration} {t('common.hours')}</span>
                             </div>
                             <div className="summary-row">
-                                <span>Children</span>
+                                <span>{t('parent.children')}</span>
                                 <span>Emma (5y)</span>
                             </div>
                             <div className="summary-row total">
-                                <span>Estimated Total</span>
+                                <span>{t('booking.totalCost')}</span>
                                 <span className="price">₩{calculatePrice().toLocaleString()}</span>
                             </div>
                         </div>
                         <p className="terms-note">
-                            By confirming, you agree to the Terms of Service and Privacy Policy.
+                            {t('auth.termsAgreement')}
                         </p>
                         <div className="button-row">
-                            <Button variant="secondary" onClick={() => setStep(2)}>Back</Button>
+                            <Button variant="secondary" onClick={() => setStep(2)}>{t('common.back')}</Button>
                             <Button variant="gold" onClick={handleSubmit} isLoading={isLoading}>
-                                Confirm Booking
+                                {t('booking.confirmBooking')}
                             </Button>
                         </div>
                     </CardBody>
