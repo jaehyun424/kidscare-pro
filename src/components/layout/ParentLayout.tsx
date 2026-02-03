@@ -2,10 +2,11 @@
 // KidsCare Pro - Parent App Layout (Bottom Nav)
 // ============================================
 
-
 import { NavLink, Outlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
 import { IconButton } from '../common/Button';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
 
 // ----------------------------------------
 // Icons
@@ -54,20 +55,19 @@ const MoonIcon = () => (
 );
 
 // ----------------------------------------
-// Navigation Items
-// ----------------------------------------
-const navItems = [
-    { to: '/parent', icon: <HomeIcon />, label: 'Home', end: true },
-    { to: '/parent/book', icon: <BookIcon />, label: 'Book' },
-    { to: '/parent/history', icon: <HistoryIcon />, label: 'History' },
-    { to: '/parent/profile', icon: <ProfileIcon />, label: 'Profile' },
-];
-
-// ----------------------------------------
 // Component
 // ----------------------------------------
 export function ParentLayout() {
     const { isDark, toggleTheme } = useTheme();
+    const { t } = useTranslation();
+
+    // Navigation Items with translations
+    const navItems = [
+        { to: '/parent', icon: <HomeIcon />, labelKey: 'nav.home', end: true },
+        { to: '/parent/book', icon: <BookIcon />, labelKey: 'nav.book' },
+        { to: '/parent/history', icon: <HistoryIcon />, labelKey: 'nav.history' },
+        { to: '/parent/profile', icon: <ProfileIcon />, labelKey: 'nav.profile' },
+    ];
 
     return (
         <div className="parent-layout">
@@ -77,11 +77,14 @@ export function ParentLayout() {
                     <span className="logo-icon">👶</span>
                     <span className="logo-text">KidsCare<span className="text-gold">Pro</span></span>
                 </div>
-                <IconButton
-                    icon={isDark ? <SunIcon /> : <MoonIcon />}
-                    onClick={toggleTheme}
-                    aria-label="Toggle theme"
-                />
+                <div className="parent-header-right">
+                    <LanguageSwitcher />
+                    <IconButton
+                        icon={isDark ? <SunIcon /> : <MoonIcon />}
+                        onClick={toggleTheme}
+                        aria-label="Toggle theme"
+                    />
+                </div>
             </header>
 
             {/* Main Content */}
@@ -101,7 +104,7 @@ export function ParentLayout() {
                         }
                     >
                         <span className="bottom-nav-icon">{item.icon}</span>
-                        <span className="bottom-nav-label">{item.label}</span>
+                        <span className="bottom-nav-label">{t(item.labelKey)}</span>
                     </NavLink>
                 ))}
             </nav>
@@ -134,6 +137,12 @@ const parentLayoutStyles = `
 }
 
 .parent-header-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.parent-header-right {
   display: flex;
   align-items: center;
   gap: var(--space-2);
