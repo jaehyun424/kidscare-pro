@@ -4,6 +4,7 @@
 // ============================================
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+/* eslint-disable react-refresh/only-export-components */
 import type { User as FirebaseUser } from 'firebase/auth';
 import {
     signInWithEmailAndPassword,

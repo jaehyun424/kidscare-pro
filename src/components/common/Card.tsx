@@ -95,47 +95,68 @@ export function CardFooter({ children, className = '' }: CardFooterProps) {
 }
 
 // Additional styles
+
 const cardStyles = `
 .p-0 { padding: 0 !important; }
 .p-sm { padding: var(--space-4) !important; }
 .p-lg { padding: var(--space-8) !important; }
 
 .card-clickable {
-  cursor: pointer;
-  text-align: left;
-  width: 100%;
-  font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .card-clickable:hover {
-  transform: translateY(-2px);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--gold-300);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
 }
 
 .card-header-content {
-  flex: 1;
+    flex: 1;
 }
 
 .card-header-action {
-  flex-shrink: 0;
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
+
+.card-title {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--charcoal-900);
+    line-height: 1.3;
 }
 
 .card-subtitle {
-  font-size: var(--text-sm);
-  color: var(--text-tertiary);
-  margin-top: var(--space-1);
+    font-size: 0.875rem;
+    color: var(--charcoal-500);
+    margin-top: 0.25rem;
+    font-family: var(--font-sans);
 }
 
 .card-body {
-  margin-top: var(--space-4);
+    position: relative;
 }
 
 .card-footer {
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  gap: var(--space-3);
-  justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--cream-300);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
 }
 `;
 

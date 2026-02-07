@@ -2,7 +2,7 @@
 // KidsCare Pro - Input Component
 // ============================================
 
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useId } from 'react';
 
 // ----------------------------------------
 // Types
@@ -44,7 +44,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
     id,
     ...props
 }, ref) => {
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const inputId = id || generatedId;
     const hasIcon = !!icon;
 
     const inputClasses = [
@@ -96,7 +97,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(({
     rows = 4,
     ...props
 }, ref) => {
-    const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const textareaId = id || generatedId;
 
     const textareaClasses = [
         'form-textarea',
@@ -139,7 +141,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(({
     id,
     ...props
 }, ref) => {
-    const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const selectId = id || generatedId;
 
     const selectClasses = [
         'form-select',

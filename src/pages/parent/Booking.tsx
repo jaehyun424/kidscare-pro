@@ -221,26 +221,59 @@ export default function Booking() {
 }
 
 // Styles
-const bookingStyles = `
-.booking-page { max-width: 480px; margin: 0 auto; }
-.page-title { font-size: var(--text-2xl); font-weight: var(--font-bold); margin-bottom: var(--space-6); text-align: center; }
 
+// Styles
+const bookingStyles = `
+.booking-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page-title {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  color: var(--charcoal-900);
+  text-align: center;
+  margin-bottom: 3rem;
+  font-weight: 500;
+}
+
+/* Progress Steps */
 .progress-steps {
   display: flex;
   justify-content: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
+  gap: 3rem;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.progress-steps::before {
+  content: '';
+  position: absolute;
+  top: 14px; /* Half of step-number height (28px) */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 1px;
+  background: var(--cream-300);
+  z-index: -1;
 }
 
 .step {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  opacity: 0.4;
-  transition: opacity var(--transition-fast);
+  gap: 0.75rem;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+  background: var(--cream-100); /* To hide the line behind */
+  padding: 0 0.5rem;
 }
 
-.step-active { opacity: 1; }
+.step-active {
+  opacity: 1;
+}
 
 .step-number {
   width: 28px;
@@ -248,81 +281,164 @@ const bookingStyles = `
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--glass-bg);
   border-radius: 50%;
-  font-size: var(--text-sm);
-  font-weight: var(--font-bold);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid var(--charcoal-300);
+  color: var(--charcoal-500);
+  background: white;
+  transition: all 0.3s;
 }
 
 .step-active .step-number {
+  border-color: var(--gold-500);
   background: var(--gold-500);
-  color: var(--navy-900);
+  color: white;
+  box-shadow: 0 0 0 4px var(--cream-200);
 }
 
-.step-label { font-size: var(--text-sm); }
+.step-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--charcoal-900);
+}
 
-.booking-card { margin-bottom: var(--space-4); }
-.booking-card h2 { font-size: var(--text-lg); font-weight: var(--font-semibold); margin-bottom: var(--space-4); }
+/* Card Overrides for "Paper" Look */
+.booking-card {
+  background: white !important;
+  border: 1px solid var(--cream-300) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: var(--radius-sm) !important;
+}
 
-.form-stack { display: flex; flex-direction: column; gap: var(--space-4); margin-bottom: var(--space-6); }
+.booking-card h2 {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--charcoal-900);
+  text-align: center;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
 
-.time-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
 
+.time-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Children Selection */
 .children-selection {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .child-option {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--glass-bg);
-  border-radius: var(--radius-lg);
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--cream-300);
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  transition: all 0.2s;
+  background: white;
 }
 
-.child-option input { width: 20px; height: 20px; accent-color: var(--gold-500); }
+.child-option:hover {
+  border-color: var(--gold-300);
+  background: var(--cream-50);
+}
 
-.child-name { display: block; font-weight: var(--font-medium); }
-.child-age { font-size: var(--text-sm); color: var(--text-tertiary); }
+.child-option input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--gold-500);
+}
 
-.button-row { display: flex; gap: var(--space-3); margin-top: var(--space-4); }
-.button-row > * { flex: 1; }
+.child-name {
+  display: block;
+  font-weight: 600;
+  color: var(--charcoal-900);
+  font-size: 1rem;
+}
 
+.child-age {
+  font-size: 0.875rem;
+  color: var(--charcoal-500);
+}
+
+/* Summary "Receipt" */
 .confirmation-summary {
-  background: var(--glass-bg);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  margin-bottom: var(--space-4);
+  background: var(--cream-50);
+  border: 1px solid var(--cream-300);
+  border-radius: var(--radius-sm); /* jagged edge effect could be added here creatively */
+  padding: 2rem;
+  margin-bottom: 2rem;
+  position: relative;
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
-  padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--border-color);
+  padding: 0.75rem 0;
+  border-bottom: 1px dashed var(--cream-300);
+  font-size: 0.95rem;
+  color: var(--charcoal-700);
 }
 
-.summary-row:last-child { border-bottom: none; }
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-row span:first-child {
+  color: var(--charcoal-500);
+}
 
 .summary-row.total {
-  margin-top: var(--space-2);
-  padding-top: var(--space-3);
-  border-top: 2px solid var(--border-color);
-  font-weight: var(--font-bold);
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--charcoal-900);
+  border-bottom: none;
 }
 
-.price { color: var(--gold-500); font-size: var(--text-lg); }
+.summary-row.total span {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--charcoal-900);
+}
+
+.summary-row.total .price {
+  color: var(--gold-600);
+}
 
 .terms-note {
-  font-size: var(--text-xs);
-  color: var(--text-tertiary);
+  font-size: 0.75rem;
+  color: var(--charcoal-400);
   text-align: center;
-  margin-bottom: var(--space-4);
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.button-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.button-row > * {
+  flex: 1;
 }
 `;
 
