@@ -9,126 +9,131 @@ import { TierBadge, Badge, SafetyBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 
 const SITTERS = [
-    {
-        id: '1',
-        name: 'Kim Minjung',
-        tier: 'gold' as const,
-        rating: 4.9,
-        sessionsCompleted: 247,
-        languages: ['Korean', 'English', 'Japanese'],
-        certifications: ['CPR', 'First Aid', 'Child Psychology'],
-        availability: 'Available',
-        hourlyRate: 45000,
-        safetyDays: 365,
-    },
-    {
-        id: '2',
-        name: 'Park Sooyeon',
-        tier: 'gold' as const,
-        rating: 4.8,
-        sessionsCompleted: 189,
-        languages: ['Korean', 'English'],
-        certifications: ['CPR', 'First Aid'],
-        availability: 'In Session',
-        hourlyRate: 45000,
-        safetyDays: 280,
-    },
-    {
-        id: '3',
-        name: 'Lee Jihye',
-        tier: 'silver' as const,
-        rating: 4.7,
-        sessionsCompleted: 95,
-        languages: ['Korean', 'Chinese'],
-        certifications: ['CPR', 'First Aid'],
-        availability: 'Available',
-        hourlyRate: 35000,
-        safetyDays: 95,
-    },
-    {
-        id: '4',
-        name: 'Choi Yuna',
-        tier: 'gold' as const,
-        rating: 4.9,
-        sessionsCompleted: 312,
-        languages: ['Korean', 'English', 'Chinese'],
-        certifications: ['CPR', 'First Aid', 'Child Development'],
-        availability: 'In Session',
-        hourlyRate: 50000,
-        safetyDays: 450,
-    },
+  {
+    id: '1',
+    name: 'Kim Minjung',
+    tier: 'gold' as const,
+    rating: 4.9,
+    sessionsCompleted: 247,
+    languages: ['Korean', 'English', 'Japanese'],
+    certifications: ['CPR', 'First Aid', 'Child Psychology'],
+    availability: 'Available',
+    hourlyRate: 45000,
+    safetyDays: 365,
+  },
+  {
+    id: '2',
+    name: 'Park Sooyeon',
+    tier: 'gold' as const,
+    rating: 4.8,
+    sessionsCompleted: 189,
+    languages: ['Korean', 'English'],
+    certifications: ['CPR', 'First Aid'],
+    availability: 'In Session',
+    hourlyRate: 45000,
+    safetyDays: 280,
+  },
+  {
+    id: '3',
+    name: 'Lee Jihye',
+    tier: 'silver' as const,
+    rating: 4.7,
+    sessionsCompleted: 95,
+    languages: ['Korean', 'Chinese'],
+    certifications: ['CPR', 'First Aid'],
+    availability: 'Available',
+    hourlyRate: 35000,
+    safetyDays: 95,
+  },
+  {
+    id: '4',
+    name: 'Choi Yuna',
+    tier: 'gold' as const,
+    rating: 4.9,
+    sessionsCompleted: 312,
+    languages: ['Korean', 'English', 'Chinese'],
+    certifications: ['CPR', 'First Aid', 'Child Development'],
+    availability: 'In Session',
+    hourlyRate: 50000,
+    safetyDays: 450,
+  },
 ];
 
 export default function SitterManagement() {
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('ko-KR', {
-            style: 'currency',
-            currency: 'KRW',
-            maximumFractionDigits: 0,
-        }).format(amount);
-    };
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('ko-KR', {
+      style: 'currency',
+      currency: 'KRW',
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
 
-    return (
-        <div className="sitter-management-page animate-fade-in">
-            <div className="page-header">
-                <div>
-                    <h1 className="page-title">Sitter Management</h1>
-                    <p className="page-subtitle">{SITTERS.length} sitters registered at your hotel</p>
-                </div>
-                <Button variant="gold">Add New Sitter</Button>
-            </div>
-
-            <div className="sitters-grid">
-                {SITTERS.map((sitter) => (
-                    <Card key={sitter.id} className="sitter-card">
-                        <CardBody>
-                            <div className="sitter-header">
-                                <Avatar name={sitter.name} size="xl" variant={sitter.tier === 'gold' ? 'gold' : 'default'} />
-                                <div className="sitter-info">
-                                    <h3 className="sitter-name">{sitter.name}</h3>
-                                    <TierBadge tier={sitter.tier} />
-                                    <div className="sitter-rating">
-                                        ⭐ {sitter.rating} ({sitter.sessionsCompleted} sessions)
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="sitter-status">
-                                <Badge variant={sitter.availability === 'Available' ? 'success' : 'warning'}>
-                                    {sitter.availability}
-                                </Badge>
-                                <SafetyBadge days={sitter.safetyDays} />
-                            </div>
-
-                            <div className="sitter-details">
-                                <div className="detail-row">
-                                    <span className="detail-label">Languages</span>
-                                    <span className="detail-value">{sitter.languages.join(', ')}</span>
-                                </div>
-                                <div className="detail-row">
-                                    <span className="detail-label">Certifications</span>
-                                    <span className="detail-value">{sitter.certifications.join(', ')}</span>
-                                </div>
-                                <div className="detail-row">
-                                    <span className="detail-label">Hourly Rate</span>
-                                    <span className="detail-value rate">{formatCurrency(sitter.hourlyRate)}/hr</span>
-                                </div>
-                            </div>
-
-                            <div className="sitter-actions">
-                                <Button variant="secondary" size="sm" fullWidth>
-                                    View Profile
-                                </Button>
-                                <Button variant="primary" size="sm" fullWidth disabled={sitter.availability !== 'Available'}>
-                                    Assign to Booking
-                                </Button>
-                            </div>
-                        </CardBody>
-                    </Card>
-                ))}
-            </div>
+  return (
+    <div className="sitter-management-page animate-fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Sitter Management</h1>
+          <p className="page-subtitle">{SITTERS.length} sitters registered at your hotel</p>
         </div>
-    );
+        <Button variant="gold">Add New Sitter</Button>
+      </div>
+
+      <div className="sitters-grid">
+        {SITTERS.map((sitter) => (
+          <Card key={sitter.id} className="sitter-card">
+            <CardBody>
+              <div className="sitter-header">
+                <Avatar name={sitter.name} size="xl" variant={sitter.tier === 'gold' ? 'gold' : 'default'} />
+                <div className="sitter-info">
+                  <h3 className="sitter-name">{sitter.name}</h3>
+                  <TierBadge tier={sitter.tier} />
+                  <div className="sitter-rating">
+                    ⭐ {sitter.rating} ({sitter.sessionsCompleted} sessions)
+                    {sitter.tier === 'gold' && (
+                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                        ✓ Verified
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="sitter-status">
+                <Badge variant={sitter.availability === 'Available' ? 'success' : 'warning'}>
+                  {sitter.availability}
+                </Badge>
+                <SafetyBadge days={sitter.safetyDays} />
+              </div>
+
+              <div className="sitter-details">
+                <div className="detail-row">
+                  <span className="detail-label">Languages</span>
+                  <span className="detail-value">{sitter.languages.join(', ')}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Certifications</span>
+                  <span className="detail-value">{sitter.certifications.join(', ')}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Hourly Rate</span>
+                  <span className="detail-value rate">{formatCurrency(sitter.hourlyRate)}/hr</span>
+                </div>
+              </div>
+
+              <div className="sitter-actions">
+                <Button variant="secondary" size="sm" fullWidth>
+                  View Profile
+                </Button>
+                <Button variant="primary" size="sm" fullWidth disabled={sitter.availability !== 'Available'}>
+                  Assign to Booking
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // Styles
@@ -221,7 +226,7 @@ const sitterStyles = `
 `;
 
 if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = sitterStyles;
-    document.head.appendChild(styleSheet);
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = sitterStyles;
+  document.head.appendChild(styleSheet);
 }

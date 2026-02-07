@@ -37,6 +37,39 @@ export default function Profile() {
                 </CardBody>
             </Card>
 
+            {/* Verification Status - NEW */}
+            <Card className="mb-4">
+                <CardBody>
+                    <h3 className="section-title">Identity Verification</h3>
+                    <div className="verification-grid">
+                        <div className="verify-item verified">
+                            <span className="verify-icon">🏨</span>
+                            <div className="verify-text">
+                                <span className="verify-label">Hotel Partner Verified</span>
+                                <span className="verify-sub">Grand Hyatt • 2024</span>
+                            </div>
+                            <span className="verify-check">✓</span>
+                        </div>
+                        <div className="verify-item verified">
+                            <span className="verify-icon">🆔</span>
+                            <div className="verify-text">
+                                <span className="verify-label">Gov. ID Checked</span>
+                                <span className="verify-sub">National Registry</span>
+                            </div>
+                            <span className="verify-check">✓</span>
+                        </div>
+                        <div className="verify-item verified">
+                            <span className="verify-icon">⚖️</span>
+                            <div className="verify-text">
+                                <span className="verify-label">Background Clear</span>
+                                <span className="verify-sub">Valid until Dec 2025</span>
+                            </div>
+                            <span className="verify-check">✓</span>
+                        </div>
+                    </div>
+                </CardBody>
+            </Card>
+
             {/* Certifications */}
             <Card>
                 <CardBody>
@@ -128,6 +161,49 @@ const profileStyles = `
 }
 .menu-btn:last-child { border-bottom: none; }
 .menu-btn:hover { background: var(--glass-bg); }
+
+.verification-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.verify-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    background: white;
+    border: 1px solid var(--cream-300);
+    border-radius: var(--radius-md);
+}
+
+.verify-item.verified {
+    background: linear-gradient(to right, #F0FDF4, white);
+    border-color: #BBF7D0;
+}
+
+.verify-icon { font-size: 1.25rem; }
+
+.verify-text { flex: 1; }
+
+.verify-label {
+    display: block;
+    font-weight: var(--font-semibold);
+    font-size: var(--text-sm);
+    color: var(--charcoal-900);
+}
+
+.verify-sub {
+    display: block;
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+
+.verify-check {
+    color: #10B981;
+    font-weight: bold;
+}
 `;
 
 if (typeof document !== 'undefined') {
