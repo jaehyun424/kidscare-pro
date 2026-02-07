@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { Card, CardBody } from '../common/Card';
 
 export interface ActivityLog {

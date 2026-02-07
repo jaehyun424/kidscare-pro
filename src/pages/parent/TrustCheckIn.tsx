@@ -1,10 +1,11 @@
 
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { SignaturePad, SignaturePadRef } from '../../components/common/SignaturePad';
+import { SignaturePad } from '../../components/common/SignaturePad';
+import type { SignaturePadRef } from '../../components/common/SignaturePad';
 import { useToast } from '../../contexts/ToastContext';
 
 export default function TrustCheckIn() {

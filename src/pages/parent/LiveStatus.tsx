@@ -1,12 +1,13 @@
 // Parent Live Status Page - Quiet Luxury Redesign
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card } from '../../components/common/Card';
-import { Button } from '../../components/common/Button';
+import { Button, IconButton } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
 import { TierBadge } from '../../components/common/Badge';
-import { ActivityFeed, ActivityLog } from '../../components/parent/ActivityFeed';
+import { ActivityFeed } from '../../components/parent/ActivityFeed';
+import type { ActivityLog } from '../../components/parent/ActivityFeed';
 
 export default function LiveStatus() {
     useParams();
@@ -79,8 +80,12 @@ export default function LiveStatus() {
                             </div>
                             <p className="text-xs text-charcoal-500">Certified Specialist • English/Korean</p>
                         </div>
-                        <Button variant="ghost" size="sm" icon={<span className="text-xl">📞</span>}>
-                        </Button>
+                        <IconButton
+                            variant="ghost"
+                            size="md"
+                            aria-label="Call Sitter"
+                            icon={<span className="text-xl">📞</span>}
+                        />
                     </div>
                 </Card>
 
