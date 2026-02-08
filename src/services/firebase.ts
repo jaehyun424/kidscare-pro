@@ -21,21 +21,36 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+let app: any;
+let auth: any;
+let db: any;
+let storage: any;
+let analytics: any | null = null;
 
-// Initialize services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+if (firebaseConfig.apiKey) {
+    try {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        storage = getStorage(app);
+        analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
-// Initialize Analytics (only in browser)
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
-
-// Connect to emulators in development (optional)
-if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true') {
-    connectAuthEmulator(auth, 'http://localhost:9099');
-    connectFirestoreEmulator(db, 'localhost', 8080);
-    connectStorageEmulator(storage, 'localhost', 9199);
+        // Connect to emulators in development (optional)
+        if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true') {
+            connectAuthEmulator(auth, 'http://localhost:9099');
+            connectFirestoreEmulator(db, 'localhost', 8080);
+            connectStorageEmulator(storage, 'localhost', 9199);
+        }
+    } catch (error) {
+        console.warn('Firebase initialization failed:', error);
+    }
+} else {
+    console.warn('Firebase configuration missing. Using mock services.');
+    // Mock services to prevent crash
+    auth = { currentUser: null };
+    db = {};
+    storage = {};
 }
 
+export { auth, db, storage, analytics };
 export default app;
