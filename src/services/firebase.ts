@@ -43,6 +43,10 @@ if (firebaseConfig.apiKey) {
         }
     } catch (error) {
         console.warn('Firebase initialization failed:', error);
+        // Mock services to prevent crash
+        auth = { currentUser: null };
+        db = {};
+        storage = {};
     }
 } else {
     console.warn('Firebase configuration missing. Using mock services.');

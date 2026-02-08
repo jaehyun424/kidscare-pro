@@ -18,8 +18,10 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 import type { User, UserRole } from '../types';
 
-// Demo mode flag from environment or fallback if Firebase is not configured
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true' || !import.meta.env.VITE_FIREBASE_API_KEY;
+// Demo mode flag from environment or fallback if Firebase is not properly initialized
+// We check if auth has an 'app' property to determine if it's a real Firebase Auth instance
+const isMockAuth = !auth || !auth.app;
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true' || isMockAuth;
 
 // Demo users for testing (only used when DEMO_MODE is true)
 const DEMO_USERS: Record<string, User> = {
