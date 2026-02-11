@@ -104,6 +104,17 @@ const MoonIcon = () => (
   </svg>
 );
 
+const ScanIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="3" height="3" />
+    <line x1="21" y1="14" x2="21" y2="21" />
+    <line x1="14" y1="21" x2="21" y2="21" />
+  </svg>
+);
+
 const LogoutIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -135,6 +146,7 @@ export function HotelLayout() {
     { to: '/hotel/live', icon: <LiveIcon />, labelKey: 'nav.liveMonitor' },
     { to: '/hotel/sitters', icon: <SittersIcon />, labelKey: 'nav.sitterManagement' },
     { to: '/hotel/reports', icon: <ReportsIcon />, labelKey: 'nav.reports' },
+    { to: '/hotel/scan', icon: <ScanIcon />, labelKey: 'nav.scanQR' },
     { to: '/hotel/safety', icon: <SafetyIcon />, labelKey: 'nav.safety' },
     { to: '/hotel/settings', icon: <SettingsIcon />, labelKey: 'nav.settings' },
   ];

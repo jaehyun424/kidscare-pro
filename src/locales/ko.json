@@ -77,6 +77,7 @@
         "sitterManagement": "시터 관리",
         "reports": "리포트",
         "safety": "안전",
+        "scanQR": "QR 스캔",
         "settings": "설정"
     },
     "parent": {

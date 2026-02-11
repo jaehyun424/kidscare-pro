@@ -9,16 +9,9 @@ import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input, Select } from '../../components/common/Input';
 import { useToast } from '../../contexts/ToastContext';
-
-const HOTELS = [
-    { value: 'grand-hyatt-seoul', label: 'Grand Hyatt Seoul' },
-    { value: 'park-hyatt-busan', label: 'Park Hyatt Busan' },
-    { value: 'four-seasons-seoul', label: 'Four Seasons Seoul' },
-];
-
-const CHILDREN = [
-    { id: '1', name: 'Emma', age: 5, selected: true },
-];
+import { useAuth } from '../../contexts/AuthContext';
+import { useChildren } from '../../hooks/useChildren';
+import { useHotels } from '../../hooks/useHotel';
 
 const TIME_SLOTS = [
     { value: '18:00', label: '18:00' },
@@ -31,6 +24,9 @@ export default function Booking() {
     const navigate = useNavigate();
     const { success } = useToast();
     const { t } = useTranslation();
+    const { user } = useAuth();
+    const { children } = useChildren(user?.id);
+    const { hotels } = useHotels();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -100,7 +96,7 @@ export default function Booking() {
                                 name="hotel"
                                 value={formData.hotel}
                                 onChange={handleInputChange}
-                                options={HOTELS}
+                                options={hotels}
                                 placeholder={t('booking.chooseHotel')}
                             />
                             <Input
@@ -148,9 +144,9 @@ export default function Booking() {
                     <CardBody>
                         <h2>{t('booking.selectChildren')}</h2>
                         <div className="children-selection">
-                            {CHILDREN.map((child) => (
+                            {children.map((child) => (
                                 <label key={child.id} className="child-option">
-                                    <input type="checkbox" defaultChecked={child.selected} />
+                                    <input type="checkbox" defaultChecked={true} />
                                     <div className="child-info">
                                         <span className="child-name">{child.name}</span>
                                         <span className="child-age">{child.age} {t('common.age')}</span>
@@ -181,7 +177,7 @@ export default function Booking() {
                         <div className="confirmation-summary">
                             <div className="summary-row">
                                 <span>{t('booking.selectHotel')}</span>
-                                <span>{HOTELS.find((h) => h.value === formData.hotel)?.label || 'Grand Hyatt Seoul'}</span>
+                                <span>{hotels.find((h) => h.value === formData.hotel)?.label || 'Grand Hyatt Seoul'}</span>
                             </div>
                             <div className="summary-row">
                                 <span>{t('common.room')}</span>
@@ -197,7 +193,7 @@ export default function Booking() {
                             </div>
                             <div className="summary-row">
                                 <span>{t('parent.children')}</span>
-                                <span>Emma (5y)</span>
+                                <span>{children.map(c => c.name + ' (' + c.age + 'y)').join(', ')}</span>
                             </div>
                             <div className="summary-row total">
                                 <span>{t('booking.totalCost')}</span>

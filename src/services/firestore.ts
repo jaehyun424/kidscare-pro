@@ -26,9 +26,14 @@ import type {
     Sitter,
     Child,
     Hotel,
+    Incident,
+    Notification,
+    TimelineEvent,
+    ReviewData,
+    DashboardStats,
 } from '../types';
 
-// Define ActivityLog and Review inline since they're not in types
+// Activity log shape in Firestore (activityLogs collection)
 interface ActivityLog {
     id: string;
     sessionId: string;
@@ -36,16 +41,6 @@ interface ActivityLog {
     description: string;
     timestamp: Date;
     mediaUrl?: string;
-}
-
-interface Review {
-    id: string;
-    bookingId: string;
-    parentId: string;
-    sitterId: string;
-    rating: number;
-    comment?: string;
-    createdAt: Date;
 }
 
 // ----------------------------------------
@@ -60,6 +55,8 @@ const COLLECTIONS = {
     activityLogs: 'activityLogs',
     reviews: 'reviews',
     sitters: 'sitters',
+    incidents: 'incidents',
+    notifications: 'notifications',
 } as const;
 
 // ----------------------------------------
@@ -155,6 +152,86 @@ export const bookingService = {
             }
         });
     },
+
+    // Get today's bookings for a hotel
+    async getTodayBookings(hotelId: string): Promise<Booking[]> {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const q = query(
+            collection(db, COLLECTIONS.bookings),
+            where('hotelId', '==', hotelId),
+            where('schedule.date', '>=', today),
+            where('schedule.date', '<', tomorrow),
+            orderBy('schedule.date', 'asc')
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((d) => ({
+            id: d.id,
+            ...convertTimestamps(d.data()),
+        })) as Booking[];
+    },
+
+    // Get booking stats for dashboard
+    async getBookingStats(hotelId: string): Promise<DashboardStats> {
+        const allBookings = await bookingService.getHotelBookings(hotelId);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const todayBookings = allBookings.filter(b => {
+            const d = b.schedule?.date instanceof Date ? b.schedule.date : new Date(b.schedule?.date);
+            return d >= today;
+        });
+
+        return {
+            todayBookings: todayBookings.length,
+            activeNow: allBookings.filter(b => b.status === 'in_progress').length,
+            completedToday: todayBookings.filter(b => b.status === 'completed').length,
+            todayRevenue: todayBookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.pricing?.total || 0), 0),
+            safetyDays: 0,
+            pendingBookings: allBookings.filter(b => b.status === 'pending').length,
+        };
+    },
+
+    // Subscribe to hotel bookings (real-time)
+    subscribeToHotelBookings(hotelId: string, callback: (bookings: Booking[]) => void) {
+        const q = query(
+            collection(db, COLLECTIONS.bookings),
+            where('hotelId', '==', hotelId),
+            orderBy('createdAt', 'desc'),
+            limit(100)
+        );
+        return onSnapshot(q, (snapshot) => {
+            const bookings = snapshot.docs.map((d) => ({
+                id: d.id,
+                ...convertTimestamps(d.data()),
+            })) as Booking[];
+            callback(bookings);
+        });
+    },
+
+    // Get booking by confirmation code
+    async getByConfirmationCode(code: string): Promise<Booking | null> {
+        const q = query(
+            collection(db, COLLECTIONS.bookings),
+            where('confirmationCode', '==', code),
+            limit(1)
+        );
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) return null;
+        const d = snapshot.docs[0];
+        return { id: d.id, ...convertTimestamps(d.data()) } as Booking;
+    },
+
+    // Update booking (generic)
+    async updateBooking(bookingId: string, data: Partial<Booking>): Promise<void> {
+        await updateDoc(doc(db, COLLECTIONS.bookings, bookingId), {
+            ...data,
+            updatedAt: serverTimestamp(),
+        });
+    },
 };
 
 // ----------------------------------------
@@ -202,6 +279,60 @@ export const sessionService = {
                 callback(null);
             }
         });
+    },
+
+    // Get active sessions for a hotel
+    async getHotelActiveSessions(hotelId: string): Promise<CareSession[]> {
+        const q = query(
+            collection(db, COLLECTIONS.sessions),
+            where('hotelId', '==', hotelId),
+            where('status', 'in', ['preparing', 'checked_in', 'active'])
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((d) => ({
+            id: d.id,
+            ...convertTimestamps(d.data()),
+        })) as CareSession[];
+    },
+
+    // Subscribe to hotel active sessions (real-time)
+    subscribeToHotelSessions(hotelId: string, callback: (sessions: CareSession[]) => void) {
+        const q = query(
+            collection(db, COLLECTIONS.sessions),
+            where('hotelId', '==', hotelId),
+            where('status', 'in', ['preparing', 'checked_in', 'active'])
+        );
+        return onSnapshot(q, (snapshot) => {
+            const sessions = snapshot.docs.map((d) => ({
+                id: d.id,
+                ...convertTimestamps(d.data()),
+            })) as CareSession[];
+            callback(sessions);
+        });
+    },
+
+    // Update session
+    async updateSession(sessionId: string, data: Partial<CareSession>): Promise<void> {
+        await updateDoc(doc(db, COLLECTIONS.sessions, sessionId), {
+            ...data,
+            updatedAt: serverTimestamp(),
+        });
+    },
+
+    // Add timeline event to session
+    async addTimelineEvent(sessionId: string, event: Omit<TimelineEvent, 'id' | 'timestamp'>): Promise<void> {
+        const sessionRef = doc(db, COLLECTIONS.sessions, sessionId);
+        const sessionDoc = await getDoc(sessionRef);
+        if (sessionDoc.exists()) {
+            const session = sessionDoc.data();
+            const timeline = session.timeline || [];
+            timeline.push({
+                ...event,
+                id: `evt_${Date.now()}`,
+                timestamp: new Date(),
+            });
+            await updateDoc(sessionRef, { timeline, updatedAt: serverTimestamp() });
+        }
     },
 };
 
@@ -271,9 +402,53 @@ export const sitterService = {
 
     // Get sitter by ID
     async getSitter(sitterId: string): Promise<Sitter | null> {
-        const docSnap = await getDoc(doc(db, COLLECTIONS.users, sitterId));
-        if (!docSnap.exists()) return null;
-        return { id: docSnap.id, ...convertTimestamps(docSnap.data()) } as unknown as Sitter;
+        const docSnap = await getDoc(doc(db, COLLECTIONS.sitters, sitterId));
+        if (!docSnap.exists()) {
+            // Fallback: try users collection
+            const userSnap = await getDoc(doc(db, COLLECTIONS.users, sitterId));
+            if (!userSnap.exists()) return null;
+            return { id: userSnap.id, ...convertTimestamps(userSnap.data()) } as unknown as Sitter;
+        }
+        return { id: docSnap.id, ...convertTimestamps(docSnap.data()) } as Sitter;
+    },
+
+    // Update sitter profile
+    async updateSitterProfile(sitterId: string, data: Partial<Sitter>): Promise<void> {
+        await updateDoc(doc(db, COLLECTIONS.sitters, sitterId), {
+            ...data,
+            updatedAt: serverTimestamp(),
+        });
+    },
+
+    // Get sitter completed sessions for earnings
+    async getSitterEarnings(sitterId: string): Promise<Booking[]> {
+        const q = query(
+            collection(db, COLLECTIONS.bookings),
+            where('sitterId', '==', sitterId),
+            where('status', '==', 'completed'),
+            orderBy('completedAt', 'desc'),
+            limit(100)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((d) => ({
+            id: d.id,
+            ...convertTimestamps(d.data()),
+        })) as Booking[];
+    },
+
+    // Subscribe to hotel sitters (real-time)
+    subscribeToHotelSitters(hotelId: string, callback: (sitters: Sitter[]) => void) {
+        const q = query(
+            collection(db, COLLECTIONS.sitters),
+            where('partnerHotels', 'array-contains', hotelId)
+        );
+        return onSnapshot(q, (snapshot) => {
+            const sitters = snapshot.docs.map((d) => ({
+                id: d.id,
+                ...convertTimestamps(d.data()),
+            })) as Sitter[];
+            callback(sitters);
+        });
     },
 };
 
@@ -317,7 +492,7 @@ export const childrenService = {
 // ----------------------------------------
 export const reviewService = {
     // Get reviews for a sitter
-    async getSitterReviews(sitterId: string): Promise<Review[]> {
+    async getSitterReviews(sitterId: string): Promise<ReviewData[]> {
         const q = query(
             collection(db, COLLECTIONS.reviews),
             where('sitterId', '==', sitterId),
@@ -325,14 +500,14 @@ export const reviewService = {
             limit(50)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...convertTimestamps(doc.data()),
-        })) as Review[];
+        return snapshot.docs.map((d) => ({
+            id: d.id,
+            ...convertTimestamps(d.data()),
+        })) as unknown as ReviewData[];
     },
 
     // Create a review
-    async createReview(review: Omit<Review, 'id' | 'createdAt'>): Promise<string> {
+    async createReview(review: Record<string, unknown>): Promise<string> {
         const reviewRef = doc(collection(db, COLLECTIONS.reviews));
         await setDoc(reviewRef, {
             ...review,
@@ -359,5 +534,151 @@ export const hotelService = {
             ...settings,
             updatedAt: serverTimestamp(),
         });
+    },
+
+    // Subscribe to hotel (real-time)
+    subscribeToHotel(hotelId: string, callback: (hotel: Hotel | null) => void) {
+        return onSnapshot(doc(db, COLLECTIONS.hotels, hotelId), (d) => {
+            if (d.exists()) {
+                callback({ id: d.id, ...convertTimestamps(d.data()) } as Hotel);
+            } else {
+                callback(null);
+            }
+        });
+    },
+};
+
+// ----------------------------------------
+// Incident Service
+// ----------------------------------------
+export const incidentService = {
+    // Get incidents for a hotel
+    async getHotelIncidents(hotelId: string): Promise<Incident[]> {
+        const q = query(
+            collection(db, COLLECTIONS.incidents),
+            where('hotelId', '==', hotelId),
+            orderBy('createdAt', 'desc'),
+            limit(100)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((d) => ({
+            id: d.id,
+            ...convertTimestamps(d.data()),
+        })) as Incident[];
+    },
+
+    // Create incident
+    async createIncident(incident: Omit<Incident, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+        const incidentRef = doc(collection(db, COLLECTIONS.incidents));
+        await setDoc(incidentRef, {
+            ...incident,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+        return incidentRef.id;
+    },
+
+    // Update incident
+    async updateIncident(incidentId: string, data: Partial<Incident>): Promise<void> {
+        await updateDoc(doc(db, COLLECTIONS.incidents, incidentId), {
+            ...data,
+            updatedAt: serverTimestamp(),
+        });
+    },
+
+    // Subscribe to hotel incidents (real-time)
+    subscribeToHotelIncidents(hotelId: string, callback: (incidents: Incident[]) => void) {
+        const q = query(
+            collection(db, COLLECTIONS.incidents),
+            where('hotelId', '==', hotelId),
+            orderBy('createdAt', 'desc'),
+            limit(100)
+        );
+        return onSnapshot(q, (snapshot) => {
+            const incidents = snapshot.docs.map((d) => ({
+                id: d.id,
+                ...convertTimestamps(d.data()),
+            })) as Incident[];
+            callback(incidents);
+        });
+    },
+};
+
+// ----------------------------------------
+// Notification Service
+// ----------------------------------------
+export const notificationService = {
+    // Get notifications for a user
+    async getUserNotifications(userId: string): Promise<Notification[]> {
+        const q = query(
+            collection(db, COLLECTIONS.notifications),
+            where('userId', '==', userId),
+            orderBy('createdAt', 'desc'),
+            limit(50)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((d) => ({
+            id: d.id,
+            ...convertTimestamps(d.data()),
+        })) as Notification[];
+    },
+
+    // Create notification
+    async createNotification(notification: Omit<Notification, 'id' | 'createdAt'>): Promise<string> {
+        const notifRef = doc(collection(db, COLLECTIONS.notifications));
+        await setDoc(notifRef, {
+            ...notification,
+            createdAt: serverTimestamp(),
+        });
+        return notifRef.id;
+    },
+
+    // Mark notification as read
+    async markAsRead(notificationId: string): Promise<void> {
+        await updateDoc(doc(db, COLLECTIONS.notifications, notificationId), {
+            read: true,
+        });
+    },
+
+    // Mark all as read
+    async markAllAsRead(userId: string): Promise<void> {
+        const q = query(
+            collection(db, COLLECTIONS.notifications),
+            where('userId', '==', userId),
+            where('read', '==', false)
+        );
+        const snapshot = await getDocs(q);
+        const updates = snapshot.docs.map((d) =>
+            updateDoc(doc(db, COLLECTIONS.notifications, d.id), { read: true })
+        );
+        await Promise.all(updates);
+    },
+
+    // Subscribe to user notifications (real-time)
+    subscribeToUserNotifications(userId: string, callback: (notifications: Notification[]) => void) {
+        const q = query(
+            collection(db, COLLECTIONS.notifications),
+            where('userId', '==', userId),
+            orderBy('createdAt', 'desc'),
+            limit(50)
+        );
+        return onSnapshot(q, (snapshot) => {
+            const notifications = snapshot.docs.map((d) => ({
+                id: d.id,
+                ...convertTimestamps(d.data()),
+            })) as Notification[];
+            callback(notifications);
+        });
+    },
+
+    // Get unread count
+    async getUnreadCount(userId: string): Promise<number> {
+        const q = query(
+            collection(db, COLLECTIONS.notifications),
+            where('userId', '==', userId),
+            where('read', '==', false)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.size;
     },
 };

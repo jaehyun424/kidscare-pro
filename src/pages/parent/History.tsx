@@ -3,24 +3,22 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { StatusBadge } from '../../components/common/Badge';
-
-const HISTORY = [
-    { id: '1', date: 'Jan 15, 2025', time: '18:00-22:00', hotel: 'Grand Hyatt Seoul', sitter: 'Kim Minjung', duration: '4h', amount: 280000, rating: 5, status: 'completed' as const },
-    { id: '2', date: 'Jan 10, 2025', time: '19:00-23:00', hotel: 'Grand Hyatt Seoul', sitter: 'Park Sooyeon', duration: '4h', amount: 280000, rating: 5, status: 'completed' as const },
-    { id: '3', date: 'Dec 28, 2024', time: '20:00-23:00', hotel: 'Park Hyatt Busan', sitter: 'Lee Jihye', duration: '3h', amount: 210000, rating: 4, status: 'completed' as const },
-];
+import { useAuth } from '../../contexts/AuthContext';
+import { useParentBookings } from '../../hooks/useBookings';
 
 export default function History() {
     const { t } = useTranslation();
+    const { user } = useAuth();
+    const { history } = useParentBookings(user?.id);
     const formatCurrency = (amount: number) => `₩${amount.toLocaleString()}`;
 
     return (
         <div className="history-page animate-fade-in">
             <h1 className="page-title">{t('parent.bookingHistory')}</h1>
-            <p className="page-subtitle">{HISTORY.length} {t('sitter.completedSessions').toLowerCase()}</p>
+            <p className="page-subtitle">{history.length} {t('sitter.completedSessions').toLowerCase()}</p>
 
             <div className="history-list">
-                {HISTORY.map((item) => (
+                {history.map((item) => (
                     <Card key={item.id} className="history-item">
                         <CardBody>
                             <div className="history-header">

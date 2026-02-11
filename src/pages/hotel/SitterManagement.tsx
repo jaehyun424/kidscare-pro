@@ -7,59 +7,12 @@ import { Card, CardBody } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
 import { TierBadge, Badge, SafetyBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
-
-const SITTERS = [
-  {
-    id: '1',
-    name: 'Kim Minjung',
-    tier: 'gold' as const,
-    rating: 4.9,
-    sessionsCompleted: 247,
-    languages: ['Korean', 'English', 'Japanese'],
-    certifications: ['CPR', 'First Aid', 'Child Psychology'],
-    availability: 'Available',
-    hourlyRate: 45000,
-    safetyDays: 365,
-  },
-  {
-    id: '2',
-    name: 'Park Sooyeon',
-    tier: 'gold' as const,
-    rating: 4.8,
-    sessionsCompleted: 189,
-    languages: ['Korean', 'English'],
-    certifications: ['CPR', 'First Aid'],
-    availability: 'In Session',
-    hourlyRate: 45000,
-    safetyDays: 280,
-  },
-  {
-    id: '3',
-    name: 'Lee Jihye',
-    tier: 'silver' as const,
-    rating: 4.7,
-    sessionsCompleted: 95,
-    languages: ['Korean', 'Chinese'],
-    certifications: ['CPR', 'First Aid'],
-    availability: 'Available',
-    hourlyRate: 35000,
-    safetyDays: 95,
-  },
-  {
-    id: '4',
-    name: 'Choi Yuna',
-    tier: 'gold' as const,
-    rating: 4.9,
-    sessionsCompleted: 312,
-    languages: ['Korean', 'English', 'Chinese'],
-    certifications: ['CPR', 'First Aid', 'Child Development'],
-    availability: 'In Session',
-    hourlyRate: 50000,
-    safetyDays: 450,
-  },
-];
+import { useAuth } from '../../contexts/AuthContext';
+import { useHotelSitters } from '../../hooks/useSitters';
 
 export default function SitterManagement() {
+  const { user } = useAuth();
+  const { sitters } = useHotelSitters(user?.hotelId);
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ko-KR', {
       style: 'currency',
@@ -73,13 +26,13 @@ export default function SitterManagement() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Sitter Management</h1>
-          <p className="page-subtitle">{SITTERS.length} sitters registered at your hotel</p>
+          <p className="page-subtitle">{sitters.length} sitters registered at your hotel</p>
         </div>
         <Button variant="gold">Add New Sitter</Button>
       </div>
 
       <div className="sitters-grid">
-        {SITTERS.map((sitter) => (
+        {sitters.map((sitter) => (
           <Card key={sitter.id} className="sitter-card">
             <CardBody>
               <div className="sitter-header">

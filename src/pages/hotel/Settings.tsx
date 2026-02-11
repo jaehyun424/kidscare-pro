@@ -2,23 +2,138 @@
 // KidsCare Pro - Hotel Settings Page
 // ============================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Input, Select, Textarea } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
+import { Skeleton } from '../../components/common/Skeleton';
+import { useAuth } from '../../contexts/AuthContext';
+import { useHotel } from '../../hooks/useHotel';
 import { useToast } from '../../contexts/ToastContext';
+import type { Currency, CancellationPolicy } from '../../types';
 
 export default function Settings() {
-    const { success } = useToast();
-    const [isLoading, setIsLoading] = useState(false);
+    const { user } = useAuth();
+    const { hotel, isLoading, updateHotel } = useHotel(user?.hotelId);
+    const { success, error } = useToast();
 
+    // ----------------------------------------
+    // Hotel Profile state
+    // ----------------------------------------
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [address, setAddress] = useState('');
+
+    // ----------------------------------------
+    // Service Settings state
+    // ----------------------------------------
+    const [autoAssign, setAutoAssign] = useState(false);
+    const [requireGoldForInfant, setRequireGoldForInfant] = useState(false);
+    const [minBookingHours, setMinBookingHours] = useState(2);
+    const [maxAdvanceBookingDays, setMaxAdvanceBookingDays] = useState(30);
+    const [cancellationPolicy, setCancellationPolicy] = useState<CancellationPolicy>('moderate');
+
+    // ----------------------------------------
+    // Pricing state
+    // ----------------------------------------
+    const [commission, setCommission] = useState(15);
+    const [currency, setCurrency] = useState<Currency>('KRW');
+
+    // ----------------------------------------
+    // Notification state
+    // ----------------------------------------
+    const [notifyNewBooking, setNotifyNewBooking] = useState(true);
+    const [notifySessionAlerts, setNotifySessionAlerts] = useState(true);
+    const [notifyEmergency, setNotifyEmergency] = useState(true);
+    const [notifyDailySummary, setNotifyDailySummary] = useState(false);
+
+    // ----------------------------------------
+    // Save state
+    // ----------------------------------------
+    const [isSaving, setIsSaving] = useState(false);
+
+    // ----------------------------------------
+    // Populate form from hotel data
+    // ----------------------------------------
+    useEffect(() => {
+        if (hotel) {
+            setName(hotel.name);
+            setEmail(hotel.contactEmail);
+            setPhone(hotel.contactPhone);
+            setAddress(hotel.address);
+            setAutoAssign(hotel.settings.autoAssign);
+            setRequireGoldForInfant(hotel.settings.requireGoldForInfant);
+            setMinBookingHours(hotel.settings.minBookingHours);
+            setMaxAdvanceBookingDays(hotel.settings.maxAdvanceBookingDays);
+            setCancellationPolicy(hotel.settings.cancellationPolicy);
+            setCommission(hotel.commission);
+            setCurrency(hotel.currency);
+        }
+    }, [hotel]);
+
+    // ----------------------------------------
+    // Save handler
+    // ----------------------------------------
     const handleSave = async () => {
-        setIsLoading(true);
-        await new Promise((r) => setTimeout(r, 1000));
-        setIsLoading(false);
-        success('Settings saved', 'Your hotel settings have been updated.');
+        setIsSaving(true);
+        try {
+            await updateHotel({
+                name,
+                contactEmail: email,
+                contactPhone: phone,
+                address,
+                commission,
+                currency: currency as Currency,
+                settings: {
+                    autoAssign,
+                    requireGoldForInfant,
+                    minBookingHours,
+                    maxAdvanceBookingDays,
+                    cancellationPolicy,
+                },
+            });
+            success('Settings saved', 'Your hotel settings have been updated.');
+        } catch {
+            error('Save failed', 'Could not update settings.');
+        }
+        setIsSaving(false);
     };
 
+    // ----------------------------------------
+    // Loading skeleton
+    // ----------------------------------------
+    if (isLoading) {
+        return (
+            <div className="settings-page animate-fade-in">
+                <div className="page-header">
+                    <Skeleton width="200px" height="2rem" />
+                    <Skeleton width="350px" height="1rem" />
+                </div>
+                <div className="settings-grid">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader>
+                                <Skeleton width="50%" height="1.25rem" />
+                            </CardHeader>
+                            <CardBody>
+                                <div className="form-stack">
+                                    <Skeleton height="2.5rem" />
+                                    <Skeleton height="2.5rem" />
+                                    <Skeleton height="2.5rem" />
+                                    <Skeleton height="2.5rem" />
+                                </div>
+                            </CardBody>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    // ----------------------------------------
+    // Render
+    // ----------------------------------------
     return (
         <div className="settings-page animate-fade-in">
             <div className="page-header">
@@ -27,64 +142,122 @@ export default function Settings() {
             </div>
 
             <div className="settings-grid">
+                {/* Hotel Profile */}
                 <Card>
                     <CardHeader>
                         <CardTitle subtitle="Basic information about your hotel">Hotel Profile</CardTitle>
                     </CardHeader>
                     <CardBody>
                         <div className="form-stack">
-                            <Input label="Hotel Name" defaultValue="Grand Hyatt Seoul" />
-                            <Input label="Contact Email" type="email" defaultValue="childcare@grandhyattseoul.com" />
-                            <Input label="Contact Phone" defaultValue="+82-2-797-1234" />
-                            <Textarea label="Address" defaultValue="322 Sowol-ro, Yongsan-gu, Seoul, South Korea" />
+                            <Input
+                                label="Hotel Name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Enter hotel name"
+                            />
+                            <Input
+                                label="Contact Email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="hotel@example.com"
+                            />
+                            <Input
+                                label="Contact Phone"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                placeholder="+82-2-000-0000"
+                            />
+                            <Textarea
+                                label="Address"
+                                value={address}
+                                onChange={(e) => setAddress(e.target.value)}
+                                placeholder="Enter full address"
+                            />
                         </div>
                     </CardBody>
                 </Card>
 
+                {/* Service Settings */}
                 <Card>
                     <CardHeader>
                         <CardTitle subtitle="Customize service availability">Service Settings</CardTitle>
                     </CardHeader>
                     <CardBody>
                         <div className="form-stack">
-                            <Select
-                                label="Default Service Hours"
-                                defaultValue="18-24"
-                                options={[
-                                    { value: '18-24', label: '18:00 - 24:00 (Evening)' },
-                                    { value: '09-18', label: '09:00 - 18:00 (Daytime)' },
-                                    { value: '00-24', label: '24 Hours' },
-                                ]}
+                            <label className="toggle-option">
+                                <input
+                                    type="checkbox"
+                                    checked={autoAssign}
+                                    onChange={(e) => setAutoAssign(e.target.checked)}
+                                />
+                                <span>Auto-Assign Sitters</span>
+                            </label>
+                            <label className="toggle-option">
+                                <input
+                                    type="checkbox"
+                                    checked={requireGoldForInfant}
+                                    onChange={(e) => setRequireGoldForInfant(e.target.checked)}
+                                />
+                                <span>Require Gold Tier for Infants</span>
+                            </label>
+                            <Input
+                                label="Min Booking Hours"
+                                type="number"
+                                value={minBookingHours}
+                                onChange={(e) => setMinBookingHours(Number(e.target.value))}
+                                placeholder="2"
                             />
-                            <Input label="Minimum Booking Hours" type="number" defaultValue="2" />
-                            <Input label="Maximum Booking Hours" type="number" defaultValue="8" />
+                            <Input
+                                label="Max Advance Booking Days"
+                                type="number"
+                                value={maxAdvanceBookingDays}
+                                onChange={(e) => setMaxAdvanceBookingDays(Number(e.target.value))}
+                                placeholder="30"
+                            />
                             <Select
-                                label="Default Booking Notice"
-                                defaultValue="4"
+                                label="Cancellation Policy"
+                                value={cancellationPolicy}
+                                onChange={(e) => setCancellationPolicy(e.target.value as CancellationPolicy)}
                                 options={[
-                                    { value: '2', label: '2 hours advance notice' },
-                                    { value: '4', label: '4 hours advance notice' },
-                                    { value: '24', label: '24 hours advance notice' },
+                                    { value: 'flexible', label: 'Flexible' },
+                                    { value: 'moderate', label: 'Moderate' },
+                                    { value: 'strict', label: 'Strict' },
                                 ]}
                             />
                         </div>
                     </CardBody>
                 </Card>
 
+                {/* Pricing */}
                 <Card>
                     <CardHeader>
                         <CardTitle subtitle="Set your hotel's pricing">Pricing Configuration</CardTitle>
                     </CardHeader>
                     <CardBody>
                         <div className="form-stack">
-                            <Input label="Base Hourly Rate (KRW)" type="number" defaultValue="70000" />
-                            <Input label="Additional Child Rate (KRW)" type="number" defaultValue="20000" />
-                            <Input label="Night Premium (22:00+) %" type="number" defaultValue="20" />
-                            <Input label="Weekend Premium %" type="number" defaultValue="10" />
+                            <Input
+                                label="Commission Rate (%)"
+                                type="number"
+                                value={commission}
+                                onChange={(e) => setCommission(Number(e.target.value))}
+                                placeholder="15"
+                            />
+                            <Select
+                                label="Currency"
+                                value={currency}
+                                onChange={(e) => setCurrency(e.target.value as Currency)}
+                                options={[
+                                    { value: 'KRW', label: 'KRW - Korean Won' },
+                                    { value: 'USD', label: 'USD - US Dollar' },
+                                    { value: 'JPY', label: 'JPY - Japanese Yen' },
+                                ]}
+                            />
                         </div>
                     </CardBody>
                 </Card>
 
+                {/* Notifications */}
                 <Card>
                     <CardHeader>
                         <CardTitle subtitle="Manage notification preferences">Notifications</CardTitle>
@@ -92,19 +265,35 @@ export default function Settings() {
                     <CardBody>
                         <div className="notification-settings">
                             <label className="toggle-option">
-                                <input type="checkbox" defaultChecked />
+                                <input
+                                    type="checkbox"
+                                    checked={notifyNewBooking}
+                                    onChange={(e) => setNotifyNewBooking(e.target.checked)}
+                                />
                                 <span>New booking notifications</span>
                             </label>
                             <label className="toggle-option">
-                                <input type="checkbox" defaultChecked />
+                                <input
+                                    type="checkbox"
+                                    checked={notifySessionAlerts}
+                                    onChange={(e) => setNotifySessionAlerts(e.target.checked)}
+                                />
                                 <span>Session start/end alerts</span>
                             </label>
                             <label className="toggle-option">
-                                <input type="checkbox" defaultChecked />
+                                <input
+                                    type="checkbox"
+                                    checked={notifyEmergency}
+                                    onChange={(e) => setNotifyEmergency(e.target.checked)}
+                                />
                                 <span>Emergency alerts</span>
                             </label>
                             <label className="toggle-option">
-                                <input type="checkbox" />
+                                <input
+                                    type="checkbox"
+                                    checked={notifyDailySummary}
+                                    onChange={(e) => setNotifyDailySummary(e.target.checked)}
+                                />
                                 <span>Daily summary email</span>
                             </label>
                         </div>
@@ -114,7 +303,7 @@ export default function Settings() {
 
             <div className="settings-actions">
                 <Button variant="secondary">Cancel</Button>
-                <Button variant="gold" onClick={handleSave} isLoading={isLoading}>
+                <Button variant="gold" onClick={handleSave} isLoading={isSaving}>
                     Save Changes
                 </Button>
             </div>

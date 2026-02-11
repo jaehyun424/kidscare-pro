@@ -7,40 +7,15 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { StatusBadge } from '../../components/common/Badge';
+import { useAuth } from '../../contexts/AuthContext';
+import { useParentBookings } from '../../hooks/useBookings';
 
 
 
 export default function Home() {
   const { t, i18n } = useTranslation();
-
-  const UPCOMING_BOOKING = {
-    id: '1',
-    confirmationCode: 'KCP-2025-0042',
-    dateKey: 'tonight',
-    time: '18:00 - 22:00',
-    hotel: 'Grand Hyatt Seoul',
-    room: '2305',
-    sitter: { name: 'Kim Minjung', rating: 4.9 },
-    children: ['Emma (' + t('common.yearsOld', { count: 5 }) + ')'],
-    status: 'confirmed' as const,
-  };
-
-  const RECENT_SESSIONS = [
-    {
-      id: '1',
-      date: new Date('2025-01-10'),
-      hotel: 'Grand Hyatt Seoul',
-      duration: t('common.hours', { count: 4 }), // Requires plural handling or simple string replacement
-      rating: 5
-    },
-    {
-      id: '2',
-      date: new Date('2024-12-28'),
-      hotel: 'Park Hyatt Busan',
-      duration: t('common.hours', { count: 3 }),
-      rating: 5
-    },
-  ];
+  const { user } = useAuth();
+  const { upcomingBooking, recentSessions } = useParentBookings(user?.id);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
@@ -79,33 +54,38 @@ export default function Home() {
       </div>
 
       {/* Upcoming Booking */}
-      {UPCOMING_BOOKING && (
+      {upcomingBooking && (
         <Card className="upcoming-card" variant="gold">
           <CardBody>
             <div className="upcoming-header">
               <h3>{t('parent.upcomingBooking')}</h3>
-              <StatusBadge status={UPCOMING_BOOKING.status} />
+              <StatusBadge status={upcomingBooking.status} />
             </div>
             <div className="upcoming-details">
               <span>📅</span>
-              <span>{t('parent.tonight')} • {UPCOMING_BOOKING.time}</span>
+              <span>{t('parent.tonight')} • {upcomingBooking.time}</span>
               <div className="detail-row">
                 <span>🏨</span>
-                <span>{UPCOMING_BOOKING.hotel} - {t('common.room')} {UPCOMING_BOOKING.room}</span>
+                <span>{upcomingBooking.hotel} - {t('common.room')} {upcomingBooking.room}</span>
               </div>
               <div className="detail-row">
                 <span>👩‍🍼</span>
-                <span>{UPCOMING_BOOKING.sitter.name} ⭐ {UPCOMING_BOOKING.sitter.rating}</span>
+                <span>{upcomingBooking.sitter.name} ⭐ {upcomingBooking.sitter.rating}</span>
               </div>
               <div className="detail-row">
                 <span>👶</span>
-                <span>{UPCOMING_BOOKING.children.join(', ')}</span>
+                <span>{upcomingBooking.childrenIds.length} {t('parent.children').toLowerCase()}</span>
               </div>
             </div>
             <div className="upcoming-actions">
-              <Link to={`/parent/trust-checkin/${UPCOMING_BOOKING.id}`}>
+              <Link to={`/parent/trust-checkin/${upcomingBooking.id}`}>
                 <Button variant="gold" fullWidth>
                   {t('parent.trustCheckIn')}
+                </Button>
+              </Link>
+              <Link to={`/parent/qr/${upcomingBooking.id}`} style={{ marginTop: '0.5rem', display: 'block' }}>
+                <Button variant="secondary" fullWidth>
+                  Show QR Code
                 </Button>
               </Link>
             </div>
@@ -116,7 +96,7 @@ export default function Home() {
       {/* Recent Sessions */}
       <div className="section">
         <h2 className="section-title">{t('parent.recentSessions')}</h2>
-        {RECENT_SESSIONS.map((session) => (
+        {recentSessions.map((session) => (
           <Card key={session.id} className="session-card">
             <CardBody>
               <div className="session-info">
@@ -125,7 +105,7 @@ export default function Home() {
                   <span className="session-hotel">{session.hotel}</span>
                 </div>
                 <div className="session-meta">
-                  <span>{session.duration.replace('hours', t('common.hours1', { defaultValue: 'hours' }))}</span>
+                  <span>{session.durationHours}h</span>
                   <span>{'⭐'.repeat(session.rating)}</span>
                 </div>
               </div>

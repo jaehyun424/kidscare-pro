@@ -28,6 +28,7 @@ const HotelSitters = lazy(() => import('./pages/hotel/SitterManagement'));
 const HotelReports = lazy(() => import('./pages/hotel/Reports'));
 const HotelSafety = lazy(() => import('./pages/hotel/SafetyDashboard'));
 const HotelSettings = lazy(() => import('./pages/hotel/Settings'));
+const HotelScanCheckIn = lazy(() => import('./pages/hotel/ScanCheckIn'));
 
 // Parent App
 const ParentHome = lazy(() => import('./pages/parent/Home'));
@@ -36,6 +37,7 @@ const ParentTrustCheckIn = lazy(() => import('./pages/parent/TrustCheckIn'));
 const ParentLiveStatus = lazy(() => import('./pages/parent/LiveStatus'));
 const ParentHistory = lazy(() => import('./pages/parent/History'));
 const ParentProfile = lazy(() => import('./pages/parent/Profile'));
+const ParentQRDisplay = lazy(() => import('./pages/parent/QRDisplay'));
 
 // Sitter App
 const SitterSchedule = lazy(() => import('./pages/sitter/Schedule'));
@@ -116,6 +118,7 @@ function AppRoutes() {
           <Route path="reports" element={<HotelReports />} />
           <Route path="safety" element={<HotelSafety />} />
           <Route path="settings" element={<HotelSettings />} />
+          <Route path="scan" element={<HotelScanCheckIn />} />
         </Route>
 
         {/* Parent App Routes */}
@@ -133,6 +136,7 @@ function AppRoutes() {
           <Route path="live/:bookingId" element={<ParentLiveStatus />} />
           <Route path="history" element={<ParentHistory />} />
           <Route path="profile" element={<ParentProfile />} />
+          <Route path="qr/:bookingId" element={<ParentQRDisplay />} />
         </Route>
 
         {/* Sitter App Routes */}

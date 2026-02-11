@@ -6,10 +6,13 @@ import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
 import { TierBadge, Badge } from '../../components/common/Badge';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSitterProfile } from '../../hooks/useSitters';
 
 export default function Profile() {
     const navigate = useNavigate();
-    const { signOut } = useAuth();
+    const { signOut, user } = useAuth();
+    const sitterId = user?.sitterInfo?.sitterId || user?.id;
+    const { profile } = useSitterProfile(sitterId);
 
     const handleSignOut = async () => {
         await signOut();
@@ -22,17 +25,17 @@ export default function Profile() {
             <Card variant="gold">
                 <CardBody>
                     <div className="profile-header">
-                        <Avatar name="Kim Minjung" size="xl" variant="gold" />
+                        <Avatar name={profile.name} size="xl" variant="gold" />
                         <div className="profile-info">
-                            <h2>Kim Minjung</h2>
-                            <TierBadge tier="gold" />
-                            <div className="profile-rating">⭐ 4.9 (247 reviews)</div>
+                            <h2>{profile.name}</h2>
+                            <TierBadge tier={profile.tier} />
+                            <div className="profile-rating">⭐ {profile.rating} ({profile.reviewCount} reviews)</div>
                         </div>
                     </div>
                     <div className="profile-stats">
-                        <div className="pstat"><span className="pvalue">247</span><span className="plabel">Sessions</span></div>
-                        <div className="pstat"><span className="pvalue">365</span><span className="plabel">Safe Days</span></div>
-                        <div className="pstat"><span className="pvalue">98%</span><span className="plabel">On-Time</span></div>
+                        <div className="pstat"><span className="pvalue">{profile.totalSessions}</span><span className="plabel">Sessions</span></div>
+                        <div className="pstat"><span className="pvalue">{profile.safetyDays}</span><span className="plabel">Safe Days</span></div>
+                        <div className="pstat"><span className="pvalue">{profile.onTimeRate}</span><span className="plabel">On-Time</span></div>
                     </div>
                 </CardBody>
             </Card>
@@ -75,10 +78,9 @@ export default function Profile() {
                 <CardBody>
                     <h3 className="section-title">Certifications</h3>
                     <div className="certs-list">
-                        <Badge variant="success">✓ CPR Certified</Badge>
-                        <Badge variant="success">✓ First Aid</Badge>
-                        <Badge variant="success">✓ Child Psychology</Badge>
-                        <Badge variant="success">✓ Background Checked</Badge>
+                        {profile.certifications.map((cert, i) => (
+                            <Badge key={i} variant="success">✓ {cert}</Badge>
+                        ))}
                     </div>
                 </CardBody>
             </Card>
@@ -88,9 +90,9 @@ export default function Profile() {
                 <CardBody>
                     <h3 className="section-title">Languages</h3>
                     <div className="lang-list">
-                        <span>🇰🇷 Korean (Native)</span>
-                        <span>🇺🇸 English (Fluent)</span>
-                        <span>🇯🇵 Japanese (Basic)</span>
+                        {profile.languages.map((lang, i) => (
+                            <span key={i}>{lang.flag} {lang.name} ({lang.level})</span>
+                        ))}
                     </div>
                 </CardBody>
             </Card>

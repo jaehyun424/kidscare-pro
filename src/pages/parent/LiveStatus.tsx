@@ -1,6 +1,5 @@
 // Parent Live Status Page - Quiet Luxury Redesign
 
-import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card } from '../../components/common/Card';
 import { Button, IconButton } from '../../components/common/Button';
@@ -8,42 +7,13 @@ import { Avatar } from '../../components/common/Avatar';
 import { TierBadge } from '../../components/common/Badge';
 import { ActivityFeed } from '../../components/parent/ActivityFeed';
 import type { ActivityLog } from '../../components/parent/ActivityFeed';
+import { useAuth } from '../../contexts/AuthContext';
+import { useLiveStatus } from '../../hooks/useSessions';
 
 export default function LiveStatus() {
-    useParams();
-
-    // Mock real-time data
-    const [elapsedTime] = useState('2h 15m');
-    const [logs] = useState<ActivityLog[]>(() => [
-        {
-            id: '1',
-            timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
-            type: 'photo',
-            content: 'Having a great time painting!',
-            metadata: { photoUrl: 'https://images.unsplash.com/photo-1596464716127-f9a87ae63648?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' }
-        },
-        {
-            id: '2',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-            type: 'meal',
-            content: 'Snack Time',
-            metadata: { subtext: 'Sliced apples and juice' }
-        },
-        {
-            id: '3',
-            timestamp: new Date(Date.now() - 1000 * 60 * 90), // 1.5 hours ago
-            type: 'status',
-            content: 'Building a block castle',
-            metadata: { mood: '🏰' }
-        },
-        {
-            id: '4',
-            timestamp: new Date(Date.now() - 1000 * 60 * 120), // 2 hours ago
-            type: 'checkin',
-            content: 'Trust Check-in Verified',
-            metadata: { subtext: 'Handover complete' }
-        },
-    ]);
+    const { id } = useParams();
+    useAuth();
+    const { logs, sessionInfo } = useLiveStatus(id);
 
     return (
         <div className="live-status-page">
@@ -65,17 +35,17 @@ export default function LiveStatus() {
                             </span>
                             <span className="text-green-700 font-semibold text-sm uppercase tracking-wide">Active Care</span>
                         </div>
-                        <span className="font-serif text-xl text-green-800">{elapsedTime}</span>
+                        <span className="font-serif text-xl text-green-800">{sessionInfo.elapsedTime}</span>
                     </div>
                 </div>
 
                 {/* Sitter Profile (Mini) */}
                 <Card className="mb-6" padding="sm">
                     <div className="flex items-center gap-4">
-                        <Avatar name="Kim Minjung" size="lg" variant="gold" />
+                        <Avatar name={sessionInfo.sitterName} size="lg" variant="gold" />
                         <div className="flex-1">
                             <div className="flex items-center gap-2">
-                                <h3 className="font-serif font-bold text-charcoal-900">Kim Minjung</h3>
+                                <h3 className="font-serif font-bold text-charcoal-900">{sessionInfo.sitterName}</h3>
                                 <TierBadge tier="gold" />
                             </div>
                             <p className="text-xs text-charcoal-500">Certified Specialist • English/Korean</p>
@@ -93,7 +63,7 @@ export default function LiveStatus() {
                 <div className="mb-8">
                     <h3 className="section-header">Activity Timeline</h3>
                     <div className="bg-white rounded-xl border border-cream-300 p-4 shadow-sm">
-                        <ActivityFeed logs={logs} />
+                        <ActivityFeed logs={logs as ActivityLog[]} />
                     </div>
                 </div>
 

@@ -7,57 +7,8 @@ import { Card, CardBody, CardHeader } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
 import { TierBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
-
-const ACTIVE_SESSIONS = [
-  {
-    id: '1',
-    sitter: { name: 'Park Sooyeon', tier: 'gold' as const },
-    room: '1102',
-    children: [{ name: 'Sota', age: 3 }, { name: 'Yui', age: 6 }],
-    startTime: '19:00',
-    elapsed: '2h 15m',
-    lastUpdate: '2 min ago',
-    activities: [
-      { time: '21:10', activity: 'Playing with blocks', type: 'play' },
-      { time: '20:30', activity: 'Snack time - Apple slices', type: 'food' },
-      { time: '19:45', activity: 'Trust check-in completed', type: 'checkin' },
-      { time: '19:00', activity: 'Session started', type: 'start' },
-    ],
-    vitals: { mood: 'happy', energy: 'high' },
-  },
-  {
-    id: '2',
-    sitter: { name: 'Lee Jihye', tier: 'silver' as const },
-    room: '2201',
-    children: [{ name: 'Mia', age: 5 }],
-    startTime: '18:30',
-    elapsed: '2h 45m',
-    lastUpdate: '5 min ago',
-    activities: [
-      { time: '21:05', activity: 'Drawing and coloring', type: 'play' },
-      { time: '20:00', activity: 'Snack time - Cookie', type: 'food' },
-      { time: '18:45', activity: 'Trust check-in completed', type: 'checkin' },
-      { time: '18:30', activity: 'Session started', type: 'start' },
-    ],
-    vitals: { mood: 'calm', energy: 'medium' },
-  },
-  {
-    id: '3',
-    sitter: { name: 'Choi Yuna', tier: 'gold' as const },
-    room: '1508',
-    children: [{ name: 'Noah', age: 7 }],
-    startTime: '17:00',
-    elapsed: '4h 15m',
-    lastUpdate: '1 min ago',
-    activities: [
-      { time: '21:12', activity: 'Reading books', type: 'education' },
-      { time: '20:00', activity: 'Dinner - Ordered room service', type: 'food' },
-      { time: '19:00', activity: 'Homework assistance', type: 'education' },
-      { time: '17:15', activity: 'Trust check-in completed', type: 'checkin' },
-    ],
-    vitals: { mood: 'focused', energy: 'medium' },
-  },
-];
+import { useAuth } from '../../contexts/AuthContext';
+import { useHotelSessions } from '../../hooks/useSessions';
 
 // Icons
 const PhoneIcon = () => (
@@ -75,6 +26,9 @@ const AlertIcon = () => (
 );
 
 export default function LiveMonitor() {
+  const { user } = useAuth();
+  const { sessions } = useHotelSessions(user?.hotelId);
+
   return (
     <div className="live-monitor-page animate-fade-in">
       <div className="page-header">
@@ -86,7 +40,7 @@ export default function LiveMonitor() {
               LIVE
             </span>
           </h1>
-          <p className="page-subtitle">{ACTIVE_SESSIONS.length} active sessions right now</p>
+          <p className="page-subtitle">{sessions.length} active sessions right now</p>
         </div>
         <Button variant="danger" icon={<AlertIcon />}>
           Emergency Protocol
@@ -94,7 +48,7 @@ export default function LiveMonitor() {
       </div>
 
       <div className="sessions-grid">
-        {ACTIVE_SESSIONS.map((session) => (
+        {sessions.map((session) => (
           <Card key={session.id} className="session-card">
             <CardHeader>
               <div className="session-header">

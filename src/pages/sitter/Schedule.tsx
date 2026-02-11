@@ -4,49 +4,41 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { StatusBadge, TierBadge, SafetyBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
-
-const TODAY_SESSIONS = [
-    { id: '1', time: '19:00 - 23:00', room: '1102', hotel: 'Grand Hyatt', children: ['Sota (3)', 'Yui (6)'], status: 'confirmed' as const },
-    { id: '2', time: '20:00 - 24:00', room: '3501', hotel: 'Grand Hyatt', children: ['Lucas (4)'], status: 'pending' as const },
-];
-
-const WEEK_SCHEDULE = [
-    { date: 'Mon 20', sessions: 2 },
-    { date: 'Tue 21', sessions: 1 },
-    { date: 'Wed 22', sessions: 0 },
-    { date: 'Thu 23', sessions: 2 },
-    { date: 'Fri 24', sessions: 3 },
-    { date: 'Sat 25', sessions: 4 },
-    { date: 'Sun 26', sessions: 2 },
-];
+import { useAuth } from '../../contexts/AuthContext';
+import { useSitterBookings } from '../../hooks/useBookings';
+import { useSitterStats } from '../../hooks/useSitters';
 
 export default function Schedule() {
     const { t } = useTranslation();
+    const { user } = useAuth();
+    const sitterId = user?.sitterInfo?.sitterId || user?.id;
+    const { todaySessions, weekSchedule } = useSitterBookings(sitterId);
+    const { stats } = useSitterStats(sitterId);
 
     return (
         <div className="sitter-schedule animate-fade-in">
             {/* Stats */}
             <div className="stats-row">
                 <div className="stat-item">
-                    <span className="stat-value">247</span>
+                    <span className="stat-value">{stats.totalSessions}</span>
                     <span className="stat-label">{t('hotel.sessions')}</span>
                 </div>
                 <div className="stat-item">
-                    <span className="stat-value">4.9</span>
+                    <span className="stat-value">{stats.avgRating}</span>
                     <span className="stat-label">{t('common.rating')}</span>
                 </div>
                 <div className="stat-item gold">
-                    <TierBadge tier="gold" />
+                    <TierBadge tier={stats.tier} />
                 </div>
             </div>
 
-            <SafetyBadge days={365} />
+            <SafetyBadge days={stats.safetyDays} />
 
             {/* Today's Schedule */}
             <h2 className="section-title">{t('sitter.todaySchedule')}</h2>
-            {TODAY_SESSIONS.length > 0 ? (
+            {todaySessions.length > 0 ? (
                 <div className="sessions-list">
-                    {TODAY_SESSIONS.map((session) => (
+                    {todaySessions.map((session) => (
                         <Card key={session.id}>
                             <CardBody>
                                 <div className="session-header">
@@ -76,7 +68,7 @@ export default function Schedule() {
             {/* Week View */}
             <h2 className="section-title">{t('sitter.thisWeek')}</h2>
             <div className="week-grid">
-                {WEEK_SCHEDULE.map((day, i) => (
+                {weekSchedule.map((day, i) => (
                     <div key={i} className={`day-item ${day.sessions > 0 ? 'has-sessions' : ''}`}>
                         <span className="day-date">{day.date}</span>
                         <span className="day-count">{day.sessions > 0 ? day.sessions : '-'}</span>

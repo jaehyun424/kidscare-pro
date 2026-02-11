@@ -10,60 +10,9 @@ import { Input, Select } from '../../components/common/Input';
 import { Badge, StatusBadge, TierBadge } from '../../components/common/Badge';
 import { Avatar } from '../../components/common/Avatar';
 import { Modal } from '../../components/common/Modal';
-
-// Demo Data
-const BOOKINGS_DATA = [
-    {
-        id: '1',
-        confirmationCode: 'KCP-2025-0042',
-        date: '2025-01-15',
-        time: '18:00 - 22:00',
-        room: '2305',
-        parent: { name: 'Sarah Johnson', phone: '+1 555-0123' },
-        children: [{ name: 'Emma', age: 5, allergies: ['peanuts'] }],
-        sitter: { name: 'Kim Minjung', tier: 'gold' as const },
-        status: 'confirmed' as const,
-        totalAmount: 280000,
-    },
-    {
-        id: '2',
-        confirmationCode: 'KCP-2025-0043',
-        date: '2025-01-15',
-        time: '19:00 - 23:00',
-        room: '1102',
-        parent: { name: 'Tanaka Yuki', phone: '+81 90-1234-5678' },
-        children: [{ name: 'Sota', age: 3 }, { name: 'Yui', age: 6 }],
-        sitter: { name: 'Park Sooyeon', tier: 'gold' as const },
-        status: 'in_progress' as const,
-        totalAmount: 420000,
-    },
-    {
-        id: '3',
-        confirmationCode: 'KCP-2025-0044',
-        date: '2025-01-15',
-        time: '20:00 - 24:00',
-        room: '3501',
-        parent: { name: 'Michael Chen', phone: '+86 138-0000-0000' },
-        children: [{ name: 'Lucas', age: 4 }],
-        sitter: null,
-        status: 'pending' as const,
-        totalAmount: 280000,
-    },
-    {
-        id: '4',
-        confirmationCode: 'KCP-2025-0045',
-        date: '2025-01-14',
-        time: '17:00 - 21:00',
-        room: '2108',
-        parent: { name: 'Emily Davis', phone: '+1 555-0456' },
-        children: [{ name: 'Oliver', age: 7 }],
-        sitter: { name: 'Lee Jihye', tier: 'silver' as const },
-        status: 'completed' as const,
-        totalAmount: 280000,
-    },
-];
-
-
+import { useAuth } from '../../contexts/AuthContext';
+import { useHotelBookings } from '../../hooks/useBookings';
+import type { DemoBooking } from '../../data/demo';
 
 // Icons
 const SearchIcon = () => (
@@ -82,9 +31,11 @@ const PlusIcon = () => (
 
 export default function Bookings() {
     const { t } = useTranslation();
+    const { user } = useAuth();
+    const { bookings } = useHotelBookings(user?.hotelId);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
-    const [selectedBooking, setSelectedBooking] = useState<typeof BOOKINGS_DATA[0] | null>(null);
+    const [selectedBooking, setSelectedBooking] = useState<DemoBooking | null>(null);
 
     const STATUS_OPTIONS = [
         { value: '', label: t('common.allStatuses') },
@@ -95,7 +46,7 @@ export default function Bookings() {
         { value: 'cancelled', label: t('status.cancelled') },
     ];
 
-    const filteredBookings = BOOKINGS_DATA.filter((booking) => {
+    const filteredBookings = bookings.filter((booking) => {
         const matchesSearch =
             booking.confirmationCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
             booking.parent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

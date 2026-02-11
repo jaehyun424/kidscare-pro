@@ -2,7 +2,7 @@
 // KidsCare Pro - Hotel Dashboard
 // ============================================
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
@@ -10,84 +10,9 @@ import { Button } from '../../components/common/Button';
 import { Badge, StatusBadge, TierBadge, SafetyBadge } from '../../components/common/Badge';
 import { Avatar } from '../../components/common/Avatar';
 import { Skeleton } from '../../components/common/Skeleton';
-
-// ----------------------------------------
-// Demo Data
-// ----------------------------------------
-const DEMO_STATS = {
-  todayBookings: 12,
-  activeNow: 3,
-  completedToday: 8,
-  todayRevenue: 4850000,
-  safetyDays: 127,
-  pendingBookings: 4,
-};
-
-const DEMO_TODAY_BOOKINGS = [
-  {
-    id: '1',
-    confirmationCode: 'KCP-2025-0042',
-    time: '18:00 - 22:00',
-    room: '2305',
-    parent: 'Sarah Johnson',
-    children: [{ name: 'Emma', age: 5 }],
-    sitter: { name: 'Kim Minjung', tier: 'gold' as const },
-    status: 'confirmed' as const,
-  },
-  {
-    id: '2',
-    confirmationCode: 'KCP-2025-0043',
-    time: '19:00 - 23:00',
-    room: '1102',
-    parent: 'Tanaka Yuki',
-    children: [{ name: 'Sota', age: 3 }, { name: 'Yui', age: 6 }],
-    sitter: { name: 'Park Sooyeon', tier: 'gold' as const },
-    status: 'in_progress' as const,
-  },
-  {
-    id: '3',
-    confirmationCode: 'KCP-2025-0044',
-    time: '20:00 - 24:00',
-    room: '3501',
-    parent: 'Michael Chen',
-    children: [{ name: 'Lucas', age: 4 }],
-    sitter: null,
-    status: 'pending' as const,
-  },
-];
-
-const DEMO_ACTIVE_SESSIONS = [
-  {
-    id: '1',
-    sitter: { name: 'Park Sooyeon', avatar: null, tier: 'gold' as const },
-    room: '1102',
-    children: 'Sota (3), Yui (6)',
-    startTime: '19:00',
-    elapsed: '2h 15m',
-    lastActivity: 'Playing with blocks',
-    status: 'active' as const,
-  },
-  {
-    id: '2',
-    sitter: { name: 'Lee Jihye', avatar: null, tier: 'silver' as const },
-    room: '2201',
-    children: 'Mia (5)',
-    startTime: '18:30',
-    elapsed: '2h 45m',
-    lastActivity: 'Snack time',
-    status: 'active' as const,
-  },
-  {
-    id: '3',
-    sitter: { name: 'Choi Yuna', avatar: null, tier: 'gold' as const },
-    room: '1508',
-    children: 'Noah (7)',
-    startTime: '17:00',
-    elapsed: '4h 15m',
-    lastActivity: 'Reading books',
-    status: 'active' as const,
-  },
-];
+import { useAuth } from '../../contexts/AuthContext';
+import { useHotelBookings } from '../../hooks/useBookings';
+import { useHotelSessions } from '../../hooks/useSessions';
 
 // ----------------------------------------
 // Icons
@@ -171,13 +96,10 @@ function StatCard({ icon, label, value, subValue, color }: StatCardProps) {
 // ----------------------------------------
 export default function Dashboard() {
   const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+  const { user } = useAuth();
+  const { bookings: todayBookings, stats, isLoading: bookingsLoading } = useHotelBookings(user?.hotelId);
+  const { sessions: activeSessions, isLoading: sessionsLoading } = useHotelSessions(user?.hotelId);
+  const isLoading = bookingsLoading || sessionsLoading;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ko-KR', {
@@ -219,7 +141,7 @@ export default function Dashboard() {
       {/* Safety Record Banner */}
       <div className="safety-banner animate-fade-in-up">
         <div className="safety-banner-content">
-          <SafetyBadge days={DEMO_STATS.safetyDays} />
+          <SafetyBadge days={stats.safetyDays} />
           <span className="safety-banner-text">
             Congratulations! Your hotel maintains an excellent safety record.
           </span>
@@ -231,27 +153,27 @@ export default function Dashboard() {
         <StatCard
           icon={<CalendarIcon />}
           label={t('hotel.totalBookings')}
-          value={DEMO_STATS.todayBookings}
-          subValue={`${DEMO_STATS.pendingBookings} ${t('status.pending').toLowerCase()}`}
+          value={stats.todayBookings}
+          subValue={`${stats.pendingBookings} ${t('status.pending').toLowerCase()}`}
           color="primary"
         />
         <StatCard
           icon={<LiveIcon />}
           label={t('hotel.activeSessions')}
-          value={DEMO_STATS.activeNow}
+          value={stats.activeNow}
           subValue={t('status.inProgress')}
           color="warning"
         />
         <StatCard
           icon={<CheckIcon />}
           label={t('status.completed')}
-          value={DEMO_STATS.completedToday}
+          value={stats.completedToday}
           color="success"
         />
         <StatCard
           icon={<CurrencyIcon />}
           label={t('hotel.totalRevenue')}
-          value={formatCurrency(DEMO_STATS.todayRevenue)}
+          value={formatCurrency(stats.todayRevenue)}
           color="gold"
         />
       </div>
@@ -271,7 +193,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardBody>
             <div className="booking-list">
-              {DEMO_TODAY_BOOKINGS.map((booking) => (
+              {todayBookings.map((booking) => (
                 <div key={booking.id} className="booking-item">
                   <div className="booking-item-main">
                     <div className="booking-item-header">
@@ -281,7 +203,7 @@ export default function Dashboard() {
                     <div className="booking-item-details">
                       <span>🕐 {booking.time}</span>
                       <span>🚪 Room {booking.room}</span>
-                      <span>👤 {booking.parent}</span>
+                      <span>👤 {booking.parent.name}</span>
                     </div>
                     <div className="booking-item-children">
                       {booking.children.map((child, i) => (
@@ -328,7 +250,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardBody>
             <div className="live-list">
-              {DEMO_ACTIVE_SESSIONS.map((session) => (
+              {activeSessions.map((session) => (
                 <div key={session.id} className="live-item">
                   <div className="live-item-header">
                     <Avatar name={session.sitter.name} size="sm" variant={session.sitter.tier === 'gold' ? 'gold' : 'default'} />
