@@ -18,11 +18,9 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 import type { User, UserRole } from '../types';
 
-// Demo mode flag: in production, only explicit VITE_DEMO_MODE=true enables demo mode.
-// In development, also fall back to demo if Firebase is not properly initialized.
+// Demo mode flag: enabled when Firebase is not properly initialized or explicitly set.
 const isMockAuth = !auth || !auth.app;
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true' ||
-    (import.meta.env.DEV && isMockAuth);
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true' || isMockAuth;
 
 // Demo users for testing (only used when DEMO_MODE is true)
 const DEMO_USERS: Record<string, User> = {

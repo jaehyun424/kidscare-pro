@@ -35,15 +35,15 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 // ----------------------------------------
 export function ThemeProvider({ children }: ThemeProviderProps) {
     const [theme, setThemeState] = useState<Theme>(() => {
-        // Check localStorage first
-        const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-        if (stored) return stored;
-
-        // Check system preference
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return 'dark';
+        try {
+            const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+            if (stored) return stored;
+            if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+                return 'dark';
+            }
+        } catch {
+            // localStorage unavailable (private browsing, etc.)
         }
-
         return 'dark'; // Default to dark for luxury feel
     });
 
