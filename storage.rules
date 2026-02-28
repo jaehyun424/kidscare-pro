@@ -1,0 +1,52 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Common helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isImageType() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isUnder10MB() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Booking signatures
+    match /bookings/{bookingId}/signatures/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isImageType() && isUnder10MB();
+    }
+
+    // Session activity photos
+    match /sessions/{sessionId}/photos/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isImageType() && isUnder10MB();
+    }
+
+    // Incident photos
+    match /incidents/{incidentId}/photos/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isImageType() && isUnder10MB();
+    }
+
+    // Sitter documents
+    match /sitters/{sitterId}/documents/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isUnder10MB();
+    }
+
+    // Hotel logos
+    match /hotels/{hotelId}/logo.png {
+      allow read: if true;
+      allow write: if isSignedIn() && isImageType() && isUnder10MB();
+    }
+
+    // Deny everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/C
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { Skeleton } from '../../components/common/Skeleton';
+import '../../styles/pages/sitter-earnings.css';
 
 // ----------------------------------------
 // Demo Data
@@ -99,11 +100,13 @@ export default function Earnings() {
             {/* ---- Header + Period Filter ---- */}
             <div className="earnings-header">
                 <h1 className="earnings-page-title">Earnings</h1>
-                <div className="period-filter">
+                <div className="period-filter" role="tablist" aria-label="Earnings period filter">
                     <Button
                         variant={period === 'this_month' ? 'gold' : 'ghost'}
                         size="sm"
                         onClick={() => setPeriod('this_month')}
+                        role="tab"
+                        aria-selected={period === 'this_month'}
                     >
                         This Month
                     </Button>
@@ -111,6 +114,8 @@ export default function Earnings() {
                         variant={period === 'last_3_months' ? 'gold' : 'ghost'}
                         size="sm"
                         onClick={() => setPeriod('last_3_months')}
+                        role="tab"
+                        aria-selected={period === 'last_3_months'}
                     >
                         Last 3 Months
                     </Button>
@@ -118,6 +123,8 @@ export default function Earnings() {
                         variant={period === 'all_time' ? 'gold' : 'ghost'}
                         size="sm"
                         onClick={() => setPeriod('all_time')}
+                        role="tab"
+                        aria-selected={period === 'all_time'}
                     >
                         All Time
                     </Button>
@@ -162,20 +169,21 @@ export default function Earnings() {
                     <CardTitle>Monthly Earnings</CardTitle>
                 </CardHeader>
                 <CardBody>
-                    <div className="chart-container">
+                    <div className="chart-container" role="img" aria-label="Monthly earnings bar chart">
                         {DEMO_MONTHLY_CHART.map((item, index) => {
                             const isCurrentMonth = index === DEMO_MONTHLY_CHART.length - 1;
                             const heightPercent = (item.amount / maxChartAmount) * 100;
                             return (
-                                <div key={item.month} className="chart-bar-wrapper">
-                                    <span className="chart-amount">
+                                <div key={item.month} className="chart-bar-wrapper" aria-label={`${item.month}: ${formatCurrency(item.amount)}`}>
+                                    <span className="chart-amount" aria-hidden="true">
                                         {formatCurrency(item.amount / 10000)}만
                                     </span>
                                     <div
                                         className={`chart-bar ${isCurrentMonth ? 'chart-bar-current' : 'chart-bar-default'}`}
                                         style={{ height: `${heightPercent}%` }}
+                                        aria-hidden="true"
                                     />
-                                    <span className={`chart-label ${isCurrentMonth ? 'chart-label-current' : ''}`}>
+                                    <span className={`chart-label ${isCurrentMonth ? 'chart-label-current' : ''}`} aria-hidden="true">
                                         {item.month}
                                     </span>
                                 </div>
@@ -220,7 +228,7 @@ export default function Earnings() {
                     <CardTitle>Recent Payments</CardTitle>
                 </CardHeader>
                 <CardBody>
-                    <div className="payments-list">
+                    <div className="payments-list animate-stagger">
                         {DEMO_RECENT_PAYMENTS.map((payment) => (
                             <div key={payment.id} className="payment-row">
                                 <div className="payment-info">
@@ -244,306 +252,4 @@ export default function Earnings() {
             </Card>
         </div>
     );
-}
-
-// ============================================
-// Styles
-// ============================================
-const earningsStyles = `
-/* Page Layout */
-.earnings-page {
-    max-width: 600px;
-    margin: 0 auto;
-    padding-bottom: var(--space-8);
-}
-
-/* Header */
-.earnings-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-6);
-    flex-wrap: wrap;
-    gap: var(--space-3);
-}
-
-.earnings-page-title {
-    font-size: var(--text-2xl);
-    font-weight: var(--font-bold);
-}
-
-.period-filter {
-    display: flex;
-    gap: var(--space-2);
-}
-
-/* Summary Card */
-.earnings-summary {
-    margin-bottom: var(--space-4);
-}
-
-.earnings-summary-label {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
-    margin-bottom: var(--space-2);
-    font-weight: var(--font-medium);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.earnings-amount {
-    font-size: var(--text-4xl);
-    font-weight: var(--font-bold);
-    color: var(--gold-500);
-    line-height: 1.1;
-}
-
-.earnings-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: var(--space-3);
-    font-size: var(--text-sm);
-    color: var(--text-tertiary);
-    flex-wrap: wrap;
-    gap: var(--space-2);
-}
-
-.earnings-growth.positive {
-    color: var(--success-500);
-    font-weight: var(--font-medium);
-}
-
-.earnings-growth.negative {
-    color: var(--warning-500);
-    font-weight: var(--font-medium);
-}
-
-/* Stats Row */
-.stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-    margin-bottom: var(--space-6);
-}
-
-.stat-label {
-    display: block;
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: var(--font-medium);
-}
-
-.stat-value {
-    display: block;
-    font-size: var(--text-xl);
-    font-weight: var(--font-bold);
-    margin-top: var(--space-1);
-}
-
-.stat-pending {
-    color: var(--warning-500);
-}
-
-/* Chart Card */
-.chart-card {
-    margin-bottom: var(--space-6);
-}
-
-.chart-container {
-    display: flex;
-    align-items: flex-end;
-    gap: var(--space-3);
-    height: 200px;
-    padding-top: var(--space-4);
-}
-
-.chart-bar-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-2);
-    height: 100%;
-    justify-content: flex-end;
-}
-
-.chart-bar {
-    width: 100%;
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
-    min-height: 4px;
-    transition: height 0.3s ease;
-}
-
-.chart-bar-default {
-    background: var(--primary-400);
-    opacity: 0.6;
-}
-
-.chart-bar-current {
-    background: var(--gold-500);
-    opacity: 1;
-}
-
-.chart-label {
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
-}
-
-.chart-label-current {
-    color: var(--gold-500);
-    font-weight: var(--font-semibold);
-}
-
-.chart-amount {
-    font-size: var(--text-xs);
-    color: var(--text-secondary);
-    white-space: nowrap;
-}
-
-/* Hotel Breakdown */
-.breakdown-card {
-    margin-bottom: var(--space-6);
-}
-
-.hotel-breakdown-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-}
-
-.hotel-breakdown-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--space-4);
-}
-
-.hotel-breakdown-info {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    min-width: 0;
-    flex-shrink: 1;
-}
-
-.hotel-breakdown-name {
-    font-size: var(--text-sm);
-    font-weight: var(--font-medium);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.hotel-breakdown-sessions {
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
-}
-
-.hotel-breakdown-right {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    flex-shrink: 0;
-}
-
-.hotel-breakdown-amount {
-    font-size: var(--text-sm);
-    font-weight: var(--font-semibold);
-    color: var(--gold-500);
-    white-space: nowrap;
-}
-
-.hotel-breakdown-bar-track {
-    width: 60px;
-    height: 6px;
-    background: var(--glass-bg);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-}
-
-.hotel-breakdown-bar-fill {
-    height: 100%;
-    background: var(--gold-500);
-    border-radius: var(--radius-md);
-    transition: width 0.3s ease;
-}
-
-.hotel-breakdown-pct {
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
-    min-width: 28px;
-    text-align: right;
-}
-
-/* Payments */
-.payments-card {
-    margin-bottom: var(--space-4);
-}
-
-.payments-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-}
-
-.payment-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: var(--space-3);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.payment-row:last-child {
-    padding-bottom: 0;
-    border-bottom: none;
-}
-
-.payment-info {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-}
-
-.payment-date {
-    font-weight: var(--font-medium);
-    font-size: var(--text-sm);
-}
-
-.payment-hotel {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
-}
-
-.payment-hours {
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
-}
-
-.payment-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: var(--space-1);
-}
-
-.payment-amount {
-    font-size: var(--text-lg);
-    font-weight: var(--font-bold);
-    color: var(--gold-500);
-}
-
-/* Utility */
-.mt-4 {
-    margin-top: var(--space-4);
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const s = document.createElement('style');
-    s.textContent = earningsStyles;
-    document.head.appendChild(s);
 }

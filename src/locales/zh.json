@@ -32,7 +32,15 @@
         "minutes": "分钟",
         "allStatuses": "所有状态",
         "daysSafe": "{{count}}天零事故",
-        "yearsOld": "{{count}}岁"
+        "yearsOld": "{{count}}岁",
+        "gender": "性别",
+        "allergies": "过敏信息",
+        "remove": "删除",
+        "required": "此项为必填",
+        "invalid": "请输入有效值",
+        "confirmRemove": "确定要删除吗？",
+        "commaSeparated": "用逗号分隔",
+        "error": "错误"
     },
     "auth": {
         "welcomeBack": "欢迎回来",

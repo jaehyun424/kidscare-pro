@@ -1,0 +1,64 @@
+/* ============================================
+   KidsCare Pro - EmptyState Component Styles
+   ============================================ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  min-height: 200px;
+}
+
+.empty-state-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--cream-200);
+  color: var(--charcoal-500);
+  margin-bottom: var(--space-4);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.empty-state-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  color: var(--charcoal-900);
+  margin-bottom: var(--space-2);
+}
+
+.empty-state-description {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--charcoal-500);
+  max-width: 320px;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+.empty-state-action {
+  margin-top: var(--space-6);
+}
+
+/* ----------------------------------------
+   Dark Mode
+   ---------------------------------------- */
+[data-theme="dark"] .empty-state-icon {
+  background: #2A2A2A;
+  color: #808080;
+}
+
+[data-theme="dark"] .empty-state-title {
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .empty-state-description {
+  color: #808080;
+}

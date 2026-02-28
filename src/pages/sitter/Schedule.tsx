@@ -4,16 +4,48 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { StatusBadge, TierBadge, SafetyBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
+import { EmptyState } from '../../components/common/EmptyState';
+import { Skeleton, SkeletonText } from '../../components/common/Skeleton';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSitterBookings } from '../../hooks/useBookings';
 import { useSitterStats } from '../../hooks/useSitters';
+import '../../styles/pages/sitter-schedule.css';
 
 export default function Schedule() {
     const { t } = useTranslation();
     const { user } = useAuth();
     const sitterId = user?.sitterInfo?.sitterId || user?.id;
-    const { todaySessions, weekSchedule } = useSitterBookings(sitterId);
-    const { stats } = useSitterStats(sitterId);
+    const { todaySessions, weekSchedule, isLoading } = useSitterBookings(sitterId);
+    const { stats, isLoading: isStatsLoading } = useSitterStats(sitterId);
+
+    if (isLoading || isStatsLoading) {
+        return (
+            <div className="sitter-schedule animate-fade-in">
+                <div className="stats-row">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="stat-item">
+                            <Skeleton width="50px" height="1.5rem" />
+                            <Skeleton width="70px" height="0.75rem" className="mt-2" />
+                        </div>
+                    ))}
+                </div>
+                <Skeleton width="100%" height="40px" borderRadius="var(--radius-full)" className="mt-4" />
+                <Skeleton width="40%" height="1.5rem" className="mt-6" />
+                <div className="sessions-list mt-4">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="card" style={{ marginBottom: '0.75rem' }}>
+                            <div className="flex justify-between items-center">
+                                <Skeleton width="35%" height="1rem" />
+                                <Skeleton width="80px" height="1.5rem" borderRadius="var(--radius-full)" />
+                            </div>
+                            <SkeletonText lines={2} className="mt-4" />
+                            <Skeleton width="100%" height="40px" borderRadius="var(--radius-sm)" className="mt-4" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="sitter-schedule animate-fade-in">
@@ -62,103 +94,23 @@ export default function Schedule() {
                     ))}
                 </div>
             ) : (
-                <Card><CardBody><p className="no-sessions">{t('sitter.noSessionsToday')}</p></CardBody></Card>
+                <EmptyState
+                    icon="📅"
+                    title={t('sitter.noSessionsScheduled', 'No sessions scheduled')}
+                    description={t('sitter.noSessionsScheduledDesc', 'You have no sessions scheduled for today. Check back later.')}
+                />
             )}
 
             {/* Week View */}
             <h2 className="section-title">{t('sitter.thisWeek')}</h2>
-            <div className="week-grid">
+            <div className="week-grid" role="group" aria-label="Weekly schedule overview">
                 {weekSchedule.map((day, i) => (
-                    <div key={i} className={`day-item ${day.sessions > 0 ? 'has-sessions' : ''}`}>
+                    <div key={i} className={`day-item ${day.sessions > 0 ? 'has-sessions' : ''}`} aria-label={`${day.date}: ${day.sessions > 0 ? day.sessions + ' sessions' : 'no sessions'}`}>
                         <span className="day-date">{day.date}</span>
-                        <span className="day-count">{day.sessions > 0 ? day.sessions : '-'}</span>
+                        <span className="day-count" aria-hidden="true">{day.sessions > 0 ? day.sessions : '-'}</span>
                     </div>
                 ))}
             </div>
         </div>
     );
-}
-
-// Styles
-const scheduleStyles = `
-.sitter-schedule { max-width: 480px; margin: 0 auto; }
-
-.stats-row {
-  display: flex;
-  justify-content: space-around;
-  padding: var(--space-4);
-  background: var(--glass-bg);
-  border-radius: var(--radius-xl);
-  margin-bottom: var(--space-4);
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-value {
-  display: block;
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
-  color: var(--primary-400);
-}
-
-.stat-label {
-  font-size: var(--text-sm);
-  color: var(--text-tertiary);
-}
-
-.stat-item.gold { display: flex; align-items: center; }
-
-.section-title {
-  font-size: var(--text-lg);
-  font-weight: var(--font-semibold);
-  margin: var(--space-6) 0 var(--space-4);
-}
-
-.sessions-list { display: flex; flex-direction: column; gap: var(--space-3); }
-
-.session-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: var(--space-3);
-}
-
-.session-time { font-weight: var(--font-semibold); }
-
-.session-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  margin-bottom: var(--space-4);
-}
-
-.no-sessions { text-align: center; color: var(--text-tertiary); }
-
-.week-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: var(--space-2);
-}
-
-.day-item {
-  text-align: center;
-  padding: var(--space-3);
-  background: var(--glass-bg);
-  border-radius: var(--radius-md);
-  opacity: 0.5;
-}
-
-.day-item.has-sessions { opacity: 1; }
-
-.day-date { display: block; font-size: var(--text-xs); color: var(--text-tertiary); }
-.day-count { display: block; font-size: var(--text-lg); font-weight: var(--font-bold); margin-top: var(--space-1); }
-
-.has-sessions .day-count { color: var(--primary-400); }
-`;
-
-if (typeof document !== 'undefined') {
-    const s = document.createElement('style'); s.textContent = scheduleStyles; document.head.appendChild(s);
 }

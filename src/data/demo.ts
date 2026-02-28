@@ -368,6 +368,7 @@ export const DEMO_LIVE_STATUS_LOGS: DemoActivityLog[] = [
 // LiveStatus Session Info
 // ----------------------------------------
 export interface DemoLiveSession {
+    sitterId: string;
     sitterName: string;
     sitterTier: 'gold' | 'silver';
     sitterLanguages: string;
@@ -375,6 +376,7 @@ export interface DemoLiveSession {
 }
 
 export const DEMO_LIVE_SESSION: DemoLiveSession = {
+    sitterId: 'demo-sitter-1',
     sitterName: 'Kim Minjung',
     sitterTier: 'gold',
     sitterLanguages: 'English/Korean',

@@ -1,25 +1,105 @@
 // Sitter Active Session Page
+import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActiveSession } from '../../hooks/useSessions';
+import { DEMO_MODE } from '../../hooks/useDemo';
+import { activityService, sessionService, bookingService } from '../../services/firestore';
+import { storageService } from '../../services/storage';
+import '../../styles/pages/sitter-active-session.css';
 
 export default function ActiveSession() {
-    const { success } = useToast();
+    const { success, error } = useToast();
     const { user } = useAuth();
-    const { sessionInfo, checklist, toggleChecklistItem } = useActiveSession(user?.id);
+    const navigate = useNavigate();
+    const { sessionInfo, checklist, toggleChecklistItem, sessionId } = useActiveSession(user?.id);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const logActivity = () => {
+    const logActivity = async () => {
+        if (!DEMO_MODE && sessionId) {
+            try {
+                await activityService.logActivity({
+                    sessionId,
+                    type: 'activity',
+                    description: 'Activity update logged by sitter',
+                });
+            } catch (err) {
+                console.error('Failed to log activity:', err);
+            }
+        }
         success('Activity Logged', 'Your activity update has been recorded.');
+    };
+
+    const handleAddPhoto = async () => {
+        if (DEMO_MODE) {
+            success('Photo Added', 'Photo has been uploaded.');
+            return;
+        }
+        fileInputRef.current?.click();
+    };
+
+    const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !sessionId) return;
+        try {
+            const photoUrl = await storageService.uploadActivityPhoto(sessionId, file);
+            await activityService.logActivity({
+                sessionId,
+                type: 'photo',
+                description: 'Photo uploaded',
+                mediaUrl: photoUrl,
+            });
+            success('Photo Added', 'Photo has been uploaded.');
+        } catch (err) {
+            console.error('Failed to upload photo:', err);
+            error('Upload Failed', 'Could not upload photo.');
+        }
+        e.target.value = '';
+    };
+
+    const logSnack = async () => {
+        if (!DEMO_MODE && sessionId) {
+            try {
+                await activityService.logActivity({
+                    sessionId,
+                    type: 'meal',
+                    description: 'Snack served',
+                });
+            } catch (err) {
+                console.error('Failed to log snack:', err);
+            }
+        }
+        success('Snack Logged', 'Snack has been recorded.');
+    };
+
+    const completeSession = async () => {
+        if (DEMO_MODE) {
+            success('Session Complete', 'The care session has been completed.');
+            navigate('/sitter');
+            return;
+        }
+        if (!sessionId) return;
+        try {
+            await sessionService.endSession(sessionId);
+            // Also update booking status if we have bookingId info
+            await bookingService.updateBookingStatus(sessionId, 'completed');
+            success('Session Complete', 'The care session has been completed.');
+            navigate('/sitter');
+        } catch (err) {
+            console.error('Failed to complete session:', err);
+            error('Error', 'Could not complete session.');
+        }
     };
 
     return (
         <div className="active-session animate-fade-in">
             {/* Status Banner */}
-            <div className="active-banner">
+            <div className="active-banner" role="status" aria-label={`Session active, elapsed time: ${sessionInfo.elapsedTime}`}>
                 <div className="banner-left">
-                    <span className="pulse-dot" />
+                    <span className="pulse-dot" aria-hidden="true" />
                     <span className="banner-text">Session Active</span>
                 </div>
                 <span className="banner-time">{sessionInfo.elapsedTime}</span>
@@ -40,9 +120,17 @@ export default function ActiveSession() {
             {/* Quick Actions */}
             <div className="quick-actions-grid">
                 <Button variant="primary" onClick={logActivity}>📝 Log Activity</Button>
-                <Button variant="secondary">📸 Add Photo</Button>
-                <Button variant="secondary">🍎 Log Snack</Button>
+                <Button variant="secondary" onClick={handleAddPhoto}>📸 Add Photo</Button>
+                <Button variant="secondary" onClick={logSnack}>🍎 Log Snack</Button>
                 <Button variant="danger">🚨 Report Issue</Button>
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleFileSelected}
+                    aria-label="Upload activity photo"
+                />
             </div>
 
             {/* Checklist */}
@@ -65,87 +153,9 @@ export default function ActiveSession() {
             </Card>
 
             {/* End Session */}
-            <Button variant="gold" fullWidth>
+            <Button variant="gold" fullWidth onClick={completeSession}>
                 Complete Session
             </Button>
         </div>
     );
-}
-
-// Styles
-const activeStyles = `
-.active-session { max-width: 480px; margin: 0 auto; }
-
-.active-banner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-4);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
-  border: 1px solid var(--success-500);
-  border-radius: var(--radius-xl);
-  margin-bottom: var(--space-4);
-}
-
-.banner-left { display: flex; align-items: center; gap: var(--space-2); }
-.banner-text { font-weight: var(--font-semibold); color: var(--success-500); }
-.banner-time { font-size: var(--text-2xl); font-weight: var(--font-bold); color: var(--success-500); }
-
-.pulse-dot {
-  width: 12px; height: 12px;
-  background: var(--success-500);
-  border-radius: 50%;
-  animation: pulse 2s ease infinite;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-}
-
-.info-grid .label {
-  display: block;
-  font-size: var(--text-xs);
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-}
-
-.info-grid .value {
-  font-weight: var(--font-medium);
-}
-
-.quick-actions-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
-  margin: var(--space-4) 0;
-}
-
-.section-title {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  margin-bottom: var(--space-4);
-}
-
-.checklist { display: flex; flex-direction: column; gap: var(--space-2); }
-
-.check-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  background: var(--glass-bg);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-}
-
-.check-item input { accent-color: var(--success-500); width: 18px; height: 18px; }
-.check-item .completed { text-decoration: line-through; color: var(--text-tertiary); }
-`;
-
-if (typeof document !== 'undefined') {
-    const s = document.createElement('style'); s.textContent = activeStyles; document.head.appendChild(s);
 }

@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../contexts/ThemeContext';
 import { IconButton } from '../common/Button';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
+import { NotificationBell } from '../common/NotificationBell';
+import '../../styles/parent-layout.css';
 
 // ----------------------------------------
 // Icons
@@ -78,6 +80,7 @@ export function ParentLayout() {
                     <span className="logo-text">KidsCare<span className="text-gold">Pro</span></span>
                 </div>
                 <div className="parent-header-right">
+                    <NotificationBell />
                     <LanguageSwitcher />
                     <IconButton
                         icon={isDark ? <SunIcon /> : <MoonIcon />}
@@ -112,106 +115,3 @@ export function ParentLayout() {
     );
 }
 
-// ----------------------------------------
-// Styles
-// ----------------------------------------
-const parentLayoutStyles = `
-.parent-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-
-/* Header */
-.parent-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4);
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-.parent-header-logo {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.parent-header-right {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-/* Content */
-.parent-content {
-  flex: 1;
-  padding: var(--space-4);
-  padding-bottom: calc(var(--space-4) + 70px);
-  overflow-y: auto;
-}
-
-/* Bottom Navigation */
-.bottom-nav {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
-  padding: var(--space-2) 0;
-  padding-bottom: max(var(--space-2), env(safe-area-inset-bottom));
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-}
-
-.bottom-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-4);
-  color: var(--text-tertiary);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-  border-radius: var(--radius-lg);
-}
-
-.bottom-nav-item:hover {
-  color: var(--text-secondary);
-}
-
-.bottom-nav-item-active {
-  color: var(--primary-400);
-}
-
-.bottom-nav-icon {
-  display: flex;
-}
-
-.bottom-nav-label {
-  font-size: var(--text-xs);
-  font-weight: var(--font-medium);
-}
-
-@media (min-width: 768px) {
-  .parent-layout {
-    max-width: 480px;
-    margin: 0 auto;
-    box-shadow: var(--shadow-xl);
-  }
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = parentLayoutStyles;
-    document.head.appendChild(styleSheet);
-}

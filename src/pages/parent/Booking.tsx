@@ -12,6 +12,9 @@ import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useChildren } from '../../hooks/useChildren';
 import { useHotels } from '../../hooks/useHotel';
+import { DEMO_MODE } from '../../hooks/useDemo';
+import { bookingService } from '../../services/firestore';
+import '../../styles/pages/parent-booking.css';
 
 const TIME_SLOTS = [
     { value: '18:00', label: '18:00' },
@@ -38,6 +41,21 @@ export default function Booking() {
         children: ['1'],
         notes: '',
     });
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+    const validateStep1 = () => {
+        const errors: Record<string, string> = {};
+        if (!formData.date) errors.date = 'Date is required';
+        else {
+            const selected = new Date(formData.date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (selected < today) errors.date = 'Cannot select a past date';
+        }
+        if (!formData.startTime) errors.startTime = 'Start time is required';
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     const DURATION_OPTIONS = [
         { value: '2', label: `2 ${t('common.hours')}` },
@@ -55,14 +73,78 @@ export default function Booking() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        if (formErrors[e.target.name]) {
+            setFormErrors((prev) => ({ ...prev, [e.target.name]: '' }));
+        }
     };
 
     const handleSubmit = async () => {
         setIsLoading(true);
-        await new Promise((r) => setTimeout(r, 1500));
-        setIsLoading(false);
-        success(t('booking.bookingConfirmed'), t('booking.bookingConfirmed'));
-        navigate('/parent');
+        try {
+            if (DEMO_MODE) {
+                await new Promise((r) => setTimeout(r, 1500));
+            } else {
+                const confirmationCode = `KCP-${Date.now().toString(36).toUpperCase()}`;
+                const hours = parseInt(formData.duration) || 4;
+                const baseRate = 70000;
+                const baseTotal = baseRate * hours;
+
+                await bookingService.createBooking({
+                    hotelId: formData.hotel || 'grand-hyatt-seoul',
+                    parentId: user?.id || '',
+                    confirmationCode,
+                    status: 'pending',
+                    schedule: {
+                        date: formData.date ? new Date(formData.date) : new Date(),
+                        startTime: formData.startTime || '18:00',
+                        endTime: '',
+                        duration: hours,
+                        timezone: 'Asia/Seoul',
+                    },
+                    location: {
+                        type: 'room',
+                        roomNumber: formData.room || '',
+                    },
+                    children: children.map((c) => ({
+                        childId: c.id,
+                        firstName: c.name,
+                        age: c.age,
+                    })),
+                    requirements: {
+                        sitterTier: 'any',
+                        preferredLanguages: ['en'],
+                        specialRequests: formData.notes || undefined,
+                    },
+                    pricing: {
+                        baseRate,
+                        hours,
+                        baseTotal,
+                        nightSurcharge: 0,
+                        holidaySurcharge: 0,
+                        goldSurcharge: 0,
+                        subtotal: baseTotal,
+                        commission: 0,
+                        total: baseTotal,
+                    },
+                    payment: {
+                        status: 'pending',
+                        method: 'card',
+                    },
+                    trustProtocol: {
+                        safeWord: '',
+                    },
+                    metadata: {
+                        source: 'parent_app',
+                    },
+                });
+            }
+            success(t('booking.bookingConfirmed'), t('booking.bookingConfirmed'));
+            navigate('/parent');
+        } catch (err) {
+            console.error('Booking creation failed:', err);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const calculatePrice = () => {
@@ -76,10 +158,10 @@ export default function Booking() {
             <h1 className="page-title">{t('booking.newBooking')}</h1>
 
             {/* Progress Steps */}
-            <div className="progress-steps">
+            <div className="progress-steps" role="group" aria-label="Booking progress">
                 {STEP_LABELS.map((label, i) => (
-                    <div key={i} className={`step ${i + 1 <= step ? 'step-active' : ''}`}>
-                        <span className="step-number">{i + 1}</span>
+                    <div key={i} className={`step ${i + 1 <= step ? 'step-active' : ''}`} aria-current={i + 1 === step ? 'step' : undefined}>
+                        <span className="step-number" aria-hidden="true">{i + 1}</span>
                         <span className="step-label">{label}</span>
                     </div>
                 ))}
@@ -112,6 +194,8 @@ export default function Booking() {
                                 type="date"
                                 value={formData.date}
                                 onChange={handleInputChange}
+                                min={new Date().toISOString().split('T')[0]}
+                                error={formErrors.date}
                             />
                             <div className="time-row">
                                 <Select
@@ -121,6 +205,7 @@ export default function Booking() {
                                     onChange={handleInputChange}
                                     options={TIME_SLOTS}
                                     placeholder={t('common.search') + '...'}
+                                    error={formErrors.startTime}
                                 />
                                 <Select
                                     label={t('booking.duration')}
@@ -131,7 +216,7 @@ export default function Booking() {
                                 />
                             </div>
                         </div>
-                        <Button variant="gold" fullWidth onClick={() => setStep(2)}>
+                        <Button variant="gold" fullWidth onClick={() => { if (validateStep1()) setStep(2); }}>
                             {t('common.next')}
                         </Button>
                     </CardBody>
@@ -214,230 +299,4 @@ export default function Booking() {
             )}
         </div>
     );
-}
-
-// Styles
-
-// Styles
-const bookingStyles = `
-.booking-page {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.page-title {
-  font-family: var(--font-serif);
-  font-size: 2.5rem;
-  color: var(--charcoal-900);
-  text-align: center;
-  margin-bottom: 3rem;
-  font-weight: 500;
-}
-
-/* Progress Steps */
-.progress-steps {
-  display: flex;
-  justify-content: center;
-  gap: 3rem;
-  margin-bottom: 3rem;
-  position: relative;
-}
-
-.progress-steps::before {
-  content: '';
-  position: absolute;
-  top: 14px; /* Half of step-number height (28px) */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  height: 1px;
-  background: var(--cream-300);
-  z-index: -1;
-}
-
-.step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  opacity: 0.5;
-  transition: opacity 0.3s;
-  background: var(--cream-100); /* To hide the line behind */
-  padding: 0 0.5rem;
-}
-
-.step-active {
-  opacity: 1;
-}
-
-.step-number {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border: 1px solid var(--charcoal-300);
-  color: var(--charcoal-500);
-  background: white;
-  transition: all 0.3s;
-}
-
-.step-active .step-number {
-  border-color: var(--gold-500);
-  background: var(--gold-500);
-  color: white;
-  box-shadow: 0 0 0 4px var(--cream-200);
-}
-
-.step-label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-  color: var(--charcoal-900);
-}
-
-/* Card Overrides for "Paper" Look */
-.booking-card {
-  background: white !important;
-  border: 1px solid var(--cream-300) !important;
-  box-shadow: var(--shadow-sm) !important;
-  border-radius: var(--radius-sm) !important;
-}
-
-.booking-card h2 {
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  color: var(--charcoal-900);
-  text-align: center;
-  margin-bottom: 2rem;
-  font-weight: 500;
-}
-
-.form-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.time-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-/* Children Selection */
-.children-selection {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.child-option {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.25rem;
-  border: 1px solid var(--cream-300);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-  background: white;
-}
-
-.child-option:hover {
-  border-color: var(--gold-300);
-  background: var(--cream-50);
-}
-
-.child-option input {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--gold-500);
-}
-
-.child-name {
-  display: block;
-  font-weight: 600;
-  color: var(--charcoal-900);
-  font-size: 1rem;
-}
-
-.child-age {
-  font-size: 0.875rem;
-  color: var(--charcoal-500);
-}
-
-/* Summary "Receipt" */
-.confirmation-summary {
-  background: var(--cream-50);
-  border: 1px solid var(--cream-300);
-  border-radius: var(--radius-sm); /* jagged edge effect could be added here creatively */
-  padding: 2rem;
-  margin-bottom: 2rem;
-  position: relative;
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 0;
-  border-bottom: 1px dashed var(--cream-300);
-  font-size: 0.95rem;
-  color: var(--charcoal-700);
-}
-
-.summary-row:last-child {
-  border-bottom: none;
-}
-
-.summary-row span:first-child {
-  color: var(--charcoal-500);
-}
-
-.summary-row.total {
-  margin-top: 1rem;
-  padding-top: 1.5rem;
-  border-top: 2px solid var(--charcoal-900);
-  border-bottom: none;
-}
-
-.summary-row.total span {
-  font-family: var(--font-serif);
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--charcoal-900);
-}
-
-.summary-row.total .price {
-  color: var(--gold-600);
-}
-
-.terms-note {
-  font-size: 0.75rem;
-  color: var(--charcoal-400);
-  text-align: center;
-  margin-bottom: 2rem;
-  line-height: 1.5;
-}
-
-.button-row {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.button-row > * {
-  flex: 1;
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const s = document.createElement('style'); s.textContent = bookingStyles; document.head.appendChild(s);
 }

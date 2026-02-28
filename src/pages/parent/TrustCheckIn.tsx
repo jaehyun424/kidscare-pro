@@ -1,15 +1,23 @@
 
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { SignaturePad } from '../../components/common/SignaturePad';
 import type { SignaturePadRef } from '../../components/common/SignaturePad';
 import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { DEMO_MODE } from '../../hooks/useDemo';
+import { storageService } from '../../services/storage';
+import { bookingService, sessionService } from '../../services/firestore';
 
 export default function TrustCheckIn() {
     const navigate = useNavigate();
+    const { id: bookingId } = useParams<{ id: string }>();
+    const { t } = useTranslation();
+    const { user } = useAuth();
     const { success, error } = useToast();
     const signatureRef = useRef<SignaturePadRef>(null);
 
@@ -43,27 +51,89 @@ export default function TrustCheckIn() {
         }
 
         setIsSubmitting(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+            if (DEMO_MODE) {
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            } else {
+                const signatureDataUrl = signatureRef.current?.toDataURL() || '';
 
-        success('Check-in Complete', 'Care session has officially started.');
-        navigate('/parent'); // Or to the live activity feed
-        setIsSubmitting(false);
+                // Upload signature
+                let signatureUrl = '';
+                if (bookingId && signatureDataUrl) {
+                    signatureUrl = await storageService.uploadSignature(bookingId, 'parent', signatureDataUrl);
+                }
+
+                // Update booking with trust protocol data
+                if (bookingId) {
+                    await bookingService.updateBooking(bookingId, {
+                        trustProtocol: {
+                            safeWord: '',
+                            checkIn: {
+                                timestamp: new Date(),
+                                sitterVerified: true,
+                                parentVerified: true,
+                                roomSafetyChecked: true,
+                                childConditionNoted: true,
+                                emergencyConsentSigned: formData.rulesAccepted,
+                                signatures: {
+                                    parent: signatureUrl,
+                                    sitter: '',
+                                },
+                            },
+                        },
+                        status: 'in_progress',
+                    });
+
+                    // Start care session
+                    await sessionService.startSession({
+                        bookingId,
+                        hotelId: '',
+                        sitterId: '',
+                        parentId: user?.id || '',
+                        status: 'active',
+                        timeline: [{
+                            id: `evt_${Date.now()}`,
+                            type: 'check_in',
+                            timestamp: new Date(),
+                            description: 'Trust check-in completed',
+                            isPrivate: false,
+                        }],
+                        checklist: {
+                            roomSafety: { windowsSecured: false, balconyLocked: false, hazardsRemoved: false, emergencyExitKnown: false },
+                            childInfo: { allergiesConfirmed: true, medicationNoted: true, sleepScheduleNoted: false },
+                            supplies: { diapersProvided: false, snacksProvided: false, toysAvailable: false, emergencyKitReady: false },
+                        },
+                        emergencyLog: [],
+                        actualTimes: { checkInAt: new Date(), startedAt: new Date() },
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    });
+                }
+            }
+
+            success('Check-in Complete', 'Care session has officially started.');
+            navigate('/parent');
+        } catch (err) {
+            console.error('Check-in failed:', err);
+            error('Check-in Failed', 'Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const renderStep1_Medical = () => (
         <div className="animate-fade-in">
-            <h2 className="section-title">Medical & Well-being</h2>
-            <p className="section-subtitle">Please confirm current health status.</p>
+            <h2 className="section-title">{t('trustCheckin.medicalWellbeing')}</h2>
+            <p className="section-subtitle">{t('trustCheckin.confirmHealthStatus')}</p>
 
             <div className="space-y-6">
                 <Input
-                    label="Allergies (Food, Drug, Latex)"
+                    label={t('trustCheckin.allergiesLabel')}
                     value={formData.allergies}
                     onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
                 />
                 <Input
-                    label="Current Medications"
+                    label={t('trustCheckin.currentMedications')}
                     value={formData.medications}
                     onChange={(e) => setFormData({ ...formData, medications: e.target.value })}
                 />
@@ -73,23 +143,23 @@ export default function TrustCheckIn() {
 
     const renderStep2_Emergency = () => (
         <div className="animate-fade-in">
-            <h2 className="section-title">Emergency Protocol</h2>
-            <p className="section-subtitle">Who should we contact first?</p>
+            <h2 className="section-title">{t('trustCheckin.emergencyProtocol')}</h2>
+            <p className="section-subtitle">{t('trustCheckin.whoToContactFirst')}</p>
 
             <div className="space-y-6">
                 <Input
-                    label="Primary Emergency Contact Name"
+                    label={t('trustCheckin.emergencyContactName')}
                     value={formData.emergencyName}
                     onChange={(e) => setFormData({ ...formData, emergencyName: e.target.value })}
                 />
                 <Input
-                    label="Emergency Phone Number"
+                    label={t('trustCheckin.emergencyPhone')}
                     value={formData.emergencyContact}
                     onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
                 />
                 <div className="info-box">
                     <span className="info-icon">ℹ️</span>
-                    <p>In case of a life-threatening emergency, we will contact EMS (119) first, then you immediately.</p>
+                    <p>{t('trustCheckin.emsInfo')}</p>
                 </div>
             </div>
         </div>
@@ -97,8 +167,8 @@ export default function TrustCheckIn() {
 
     const renderStep3_Rules = () => (
         <div className="animate-fade-in">
-            <h2 className="section-title">Safety Protocols</h2>
-            <p className="section-subtitle">Agreed boundaries for the session.</p>
+            <h2 className="section-title">{t('trustCheckin.safetyProtocols')}</h2>
+            <p className="section-subtitle">{t('trustCheckin.agreedBoundaries')}</p>
 
             <div className="rules-list">
                 <label className="checkbox-row">
@@ -108,18 +178,18 @@ export default function TrustCheckIn() {
                         onChange={(e) => setFormData({ ...formData, rulesAccepted: e.target.checked })}
                     />
                     <span className="checkbox-text">
-                        I authorize the Sitter to administer basic first aid if necessary and confirm that my child has no undisclosed contagious conditions.
+                        {t('trustCheckin.firstAidConsent')}
                     </span>
                 </label>
             </div>
             <div className="signature-section mt-8">
-                <label className="form-label mb-2 block">Parent/Guardian Signature</label>
+                <label className="form-label mb-2 block">{t('trustCheckin.parentSignature')}</label>
                 <SignaturePad ref={signatureRef} />
                 <button
                     className="text-xs text-charcoal-500 mt-2 hover:text-charcoal-900 underline"
                     onClick={() => signatureRef.current?.clear()}
                 >
-                    Clear Signature
+                    {t('trustCheckin.clearSignature')}
                 </button>
             </div>
         </div>
@@ -129,7 +199,7 @@ export default function TrustCheckIn() {
         <div className="trust-checkin-page">
             <div className="max-w-md mx-auto py-8 px-4">
                 <div className="text-center mb-8">
-                    <h1 className="font-serif text-3xl text-charcoal-900 mb-2">Care Handover</h1>
+                    <h1 className="font-serif text-3xl text-charcoal-900 mb-2">{t('trustCheckin.careHandover')}</h1>
                     <div className="flex justify-center gap-2">
                         {[1, 2, 3].map(i => (
                             <div key={i} className={`h-1 w-8 rounded-full transition-colors ${step >= i ? 'background-gold' : 'bg-gray-200'}`} />
@@ -145,14 +215,14 @@ export default function TrustCheckIn() {
 
                         <div className="flex justify-between mt-8 pt-6 border-t border-cream-200">
                             {step > 1 ? (
-                                <Button variant="ghost" onClick={handleBack}>Back</Button>
+                                <Button variant="ghost" onClick={handleBack}>{t('common.back')}</Button>
                             ) : (
                                 <div /> /* Spacer */
                             )}
 
                             {step < 3 ? (
                                 <Button onClick={handleNext} variant="gold">
-                                    Next Step
+                                    {t('trustCheckin.nextStep')}
                                 </Button>
                             ) : (
                                 <Button
@@ -160,7 +230,7 @@ export default function TrustCheckIn() {
                                     variant="gold"
                                     isLoading={isSubmitting}
                                 >
-                                    Confirm Handover
+                                    {t('trustCheckin.confirmHandover')}
                                 </Button>
                             )}
                         </div>

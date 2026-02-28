@@ -84,5 +84,40 @@ export function useChildren(parentId?: string) {
         return id;
     }, [parentId]);
 
-    return { children, isLoading, addChild };
+    const updateChild = useCallback(async (childId: string, data: Partial<Omit<DemoChild, 'id'>>) => {
+        if (DEMO_MODE) {
+            setChildren((prev) => prev.map((c) => c.id === childId ? { ...c, ...data } : c));
+            return;
+        }
+
+        if (!parentId) return;
+        await childrenService.updateChild(childId, {
+            ...(data.name !== undefined ? { firstName: data.name } : {}),
+            ...(data.age !== undefined ? { age: data.age } : {}),
+            ...(data.gender !== undefined ? { gender: data.gender } : {}),
+            ...(data.allergies !== undefined ? { allergies: data.allergies } : {}),
+        });
+        // Reload
+        const fbChildren = await childrenService.getParentChildren(parentId);
+        setChildren(fbChildren.map((c: { id: string; firstName: string; age: number; allergies: string[]; gender: 'male' | 'female' | 'other' }) => ({
+            id: c.id,
+            name: c.firstName,
+            age: c.age,
+            allergies: c.allergies,
+            gender: c.gender,
+        })));
+    }, [parentId]);
+
+    const removeChild = useCallback(async (childId: string) => {
+        if (DEMO_MODE) {
+            setChildren((prev) => prev.filter((c) => c.id !== childId));
+            return;
+        }
+
+        if (!parentId) return;
+        await childrenService.deleteChild(childId);
+        setChildren((prev) => prev.filter((c) => c.id !== childId));
+    }, [parentId]);
+
+    return { children, isLoading, addChild, updateChild, removeChild };
 }

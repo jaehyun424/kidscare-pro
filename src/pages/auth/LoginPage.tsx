@@ -33,7 +33,9 @@ export default function LoginPage() {
   const validate = () => {
     const newErrors: typeof errors = {};
     if (!email) newErrors.email = t('auth.email') + ' is required';
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Invalid email format';
     if (!password) newErrors.password = t('auth.password') + ' is required';
+    else if (password.length < 6) newErrors.password = 'Minimum 6 characters';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

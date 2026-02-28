@@ -7,15 +7,18 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { StatusBadge } from '../../components/common/Badge';
+import { EmptyState } from '../../components/common/EmptyState';
+import { Skeleton, CardSkeleton } from '../../components/common/Skeleton';
 import { useAuth } from '../../contexts/AuthContext';
 import { useParentBookings } from '../../hooks/useBookings';
+import '../../styles/pages/parent-home.css';
 
 
 
 export default function Home() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const { upcomingBooking, recentSessions } = useParentBookings(user?.id);
+  const { upcomingBooking, recentSessions, isLoading } = useParentBookings(user?.id);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
@@ -29,6 +32,32 @@ export default function Home() {
     return t('parent.evening');
   };
 
+  if (isLoading) {
+    return (
+      <div className="parent-home animate-fade-in">
+        <div className="welcome-section">
+          <Skeleton width="70%" height="2.5rem" />
+          <Skeleton width="50%" height="1rem" className="mt-2" />
+        </div>
+        <div className="quick-actions">
+          <Skeleton width="100%" height="60px" borderRadius="var(--radius-lg)" />
+          <Skeleton width="100%" height="60px" borderRadius="var(--radius-lg)" />
+          <Skeleton width="100%" height="60px" borderRadius="var(--radius-lg)" />
+        </div>
+        <CardSkeleton />
+        <div className="section mt-4">
+          <Skeleton width="40%" height="1.5rem" />
+          <div className="mt-4">
+            <CardSkeleton />
+          </div>
+          <div className="mt-4">
+            <CardSkeleton />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="parent-home animate-fade-in">
       {/* Welcome */}
@@ -38,23 +67,23 @@ export default function Home() {
       </div>
 
       {/* Quick Actions */}
-      <div className="quick-actions">
+      <div className="quick-actions animate-stagger" role="navigation" aria-label="Quick actions">
         <Link to="/parent/book" className="quick-action-btn">
-          <span className="icon">📅</span>
+          <span className="icon" aria-hidden="true">📅</span>
           <span>{t('parent.bookNow')}</span>
         </Link>
         <Link to="/parent/history" className="quick-action-btn">
-          <span className="icon">📋</span>
+          <span className="icon" aria-hidden="true">📋</span>
           <span>{t('nav.history')}</span>
         </Link>
         <Link to="/parent/profile" className="quick-action-btn">
-          <span className="icon">👶</span>
+          <span className="icon" aria-hidden="true">👶</span>
           <span>{t('parent.children')}</span>
         </Link>
       </div>
 
       {/* Upcoming Booking */}
-      {upcomingBooking && (
+      {upcomingBooking ? (
         <Card className="upcoming-card" variant="gold">
           <CardBody>
             <div className="upcoming-header">
@@ -62,18 +91,18 @@ export default function Home() {
               <StatusBadge status={upcomingBooking.status} />
             </div>
             <div className="upcoming-details">
-              <span>📅</span>
+              <span aria-hidden="true">📅</span>
               <span>{t('parent.tonight')} • {upcomingBooking.time}</span>
               <div className="detail-row">
-                <span>🏨</span>
+                <span aria-hidden="true">🏨</span>
                 <span>{upcomingBooking.hotel} - {t('common.room')} {upcomingBooking.room}</span>
               </div>
               <div className="detail-row">
-                <span>👩‍🍼</span>
-                <span>{upcomingBooking.sitter.name} ⭐ {upcomingBooking.sitter.rating}</span>
+                <span aria-hidden="true">👩‍🍼</span>
+                <span>{upcomingBooking.sitter.name} <span aria-label={`rated ${upcomingBooking.sitter.rating} stars`}>⭐ {upcomingBooking.sitter.rating}</span></span>
               </div>
               <div className="detail-row">
-                <span>👶</span>
+                <span aria-hidden="true">👶</span>
                 <span>{upcomingBooking.childrenIds.length} {t('parent.children').toLowerCase()}</span>
               </div>
             </div>
@@ -85,231 +114,53 @@ export default function Home() {
               </Link>
               <Link to={`/parent/qr/${upcomingBooking.id}`} style={{ marginTop: '0.5rem', display: 'block' }}>
                 <Button variant="secondary" fullWidth>
-                  Show QR Code
+                  {t('parent.showQRCode')}
                 </Button>
               </Link>
             </div>
           </CardBody>
         </Card>
+      ) : (
+        <EmptyState
+          icon="📅"
+          title={t('parent.noUpcomingBookings', 'No upcoming bookings')}
+          description={t('parent.noUpcomingBookingsDesc', 'Book a trusted sitter for your next hotel stay.')}
+          action={
+            <Link to="/parent/book">
+              <Button variant="gold">{t('parent.bookNow', 'Book Now')}</Button>
+            </Link>
+          }
+        />
       )}
 
       {/* Recent Sessions */}
-      <div className="section">
+      <div className="section animate-stagger">
         <h2 className="section-title">{t('parent.recentSessions')}</h2>
-        {recentSessions.map((session) => (
-          <Card key={session.id} className="session-card">
-            <CardBody>
-              <div className="session-info">
-                <div>
-                  <span className="session-date">{formatDate(session.date)}</span>
-                  <span className="session-hotel">{session.hotel}</span>
+        {recentSessions.length > 0 ? (
+          recentSessions.map((session) => (
+            <Card key={session.id} className="session-card">
+              <CardBody>
+                <div className="session-info">
+                  <div>
+                    <span className="session-date">{formatDate(session.date)}</span>
+                    <span className="session-hotel">{session.hotel}</span>
+                  </div>
+                  <div className="session-meta">
+                    <span>{session.durationHours}h</span>
+                    <span aria-label={`${session.rating} star rating`}>{'⭐'.repeat(session.rating)}</span>
+                  </div>
                 </div>
-                <div className="session-meta">
-                  <span>{session.durationHours}h</span>
-                  <span>{'⭐'.repeat(session.rating)}</span>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        ))}
+              </CardBody>
+            </Card>
+          ))
+        ) : (
+          <EmptyState
+            icon="📋"
+            title={t('parent.noRecentSessions', 'No recent sessions')}
+            description={t('parent.noRecentSessionsDesc', 'Your completed sessions will appear here.')}
+          />
+        )}
       </div>
     </div>
   );
-}
-
-// Styles
-const homeStyles = `
-.parent-home {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.welcome-section {
-  margin-bottom: 3rem;
-  text-align: center;
-}
-
-.welcome-section h1 {
-  font-family: var(--font-serif);
-  font-size: 2.5rem;
-  font-weight: 500;
-  color: var(--charcoal-900);
-  margin-bottom: 0.5rem;
-}
-
-.welcome-section p {
-  color: var(--charcoal-600);
-  font-size: 1.125rem;
-}
-
-/* Quick Actions - Paper Buttons */
-.quick-actions {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 3rem;
-}
-
-.quick-action-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 1.5rem 1rem;
-  background: white;
-  border: 1px solid var(--cream-300);
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  color: var(--charcoal-900);
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
-}
-
-.quick-action-btn:hover {
-  transform: translateY(-4px);
-  border-color: var(--gold-300);
-  box-shadow: var(--shadow-gold);
-}
-
-.quick-action-btn .icon {
-  font-size: 2rem;
-  margin-bottom: 0.25rem;
-}
-
-.quick-action-btn span:last-child {
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--charcoal-700);
-}
-
-/* Upcoming Card - Gold Accent */
-.upcoming-card {
-  margin-bottom: 3rem;
-  border: 1px solid var(--gold-200) !important;
-  background: linear-gradient(to bottom right, #FFFAF0, #FFF) !important;
-  position: relative;
-  overflow: hidden;
-}
-
-.upcoming-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--gold-500);
-}
-
-.upcoming-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px dashed var(--gold-200);
-}
-
-.upcoming-header h3 {
-  font-family: var(--font-serif);
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--charcoal-900);
-  margin: 0;
-}
-
-.upcoming-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.detail-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.95rem;
-  color: var(--charcoal-700);
-}
-
-.detail-row span:first-child {
-  font-size: 1.1rem;
-  width: 24px;
-  text-align: center;
-}
-
-.upcoming-actions {
-  margin-top: 1rem;
-}
-
-/* Section Titles */
-.section-title {
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: var(--charcoal-900);
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--cream-300);
-}
-
-/* Recent Sessions */
-.session-card {
-  margin-bottom: 1rem;
-  background: white !important;
-  border: 1px solid var(--cream-300) !important;
-  transition: all 0.2s;
-}
-
-.session-card:hover {
-  background: var(--cream-50) !important;
-  border-color: var(--cream-400) !important;
-}
-
-.session-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.session-date {
-  display: block;
-  font-weight: 600;
-  color: var(--charcoal-900);
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
-}
-
-.session-hotel {
-  display: block;
-  font-size: 0.875rem;
-  color: var(--charcoal-500);
-}
-
-.session-meta {
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.25rem;
-}
-
-.session-meta span:first-child {
-  font-size: 0.875rem;
-  color: var(--charcoal-600);
-  font-weight: 500;
-}
-
-.session-meta span:last-child {
-  font-size: 0.8rem;
-}
-`;
-
-if (typeof document !== 'undefined') {
-  const s = document.createElement('style'); s.textContent = homeStyles; document.head.appendChild(s);
 }

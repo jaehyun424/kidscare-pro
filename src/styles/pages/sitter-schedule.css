@@ -1,0 +1,77 @@
+/* Sitter Schedule Page */
+.sitter-schedule { max-width: 480px; margin: 0 auto; }
+
+.sitter-schedule .stats-row {
+  display: flex;
+  justify-content: space-around;
+  padding: var(--space-4);
+  background: var(--glass-bg);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-4);
+}
+
+.sitter-schedule .stat-item {
+  text-align: center;
+}
+
+.sitter-schedule .stat-value {
+  display: block;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--primary-400);
+}
+
+.sitter-schedule .stat-label {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+
+.sitter-schedule .stat-item.gold { display: flex; align-items: center; }
+
+.sitter-schedule .section-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  margin: var(--space-6) 0 var(--space-4);
+}
+
+.sessions-list { display: flex; flex-direction: column; gap: var(--space-3); }
+
+.sitter-schedule .session-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.session-time { font-weight: var(--font-semibold); }
+
+.sitter-schedule .session-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.no-sessions { text-align: center; color: var(--text-tertiary); }
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-2);
+}
+
+.day-item {
+  text-align: center;
+  padding: var(--space-3);
+  background: var(--glass-bg);
+  border-radius: var(--radius-md);
+  opacity: 0.5;
+}
+
+.day-item.has-sessions { opacity: 1; }
+
+.day-date { display: block; font-size: var(--text-xs); color: var(--text-tertiary); }
+.day-count { display: block; font-size: var(--text-lg); font-weight: var(--font-bold); margin-top: var(--space-1); }
+
+.has-sessions .day-count { color: var(--primary-400); }

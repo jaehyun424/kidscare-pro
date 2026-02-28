@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/C
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { useToast } from '../../contexts/ToastContext';
+import '../../styles/pages/hotel-scan-checkin.css';
 
 // ----------------------------------------
 // Types
@@ -194,12 +195,13 @@ export default function ScanCheckIn() {
                                         className="scan-video"
                                         playsInline
                                         muted
+                                        aria-label="Camera feed for QR code scanning"
                                     />
                                     <div className="scan-overlay">
                                         <div className="scan-corners" />
                                     </div>
                                 </div>
-                                <canvas ref={canvasRef} style={{ display: 'none' }} />
+                                <canvas ref={canvasRef} style={{ display: 'none' }} aria-hidden="true" />
                                 <Button
                                     variant="secondary"
                                     onClick={() => { stopCamera(); setScanStatus('idle'); }}
@@ -299,174 +301,4 @@ function CheckCircleIcon() {
             <polyline points="9,12 11,14 15,10" />
         </svg>
     );
-}
-
-// ----------------------------------------
-// Styles
-// ----------------------------------------
-const scanStyles = `
-.scan-page { max-width: 800px; margin: 0 auto; }
-
-.scan-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-}
-
-.scan-card { overflow: hidden; }
-
-/* Idle State */
-.scan-idle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-4);
-    padding: var(--space-8);
-    text-align: center;
-}
-
-.scan-idle p {
-    color: var(--text-secondary);
-    font-size: var(--text-sm);
-}
-
-.scan-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: rgba(79, 70, 187, 0.08);
-    color: var(--primary-400);
-}
-
-.scan-icon.error {
-    background: rgba(239, 68, 68, 0.08);
-    color: var(--error-500);
-}
-
-/* Active Scanner */
-.scan-active {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-}
-
-.scan-video-wrapper {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 4/3;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    background: #000;
-}
-
-.scan-video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.scan-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.scan-corners {
-    width: 200px;
-    height: 200px;
-    border: 3px solid rgba(255, 255, 255, 0.8);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
-    animation: pulse-border 2s ease-in-out infinite;
-}
-
-@keyframes pulse-border {
-    0%, 100% { border-color: rgba(255, 255, 255, 0.6); }
-    50% { border-color: rgba(245, 158, 11, 0.9); }
-}
-
-/* Success State */
-.scan-result {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-8);
-    text-align: center;
-}
-
-.scan-success-icon {
-    animation: scale-in 0.3s ease;
-}
-
-@keyframes scale-in {
-    from { transform: scale(0.5); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-
-.scan-result h3 {
-    font-size: var(--text-xl);
-    font-weight: var(--font-bold);
-}
-
-/* Data Card */
-.scan-data-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-    margin-bottom: var(--space-6);
-}
-
-.scan-data-item {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-}
-
-.scan-data-label {
-    font-size: var(--text-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-tertiary);
-    font-weight: var(--font-semibold);
-}
-
-.scan-data-value {
-    font-size: var(--text-sm);
-    font-weight: var(--font-semibold);
-}
-
-.scan-actions {
-    display: flex;
-    gap: var(--space-3);
-    justify-content: flex-end;
-}
-
-.scan-error-state p {
-    color: var(--error-500);
-}
-
-@media (max-width: 480px) {
-    .scan-data-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .scan-actions {
-        flex-direction: column;
-    }
-
-    .scan-corners {
-        width: 160px;
-        height: 160px;
-    }
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const s = document.createElement('style'); s.textContent = scanStyles; document.head.appendChild(s);
 }

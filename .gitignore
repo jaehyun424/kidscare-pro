@@ -30,3 +30,6 @@ npm-debug.log*
 .cache/
 .parcel-cache/
 .vercel
+
+# Firebase
+.firebase/

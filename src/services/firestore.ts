@@ -17,6 +17,7 @@ import {
     limit,
     onSnapshot,
     serverTimestamp,
+    writeBatch,
 } from 'firebase/firestore';
 
 import { db } from './firebase';
@@ -640,7 +641,7 @@ export const notificationService = {
         });
     },
 
-    // Mark all as read
+    // Mark all as read (batched writes, max 500 per batch)
     async markAllAsRead(userId: string): Promise<void> {
         const q = query(
             collection(db, COLLECTIONS.notifications),
@@ -648,10 +649,16 @@ export const notificationService = {
             where('read', '==', false)
         );
         const snapshot = await getDocs(q);
-        const updates = snapshot.docs.map((d) =>
-            updateDoc(doc(db, COLLECTIONS.notifications, d.id), { read: true })
-        );
-        await Promise.all(updates);
+        const docs = snapshot.docs;
+
+        for (let i = 0; i < docs.length; i += 500) {
+            const batch = writeBatch(db);
+            const chunk = docs.slice(i, i + 500);
+            chunk.forEach((d) => {
+                batch.update(doc(db, COLLECTIONS.notifications, d.id), { read: true });
+            });
+            await batch.commit();
+        }
     },
 
     // Subscribe to user notifications (real-time)

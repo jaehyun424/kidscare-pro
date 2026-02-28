@@ -7,10 +7,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { HotelLayout } from './components/layout/HotelLayout';
 import { ParentLayout } from './components/layout/ParentLayout';
 import { SitterLayout } from './components/layout/SitterLayout';
-import { AuthLayout } from './components/layout/AuthLayout';
 import './index.css';
 
 // ----------------------------------------
@@ -97,10 +97,8 @@ function AppRoutes() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Auth Routes */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-        </Route>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         {/* Hotel Console Routes */}
         <Route
@@ -169,11 +167,13 @@ function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
-        <AuthProvider>
-          <ToastProvider>
-            <AppRoutes />
-          </ToastProvider>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <ToastProvider>
+              <AppRoutes />
+            </ToastProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </ThemeProvider>
     </BrowserRouter>
   );

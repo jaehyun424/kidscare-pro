@@ -2,7 +2,8 @@
 // KidsCare Pro - Hotel Settings Page
 // ============================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Input, Select, Textarea } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
@@ -11,11 +12,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useHotel } from '../../hooks/useHotel';
 import { useToast } from '../../contexts/ToastContext';
 import type { Currency, CancellationPolicy } from '../../types';
+import '../../styles/pages/hotel-settings.css';
 
 export default function Settings() {
+    const { t } = useTranslation();
     const { user } = useAuth();
     const { hotel, isLoading, updateHotel } = useHotel(user?.hotelId);
-    const { success, error } = useToast();
+    const { success, error: toastError } = useToast();
 
     // ----------------------------------------
     // Hotel Profile state
@@ -54,9 +57,14 @@ export default function Settings() {
     const [isSaving, setIsSaving] = useState(false);
 
     // ----------------------------------------
+    // Validation state
+    // ----------------------------------------
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+    // ----------------------------------------
     // Populate form from hotel data
     // ----------------------------------------
-    useEffect(() => {
+    const populateForm = useCallback(() => {
         if (hotel) {
             setName(hotel.name);
             setEmail(hotel.contactEmail);
@@ -69,13 +77,69 @@ export default function Settings() {
             setCancellationPolicy(hotel.settings.cancellationPolicy);
             setCommission(hotel.commission);
             setCurrency(hotel.currency);
+            setFormErrors({});
         }
     }, [hotel]);
+
+    useEffect(() => {
+        populateForm();
+    }, [populateForm]);
+
+    // ----------------------------------------
+    // Clear a single field error
+    // ----------------------------------------
+    const clearError = (field: string) => {
+        setFormErrors((prev) => {
+            if (!prev[field]) return prev;
+            const next = { ...prev };
+            delete next[field];
+            return next;
+        });
+    };
+
+    // ----------------------------------------
+    // Validate form
+    // ----------------------------------------
+    const validateForm = (): boolean => {
+        const errors: Record<string, string> = {};
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!name.trim()) {
+            errors.name = 'Hotel name is required';
+        }
+        if (!email.trim() || !emailRegex.test(email)) {
+            errors.email = 'Valid email is required';
+        }
+        if (!phone.trim()) {
+            errors.phone = 'Phone number is required';
+        }
+        if (commission < 0 || commission > 100) {
+            errors.commission = 'Commission must be between 0 and 100';
+        }
+        if (minBookingHours < 1) {
+            errors.minBookingHours = 'Minimum 1 hour';
+        }
+        if (maxAdvanceBookingDays < 1) {
+            errors.maxAdvanceBookingDays = 'Minimum 1 day';
+        }
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    // ----------------------------------------
+    // Cancel handler
+    // ----------------------------------------
+    const handleCancel = () => {
+        populateForm();
+    };
 
     // ----------------------------------------
     // Save handler
     // ----------------------------------------
     const handleSave = async () => {
+        if (!validateForm()) return;
+
         setIsSaving(true);
         try {
             await updateHotel({
@@ -95,7 +159,7 @@ export default function Settings() {
             });
             success('Settings saved', 'Your hotel settings have been updated.');
         } catch {
-            error('Save failed', 'Could not update settings.');
+            toastError('Save failed', 'Could not update settings.');
         }
         setIsSaving(false);
     };
@@ -137,35 +201,38 @@ export default function Settings() {
     return (
         <div className="settings-page animate-fade-in">
             <div className="page-header">
-                <h1 className="page-title">Settings</h1>
-                <p className="page-subtitle">Manage your hotel's childcare service configuration</p>
+                <h1 className="page-title">{t('hotel.hotelSettings', 'Hotel Settings')}</h1>
+                <p className="page-subtitle">{t('hotel.hotelSettingsSubtitle', "Manage your hotel's childcare service configuration")}</p>
             </div>
 
-            <div className="settings-grid">
+            <div className="settings-grid" role="form" aria-label="Hotel settings">
                 {/* Hotel Profile */}
                 <Card>
                     <CardHeader>
-                        <CardTitle subtitle="Basic information about your hotel">Hotel Profile</CardTitle>
+                        <CardTitle subtitle={t('hotel.hotelProfileSubtitle', 'Basic information about your hotel')}>{t('hotel.hotelProfile', 'Hotel Profile')}</CardTitle>
                     </CardHeader>
                     <CardBody>
                         <div className="form-stack">
                             <Input
                                 label="Hotel Name"
                                 value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                error={formErrors.name}
+                                onChange={(e) => { setName(e.target.value); clearError('name'); }}
                                 placeholder="Enter hotel name"
                             />
                             <Input
                                 label="Contact Email"
                                 type="email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                error={formErrors.email}
+                                onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
                                 placeholder="hotel@example.com"
                             />
                             <Input
                                 label="Contact Phone"
                                 value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
+                                error={formErrors.phone}
+                                onChange={(e) => { setPhone(e.target.value); clearError('phone'); }}
                                 placeholder="+82-2-000-0000"
                             />
                             <Textarea
@@ -181,7 +248,7 @@ export default function Settings() {
                 {/* Service Settings */}
                 <Card>
                     <CardHeader>
-                        <CardTitle subtitle="Customize service availability">Service Settings</CardTitle>
+                        <CardTitle subtitle={t('hotel.serviceSettingsSubtitle', 'Customize service availability')}>{t('hotel.serviceSettings', 'Service Settings')}</CardTitle>
                     </CardHeader>
                     <CardBody>
                         <div className="form-stack">
@@ -205,14 +272,16 @@ export default function Settings() {
                                 label="Min Booking Hours"
                                 type="number"
                                 value={minBookingHours}
-                                onChange={(e) => setMinBookingHours(Number(e.target.value))}
+                                error={formErrors.minBookingHours}
+                                onChange={(e) => { setMinBookingHours(Number(e.target.value)); clearError('minBookingHours'); }}
                                 placeholder="2"
                             />
                             <Input
                                 label="Max Advance Booking Days"
                                 type="number"
                                 value={maxAdvanceBookingDays}
-                                onChange={(e) => setMaxAdvanceBookingDays(Number(e.target.value))}
+                                error={formErrors.maxAdvanceBookingDays}
+                                onChange={(e) => { setMaxAdvanceBookingDays(Number(e.target.value)); clearError('maxAdvanceBookingDays'); }}
                                 placeholder="30"
                             />
                             <Select
@@ -232,7 +301,7 @@ export default function Settings() {
                 {/* Pricing */}
                 <Card>
                     <CardHeader>
-                        <CardTitle subtitle="Set your hotel's pricing">Pricing Configuration</CardTitle>
+                        <CardTitle subtitle={t('hotel.pricingSettingsSubtitle', "Set your hotel's pricing")}>{t('hotel.pricingSettings', 'Pricing Configuration')}</CardTitle>
                     </CardHeader>
                     <CardBody>
                         <div className="form-stack">
@@ -240,7 +309,8 @@ export default function Settings() {
                                 label="Commission Rate (%)"
                                 type="number"
                                 value={commission}
-                                onChange={(e) => setCommission(Number(e.target.value))}
+                                error={formErrors.commission}
+                                onChange={(e) => { setCommission(Number(e.target.value)); clearError('commission'); }}
                                 placeholder="15"
                             />
                             <Select
@@ -260,7 +330,7 @@ export default function Settings() {
                 {/* Notifications */}
                 <Card>
                     <CardHeader>
-                        <CardTitle subtitle="Manage notification preferences">Notifications</CardTitle>
+                        <CardTitle subtitle={t('hotel.notificationSettingsSubtitle', 'Manage notification preferences')}>{t('hotel.notificationSettings', 'Notification Settings')}</CardTitle>
                     </CardHeader>
                     <CardBody>
                         <div className="notification-settings">
@@ -302,67 +372,11 @@ export default function Settings() {
             </div>
 
             <div className="settings-actions">
-                <Button variant="secondary">Cancel</Button>
+                <Button variant="secondary" onClick={handleCancel}>Cancel</Button>
                 <Button variant="gold" onClick={handleSave} isLoading={isSaving}>
                     Save Changes
                 </Button>
             </div>
         </div>
     );
-}
-
-// Styles
-const settingsStyles = `
-.settings-page { max-width: 1200px; margin: 0 auto; }
-
-.settings-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-6);
-  margin-bottom: var(--space-6);
-}
-
-@media (max-width: 768px) {
-  .settings-grid { grid-template-columns: 1fr; }
-}
-
-.form-stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.notification-settings {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.toggle-option {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  background: var(--glass-bg);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-}
-
-.toggle-option input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--gold-500);
-}
-
-.settings-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  padding-top: var(--space-6);
-  border-top: 1px solid var(--border-color);
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const s = document.createElement('style'); s.textContent = settingsStyles; document.head.appendChild(s);
 }

@@ -32,7 +32,15 @@
         "minutes": "minutes",
         "allStatuses": "All Statuses",
         "daysSafe": "{{count}} days safe",
-        "yearsOld": "{{count}} years old"
+        "yearsOld": "{{count}} years old",
+        "gender": "Gender",
+        "allergies": "Allergies",
+        "remove": "Remove",
+        "required": "This field is required",
+        "invalid": "Please enter a valid value",
+        "confirmRemove": "Are you sure you want to remove",
+        "commaSeparated": "Comma-separated",
+        "error": "Error"
     },
     "auth": {
         "welcomeBack": "Welcome Back",
@@ -112,7 +120,15 @@
         "elapsed": "Elapsed",
         "call": "Call",
         "termsOfService": "Terms of Service",
-        "privacyPolicy": "Privacy Policy"
+        "privacyPolicy": "Privacy Policy",
+        "liveSession": "Live Session",
+        "updatesFromPlayroom": "Updates from the playroom",
+        "activeCare": "Active Care",
+        "certifiedSpecialist": "Certified Specialist",
+        "contactSitter": "Contact Sitter",
+        "emergencyCall119": "Emergency Call (119)",
+        "returnHome": "Return Home",
+        "showQRCode": "Show QR Code"
     },
     "booking": {
         "newBooking": "New Booking",
@@ -220,7 +236,12 @@
         "childrenInfo": "Children",
         "allergies": "Allergies",
         "sessions": "Sessions",
-        "updated": "Updated"
+        "updated": "Updated",
+        "safetyRecordCongrats": "Congratulations! Your hotel maintains an excellent safety record.",
+        "todaysBookings": "Today's Bookings",
+        "upcomingAndInProgress": "Upcoming and in-progress bookings",
+        "started": "Started",
+        "energy": "energy"
     },
     "trustCheckin": {
         "trustProtocol": "Trust Protocol Check-In",
@@ -235,7 +256,24 @@
         "verified": "Verified",
         "acknowledged": "Acknowledged",
         "beginSession": "Begin Session",
-        "completeStep": "Complete This Step"
+        "completeStep": "Complete This Step",
+        "careHandover": "Care Handover",
+        "medicalWellbeing": "Medical & Well-being",
+        "confirmHealthStatus": "Please confirm current health status.",
+        "emergencyProtocol": "Emergency Protocol",
+        "whoToContactFirst": "Who should we contact first?",
+        "safetyProtocols": "Safety Protocols",
+        "agreedBoundaries": "Agreed boundaries for the session.",
+        "nextStep": "Next Step",
+        "confirmHandover": "Confirm Handover",
+        "clearSignature": "Clear Signature",
+        "allergiesLabel": "Allergies (Food, Drug, Latex)",
+        "currentMedications": "Current Medications",
+        "emergencyContactName": "Primary Emergency Contact Name",
+        "emergencyPhone": "Emergency Phone Number",
+        "emsInfo": "In case of a life-threatening emergency, we will contact EMS (119) first, then you immediately.",
+        "firstAidConsent": "I authorize the Sitter to administer basic first aid if necessary and confirm that my child has no undisclosed contagious conditions.",
+        "parentSignature": "Parent/Guardian Signature"
     },
     "status": {
         "pending": "Pending",

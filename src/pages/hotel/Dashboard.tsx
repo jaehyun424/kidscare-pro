@@ -13,6 +13,7 @@ import { Skeleton } from '../../components/common/Skeleton';
 import { useAuth } from '../../contexts/AuthContext';
 import { useHotelBookings } from '../../hooks/useBookings';
 import { useHotelSessions } from '../../hooks/useSessions';
+import '../../styles/pages/hotel-dashboard.css';
 
 // ----------------------------------------
 // Icons
@@ -80,8 +81,8 @@ function StatCard({ icon, label, value, subValue, color }: StatCardProps) {
   };
 
   return (
-    <div className={`stat-card ${colorClasses[color]}`}>
-      <div className="stat-card-icon">{icon}</div>
+    <div className={`stat-card ${colorClasses[color]}`} role="group" aria-label={label}>
+      <div className="stat-card-icon" aria-hidden="true">{icon}</div>
       <div className="stat-card-content">
         <div className="stat-card-value">{value}</div>
         <div className="stat-card-label">{label}</div>
@@ -143,13 +144,13 @@ export default function Dashboard() {
         <div className="safety-banner-content">
           <SafetyBadge days={stats.safetyDays} />
           <span className="safety-banner-text">
-            Congratulations! Your hotel maintains an excellent safety record.
+            {t('hotel.safetyRecordCongrats')}
           </span>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="stats-grid animate-fade-in-up stagger-1">
+      <div className="stats-grid animate-stagger">
         <StatCard
           icon={<CalendarIcon />}
           label={t('hotel.totalBookings')}
@@ -187,8 +188,8 @@ export default function Dashboard() {
               {t('parent.viewAll')} <ArrowRightIcon />
             </Link>
           }>
-            <CardTitle subtitle="Upcoming and in-progress bookings">
-              Today's Bookings
+            <CardTitle subtitle={t('hotel.upcomingAndInProgress')}>
+              {t('hotel.todaysBookings')}
             </CardTitle>
           </CardHeader>
           <CardBody>
@@ -202,7 +203,7 @@ export default function Dashboard() {
                     </div>
                     <div className="booking-item-details">
                       <span>🕐 {booking.time}</span>
-                      <span>🚪 Room {booking.room}</span>
+                      <span>🚪 {t('common.room')} {booking.room}</span>
                       <span>👤 {booking.parent.name}</span>
                     </div>
                     <div className="booking-item-children">
@@ -244,7 +245,7 @@ export default function Dashboard() {
             <CardTitle subtitle={t('hotel.recentActivity')}>
               <span className="flex items-center gap-2">
                 {t('nav.liveMonitor')}
-                <span className="status-dot status-dot-success" />
+                <span className="status-dot status-dot-success" aria-hidden="true" />
               </span>
             </CardTitle>
           </CardHeader>
@@ -256,15 +257,15 @@ export default function Dashboard() {
                     <Avatar name={session.sitter.name} size="sm" variant={session.sitter.tier === 'gold' ? 'gold' : 'default'} />
                     <div className="live-item-info">
                       <span className="live-item-name">{session.sitter.name}</span>
-                      <span className="live-item-room">Room {session.room}</span>
+                      <span className="live-item-room">{t('common.room')} {session.room}</span>
                     </div>
                     <div className="live-item-time">
                       <span className="live-item-elapsed">{session.elapsed}</span>
-                      <span className="live-item-start">Started {session.startTime}</span>
+                      <span className="live-item-start">{t('hotel.started')} {session.startTime}</span>
                     </div>
                   </div>
                   <div className="live-item-activity">
-                    <span className="status-dot status-dot-success" />
+                    <span className="status-dot status-dot-success" aria-hidden="true" />
                     {session.lastActivity}
                   </div>
                 </div>
@@ -275,339 +276,4 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
-
-// ----------------------------------------
-// Styles
-// ----------------------------------------
-const dashboardStyles = `
-.dashboard {
-  max-width: 1600px;
-  margin: 0 auto;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 3rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--cream-300);
-}
-
-.dashboard-title {
-  font-size: 2.5rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  color: var(--charcoal-900);
-}
-
-.dashboard-subtitle {
-  color: var(--charcoal-600);
-  font-size: 1.125rem;
-}
-
-/* Safety Banner */
-.safety-banner {
-  background: white;
-  border: 1px solid var(--success-500);
-  border-left: 4px solid var(--success-500);
-  border-radius: var(--radius-md);
-  padding: 1rem 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.safety-banner-content {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.safety-banner-text {
-  color: var(--success-500);
-  font-size: 0.875rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-}
-
-@media (max-width: 1024px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.stat-card {
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem;
-  background: white;
-  border: 1px solid var(--cream-300);
-  border-radius: var(--radius-md);
-  transition: all var(--duration-fast);
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--gold-300);
-}
-
-.stat-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
-.stat-card-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: var(--cream-50);
-  color: var(--charcoal-500);
-}
-
-.stat-card-primary .stat-card-icon { color: var(--charcoal-900); background: var(--cream-200); }
-.stat-card-gold .stat-card-icon { color: var(--gold-600); background: var(--gold-100); }
-.stat-card-success .stat-card-icon { color: var(--success-500); background: var(--success-bg); }
-.stat-card-warning .stat-card-icon { color: var(--warning-500); background: var(--warning-bg); }
-
-.stat-card-value {
-  font-size: 2.5rem;
-  font-family: var(--font-serif);
-  font-weight: 500;
-  line-height: 1;
-  color: var(--charcoal-900);
-  margin-bottom: 0.25rem;
-}
-
-.stat-card-label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--charcoal-500);
-  font-weight: 600;
-}
-
-.stat-card-sub {
-  font-size: 0.875rem;
-  color: var(--charcoal-400);
-  margin-top: 0.5rem;
-}
-
-/* Dashboard Grid */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 2rem;
-}
-
-@media (max-width: 1024px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.card-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--gold-600);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: color 0.2s;
-}
-
-.card-link:hover {
-  color: var(--gold-500);
-  text-decoration: underline;
-}
-
-/* Booking List */
-.booking-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.booking-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: white;
-  border-bottom: 1px solid var(--cream-200);
-  transition: background 0.2s;
-}
-
-.booking-item:last-child {
-  border-bottom: none;
-}
-
-.booking-item:hover {
-  background: var(--cream-50);
-}
-
-.booking-item-main {
-    flex: 1;
-}
-
-.booking-item-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.booking-code {
-  font-family: var(--font-mono, monospace);
-  font-size: 0.75rem;
-  color: var(--charcoal-400);
-  letter-spacing: 0.05em;
-}
-
-.booking-item-details {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.875rem;
-  color: var(--charcoal-600);
-  margin-bottom: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.booking-item-details span {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.booking-item-children {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.booking-item-sitter {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
-  padding-left: 1rem;
-  border-left: 1px solid var(--cream-300);
-}
-
-.sitter-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.sitter-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--charcoal-900);
-}
-
-/* Live List */
-.live-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.live-item {
-  padding: 1.25rem;
-  background: var(--cream-50);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--cream-300);
-}
-
-.live-item-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.live-item-info {
-  flex: 1;
-}
-
-.live-item-name {
-  display: block;
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: var(--charcoal-900);
-}
-
-.live-item-room {
-  font-size: 0.75rem;
-  color: var(--charcoal-500);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.live-item-time {
-  text-align: right;
-}
-
-.live-item-elapsed {
-  display: block;
-  font-size: 1.25rem;
-  font-family: var(--font-serif);
-  font-weight: 600;
-  color: var(--gold-600);
-}
-
-.live-item-start {
-  font-size: 0.75rem;
-  color: var(--charcoal-400);
-}
-
-.live-item-activity {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--charcoal-600);
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--cream-200);
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-}
-.status-dot-success { background-color: var(--success-500); }
-`;
-
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = dashboardStyles;
-  document.head.appendChild(styleSheet);
 }

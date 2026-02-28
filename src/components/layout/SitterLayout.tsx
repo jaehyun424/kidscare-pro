@@ -10,6 +10,8 @@ import { IconButton } from '../common/Button';
 import { TierBadge } from '../common/Badge';
 import { useAuth } from '../../contexts/AuthContext';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
+import { NotificationBell } from '../common/NotificationBell';
+import '../../styles/sitter-layout.css';
 
 // Icons (same pattern)
 const CalendarIcon = () => (
@@ -78,6 +80,7 @@ export function SitterLayout() {
                 </div>
                 <div className="sitter-header-right">
                     <TierBadge tier="gold" showLabel={false} />
+                    <NotificationBell />
                     <LanguageSwitcher />
                     <IconButton
                         icon={isDark ? <SunIcon /> : <MoonIcon />}
@@ -112,57 +115,3 @@ export function SitterLayout() {
     );
 }
 
-// Styles
-const sitterLayoutStyles = `
-.sitter-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-
-.sitter-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4);
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-.sitter-header-left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.sitter-header-right {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.sitter-content {
-  flex: 1;
-  padding: var(--space-4);
-  padding-bottom: calc(var(--space-4) + 70px);
-  overflow-y: auto;
-}
-
-@media (min-width: 768px) {
-  .sitter-layout {
-    max-width: 480px;
-    margin: 0 auto;
-    box-shadow: var(--shadow-xl);
-  }
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = sitterLayoutStyles;
-    document.head.appendChild(styleSheet);
-}

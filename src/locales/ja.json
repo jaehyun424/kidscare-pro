@@ -32,7 +32,15 @@
         "minutes": "分",
         "allStatuses": "すべてのステータス",
         "daysSafe": "{{count}}日間無事故",
-        "yearsOld": "{{count}}歳"
+        "yearsOld": "{{count}}歳",
+        "gender": "性別",
+        "allergies": "アレルギー",
+        "remove": "削除",
+        "required": "必須項目です",
+        "invalid": "有効な値を入力してください",
+        "confirmRemove": "本当に削除しますか？",
+        "commaSeparated": "カンマ区切り",
+        "error": "エラー"
     },
     "auth": {
         "welcomeBack": "おかえりなさい",

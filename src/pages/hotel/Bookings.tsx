@@ -13,6 +13,7 @@ import { Modal } from '../../components/common/Modal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useHotelBookings } from '../../hooks/useBookings';
 import type { DemoBooking } from '../../data/demo';
+import '../../styles/pages/hotel-bookings.css';
 
 // Icons
 const SearchIcon = () => (
@@ -97,8 +98,8 @@ export default function Bookings() {
             {/* Bookings Table */}
             <Card>
                 <CardBody>
-                    <div className="bookings-table">
-                        <div className="table-header">
+                    <div className="bookings-table" role="table" aria-label="Bookings list">
+                        <div className="table-header" role="row">
                             <span>{t('hotel.bookingCode')}</span>
                             <span>{t('hotel.guestRoom')}</span>
                             <span>{t('hotel.childrenInfo')}</span>
@@ -110,7 +111,11 @@ export default function Bookings() {
                             <div
                                 key={booking.id}
                                 className="table-row"
+                                role="row"
+                                tabIndex={0}
+                                aria-label={`Booking ${booking.confirmationCode}, ${booking.parent.name}, Room ${booking.room}`}
                                 onClick={() => setSelectedBooking(booking)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedBooking(booking); } }}
                             >
                                 <div className="table-cell">
                                     <span className="booking-code">{booking.confirmationCode}</span>
@@ -187,203 +192,4 @@ export default function Bookings() {
             </Modal>
         </div>
     );
-}
-
-// Styles
-const bookingsStyles = `
-.bookings-page {
-  max-width: 1600px;
-  margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 3rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--cream-300);
-}
-
-.page-title {
-  font-family: var(--font-serif);
-  font-size: 2.5rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  color: var(--charcoal-900);
-}
-
-.page-subtitle {
-  color: var(--charcoal-600);
-  font-size: 1.125rem;
-}
-
-.mb-6 { margin-bottom: 2rem; }
-
-/* Filters */
-.filters-row {
-  display: grid;
-  grid-template-columns: 1fr 240px;
-  gap: 1.5rem;
-}
-
-@media (max-width: 640px) {
-  .filters-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Table Redesign */
-.bookings-table {
-  overflow-x: auto;
-}
-
-.table-header {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1.2fr 1fr 0.8fr 0.8fr;
-  gap: 1.5rem;
-  padding: 1rem 1.5rem;
-  background: var(--cream-100);
-  border-bottom: 1px solid var(--cream-300);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--charcoal-500);
-  margin-bottom: 0;
-}
-
-.table-row {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1.2fr 1fr 0.8fr 0.8fr;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--cream-200);
-  cursor: pointer;
-  transition: all 0.2s;
-  background: white;
-}
-
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.table-row:hover {
-  background: var(--cream-50);
-}
-
-.table-cell {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.25rem;
-}
-
-.booking-code {
-  font-family: var(--font-mono, monospace);
-  font-weight: 600;
-  color: var(--charcoal-900);
-  font-size: 0.875rem;
-}
-
-.booking-date {
-  font-size: 0.875rem;
-  color: var(--charcoal-600);
-}
-
-.booking-time {
-  font-size: 0.75rem;
-  color: var(--charcoal-400);
-}
-
-.room-number {
-  font-size: 0.875rem;
-  color: var(--charcoal-600);
-  font-weight: 500;
-}
-
-.guest-name {
-  font-family: var(--font-serif);
-  font-weight: 600;
-  color: var(--charcoal-900);
-  font-size: 1rem;
-}
-
-.sitter-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.sitter-name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--charcoal-900);
-}
-
-.amount {
-  font-family: var(--font-serif);
-  font-weight: 600;
-  color: var(--gold-600);
-  font-size: 1rem;
-}
-
-/* Detail Modal Styles */
-.booking-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.detail-section {
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--cream-200);
-}
-
-.detail-section:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.detail-section h4 {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--charcoal-400);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 1rem;
-}
-
-.detail-section p {
-  color: var(--charcoal-700);
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
-}
-
-.detail-section strong {
-  color: var(--charcoal-900);
-  font-weight: 600;
-  margin-right: 0.5rem;
-}
-
-@media (max-width: 1024px) {
-  .table-header { display: none; }
-  .table-row {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    background: white;
-    margin-bottom: 1rem;
-    border: 1px solid var(--cream-300);
-    border-radius: var(--radius-md);
-  }
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = bookingsStyles;
-    document.head.appendChild(styleSheet);
 }

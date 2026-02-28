@@ -32,7 +32,15 @@
         "minutes": "분",
         "allStatuses": "전체 상태",
         "daysSafe": "{{count}}일 무사고",
-        "yearsOld": "{{count}}세"
+        "yearsOld": "{{count}}세",
+        "gender": "성별",
+        "allergies": "알레르기",
+        "remove": "삭제",
+        "required": "필수 항목입니다",
+        "invalid": "유효한 값을 입력해주세요",
+        "confirmRemove": "정말 삭제하시겠습니까?",
+        "commaSeparated": "쉼표로 구분",
+        "error": "오류"
     },
     "auth": {
         "welcomeBack": "다시 오신 것을 환영합니다",

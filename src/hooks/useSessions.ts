@@ -2,7 +2,7 @@
 // KidsCare Pro - Session Hooks
 // ============================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DEMO_MODE } from './useDemo';
 import {
     DEMO_ACTIVE_SESSIONS,
@@ -99,43 +99,47 @@ export function useLiveStatus(sessionId?: string) {
             return;
         }
 
-        let cancelled = false;
-
-        async function load() {
-            try {
-                const session = await sessionService.getActiveSession(sessionId!);
-                if (cancelled || !session) {
-                    setIsLoading(false);
-                    return;
-                }
-
-                setLogs(session.timeline.map((t: { id: string; type: string; timestamp: Date | unknown; description: string; mediaUrl?: string }) => ({
-                    id: t.id,
-                    timestamp: t.timestamp instanceof Date ? t.timestamp : new Date(),
-                    type: t.type === 'check_in' ? 'checkin' as const
-                        : t.type === 'meal' ? 'meal' as const
-                        : t.type === 'photo' ? 'photo' as const
-                        : 'status' as const,
-                    content: t.description,
-                    metadata: { photoUrl: t.mediaUrl },
-                })));
-
-                setSessionInfo({
-                    sitterName: session.sitterId,
-                    sitterTier: 'gold',
-                    sitterLanguages: 'English/Korean',
-                    elapsedTime: '',
-                });
-
+        // Real-time subscription via onSnapshot
+        const unsubscribe = sessionService.subscribeToSession(sessionId, (session) => {
+            if (!session) {
                 setIsLoading(false);
-            } catch (err) {
-                console.error('Failed to load live status:', err);
-                if (!cancelled) setIsLoading(false);
+                return;
             }
-        }
 
-        load();
-        return () => { cancelled = true; };
+            setLogs(session.timeline.map((t: { id: string; type: string; timestamp: Date | unknown; description: string; mediaUrl?: string }) => ({
+                id: t.id,
+                timestamp: t.timestamp instanceof Date ? t.timestamp : new Date(),
+                type: t.type === 'check_in' ? 'checkin' as const
+                    : t.type === 'meal' ? 'meal' as const
+                    : t.type === 'photo' ? 'photo' as const
+                    : 'status' as const,
+                content: t.description,
+                metadata: { photoUrl: t.mediaUrl },
+            })));
+
+            // Calculate elapsed time
+            const startedAt = session.actualTimes?.startedAt;
+            let elapsedTime = '';
+            if (startedAt) {
+                const start = startedAt instanceof Date ? startedAt : new Date(startedAt as unknown as string);
+                const diff = Date.now() - start.getTime();
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                elapsedTime = `${hours}h ${minutes}m`;
+            }
+
+            setSessionInfo({
+                sitterId: session.sitterId,
+                sitterName: session.sitterId,
+                sitterTier: 'gold',
+                sitterLanguages: 'English/Korean',
+                elapsedTime,
+            });
+
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
     }, [sessionId]);
 
     return { logs, sessionInfo, isLoading };
@@ -144,22 +148,24 @@ export function useLiveStatus(sessionId?: string) {
 // ----------------------------------------
 // Sitter Active Session Hook
 // ----------------------------------------
-export function useActiveSession(sessionId?: string) {
+export function useActiveSession(userId?: string) {
     const [sessionInfo, setSessionInfo] = useState<DemoActiveSessionInfo>(DEMO_ACTIVE_SESSION_INFO);
     const [checklist, setChecklist] = useState<DemoChecklistItem[]>(DEMO_CHECKLIST_ITEMS);
     const [isLoading, setIsLoading] = useState(true);
+    const [sessionId, setSessionId] = useState<string | undefined>();
 
     useEffect(() => {
         if (DEMO_MODE) {
             const timer = setTimeout(() => {
                 setSessionInfo(DEMO_ACTIVE_SESSION_INFO);
                 setChecklist(DEMO_CHECKLIST_ITEMS);
+                setSessionId('demo-session-1');
                 setIsLoading(false);
             }, 400);
             return () => clearTimeout(timer);
         }
 
-        if (!sessionId) {
+        if (!userId) {
             setIsLoading(false);
             return;
         }
@@ -168,10 +174,24 @@ export function useActiveSession(sessionId?: string) {
 
         async function load() {
             try {
-                const session = await sessionService.getActiveSession(sessionId!);
+                // Find active session for this sitter
+                const session = await sessionService.getActiveSession(userId!);
                 if (cancelled || !session) {
                     setIsLoading(false);
                     return;
+                }
+
+                setSessionId(session.id);
+
+                // Calculate elapsed time
+                const startedAt = session.actualTimes?.startedAt;
+                let elapsedTime = '';
+                if (startedAt) {
+                    const start = startedAt instanceof Date ? startedAt : new Date(startedAt as unknown as string);
+                    const diff = Date.now() - start.getTime();
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    elapsedTime = `${hours}h ${minutes}m`;
                 }
 
                 setSessionInfo({
@@ -179,7 +199,7 @@ export function useActiveSession(sessionId?: string) {
                     children: '',
                     parent: session.parentId,
                     endTime: '',
-                    elapsedTime: '',
+                    elapsedTime,
                 });
 
                 // Map checklist from session data
@@ -203,13 +223,44 @@ export function useActiveSession(sessionId?: string) {
 
         load();
         return () => { cancelled = true; };
+    }, [userId]);
+
+    const toggleChecklistItem = useCallback((id: string) => {
+        setChecklist((prev) => {
+            const updated = prev.map((item) =>
+                item.id === id ? { ...item, completed: !item.completed } : item
+            );
+
+            // Sync to Firestore in background (non-blocking)
+            if (!DEMO_MODE && sessionId) {
+                const checklistMap: Record<string, boolean> = {};
+                updated.forEach((item) => { checklistMap[item.id] = item.completed; });
+                sessionService.updateSession(sessionId, {
+                    checklist: {
+                        roomSafety: {
+                            windowsSecured: checklistMap['1'] || false,
+                            balconyLocked: false,
+                            hazardsRemoved: false,
+                            emergencyExitKnown: checklistMap['4'] || false,
+                        },
+                        childInfo: {
+                            allergiesConfirmed: checklistMap['3'] || false,
+                            medicationNoted: checklistMap['2'] || false,
+                            sleepScheduleNoted: false,
+                        },
+                        supplies: {
+                            diapersProvided: false,
+                            snacksProvided: checklistMap['6'] || false,
+                            toysAvailable: false,
+                            emergencyKitReady: false,
+                        },
+                    },
+                }).catch((err: unknown) => console.error('Failed to sync checklist:', err));
+            }
+
+            return updated;
+        });
     }, [sessionId]);
 
-    const toggleChecklistItem = (id: string) => {
-        setChecklist((prev) =>
-            prev.map((item) => item.id === id ? { ...item, completed: !item.completed } : item)
-        );
-    };
-
-    return { sessionInfo, checklist, isLoading, toggleChecklistItem };
+    return { sessionInfo, checklist, isLoading, toggleChecklistItem, sessionId };
 }

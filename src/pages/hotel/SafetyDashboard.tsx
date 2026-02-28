@@ -14,6 +14,7 @@ import { useHotel } from '../../hooks/useHotel';
 import { useHotelIncidents } from '../../hooks/useIncidents';
 import { useHotelBookings } from '../../hooks/useBookings';
 import { useToast } from '../../contexts/ToastContext';
+import '../../styles/pages/hotel-safety.css';
 
 // ----------------------------------------
 // Types
@@ -326,10 +327,12 @@ export default function SafetyDashboard() {
                 </CardHeader>
                 <CardBody>
                     {/* Filter Tabs */}
-                    <div className="incident-filter-tabs">
+                    <div className="incident-filter-tabs" role="tablist" aria-label="Incident status filter">
                         {FILTER_TABS.map((tab) => (
                             <button
                                 key={tab.key}
+                                role="tab"
+                                aria-selected={activeFilter === tab.key}
                                 className={`incident-filter-tab ${activeFilter === tab.key ? 'incident-filter-tab-active' : ''}`}
                                 onClick={() => setActiveFilter(tab.key)}
                             >
@@ -363,6 +366,8 @@ export default function SafetyDashboard() {
                                             className="incident-severity-dot"
                                             style={{ backgroundColor: getSeverityColor(incident.severity) }}
                                             title={incident.severity}
+                                            role="img"
+                                            aria-label={`Severity: ${incident.severity}`}
                                         />
                                         <div className="incident-row-info">
                                             <div className="incident-row-header">
@@ -473,311 +478,4 @@ export default function SafetyDashboard() {
             </Modal>
         </div>
     );
-}
-
-// ----------------------------------------
-// Styles
-// ----------------------------------------
-const safetyStyles = `
-.safety-page { max-width: 1400px; margin: 0 auto; }
-
-.safety-header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.safety-main-banner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-  padding: var(--space-8);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
-  border: 2px solid rgba(16, 185, 129, 0.3);
-  border-radius: var(--radius-2xl);
-  margin-bottom: var(--space-6);
-}
-
-.safety-number {
-  font-size: 5rem;
-  font-weight: var(--font-bold);
-  color: var(--success-500);
-  line-height: 1;
-}
-
-.safety-text h2 {
-  font-size: var(--text-xl);
-  margin-bottom: var(--space-2);
-}
-
-.safety-text p {
-  color: var(--text-secondary);
-}
-
-.safety-stats-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--space-6);
-  margin-bottom: var(--space-6);
-}
-
-.safety-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--space-6);
-}
-
-.safety-stat {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: var(--space-4);
-}
-
-.safety-stat:last-child {
-  margin-bottom: 0;
-}
-
-.safety-stat .number {
-  font-size: var(--text-3xl);
-  font-weight: var(--font-bold);
-}
-
-.safety-stat .label {
-  font-size: var(--text-sm);
-  color: var(--text-tertiary);
-}
-
-.text-success { color: var(--success-500); }
-.text-error { color: var(--error-500); }
-.text-gold { color: var(--gold-500); }
-
-.protocol-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.protocol-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-3);
-  background: var(--glass-bg);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-}
-
-/* Incident Filter Tabs */
-.incident-filter-tabs {
-  display: flex;
-  gap: var(--space-1);
-  padding: var(--space-1);
-  background: var(--glass-bg);
-  border-radius: var(--radius-lg);
-  margin-bottom: var(--space-4);
-  overflow-x: auto;
-}
-
-.incident-filter-tab {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border: none;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-  font-family: inherit;
-}
-
-.incident-filter-tab:hover {
-  color: var(--text-primary);
-  background: rgba(0,0,0,0.03);
-}
-
-.incident-filter-tab-active {
-  background: var(--bg-card);
-  color: var(--primary-400);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-
-.incident-filter-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  border-radius: 10px;
-  background: var(--glass-bg);
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-}
-
-.incident-filter-tab-active .incident-filter-count {
-  background: rgba(79, 70, 187, 0.1);
-  color: var(--primary-400);
-}
-
-/* Incident List */
-.incident-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.incident-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.incident-row:hover {
-  border-color: var(--primary-400);
-  box-shadow: 0 2px 8px rgba(79, 70, 187, 0.06);
-}
-
-.incident-row-left {
-  display: flex;
-  gap: var(--space-3);
-  flex: 1;
-  min-width: 0;
-}
-
-.incident-severity-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 6px;
-}
-
-.incident-row-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.incident-row-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-1);
-}
-
-.incident-category {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-}
-
-.incident-summary {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  margin-bottom: var(--space-2);
-  line-height: 1.5;
-}
-
-.incident-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  font-size: var(--text-xs);
-  color: var(--text-tertiary);
-}
-
-.incident-meta-item {
-  display: inline-flex;
-  align-items: center;
-}
-
-.incident-date-full {
-  opacity: 0.7;
-}
-
-.incident-row-actions {
-  display: flex;
-  gap: var(--space-2);
-  flex-shrink: 0;
-  align-self: center;
-}
-
-/* Empty State */
-.empty-incidents {
-  text-align: center;
-  padding: var(--space-8);
-}
-
-.empty-icon {
-  display: flex;
-  justify-content: center;
-  margin-bottom: var(--space-4);
-  color: var(--success-500);
-  opacity: 0.6;
-}
-
-.empty-incidents h4 {
-  margin-bottom: var(--space-2);
-}
-
-.empty-incidents p {
-  color: var(--text-tertiary);
-  font-size: var(--text-sm);
-}
-
-/* Modal Form */
-.incident-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.incident-form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-}
-
-@media (max-width: 600px) {
-  .incident-form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .safety-main-banner {
-    flex-direction: column;
-    text-align: center;
-    gap: var(--space-4);
-    padding: var(--space-6);
-  }
-
-  .safety-number {
-    font-size: 3.5rem;
-  }
-
-  .safety-header-actions {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: var(--space-2);
-  }
-
-  .incident-row {
-    flex-direction: column;
-  }
-
-  .incident-row-actions {
-    align-self: flex-start;
-  }
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const s = document.createElement('style'); s.textContent = safetyStyles; document.head.appendChild(s);
 }

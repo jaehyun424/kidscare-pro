@@ -7,7 +7,6 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
-import { getAnalytics } from 'firebase/analytics';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -21,11 +20,14 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let app: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let auth: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let db: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let storage: any;
-let analytics: any | null = null;
 
 if (firebaseConfig.apiKey) {
     try {
@@ -33,13 +35,21 @@ if (firebaseConfig.apiKey) {
         auth = getAuth(app);
         db = getFirestore(app);
         storage = getStorage(app);
-        analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
         // Connect to emulators in development (optional)
         if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true') {
             connectAuthEmulator(auth, 'http://localhost:9099');
             connectFirestoreEmulator(db, 'localhost', 8080);
             connectStorageEmulator(storage, 'localhost', 9199);
+        }
+
+        // Load Analytics only in production
+        if (import.meta.env.PROD && typeof window !== 'undefined' && firebaseConfig.measurementId) {
+            import('firebase/analytics').then(({ getAnalytics }) => {
+                getAnalytics(app);
+            }).catch(() => {
+                // Analytics is optional - silently ignore failures
+            });
         }
     } catch (error) {
         console.warn('Firebase initialization failed:', error);
@@ -56,5 +66,5 @@ if (firebaseConfig.apiKey) {
     storage = {};
 }
 
-export { auth, db, storage, analytics };
+export { auth, db, storage };
 export default app;

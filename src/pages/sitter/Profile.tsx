@@ -1,18 +1,69 @@
 // Sitter Profile Page
 
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
 import { TierBadge, Badge } from '../../components/common/Badge';
+import { Modal } from '../../components/common/Modal';
+import { Input } from '../../components/common/Input';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { useSitterProfile } from '../../hooks/useSitters';
+import '../../styles/pages/sitter-profile.css';
+
+interface EditForm {
+    displayName: string;
+    phone: string;
+    languages: string;
+}
 
 export default function Profile() {
+    const { t } = useTranslation();
     const navigate = useNavigate();
-    const { signOut, user } = useAuth();
+    const { signOut, user, updateUserProfile } = useAuth();
+    const { success, error: showError } = useToast();
     const sitterId = user?.sitterInfo?.sitterId || user?.id;
     const { profile } = useSitterProfile(sitterId);
+
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [editForm, setEditForm] = useState<EditForm>({
+        displayName: '',
+        phone: '',
+        languages: '',
+    });
+    const [isSaving, setIsSaving] = useState(false);
+
+    const openEditModal = () => {
+        setEditForm({
+            displayName: profile.name,
+            phone: user?.profile?.phone || '',
+            languages: profile.languages.map((l) => l.name).join(', '),
+        });
+        setEditModalOpen(true);
+    };
+
+    const handleEditSubmit = async () => {
+        setIsSaving(true);
+        try {
+            const nameParts = editForm.displayName.trim().split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+            await updateUserProfile({
+                firstName,
+                lastName,
+                phone: editForm.phone,
+            });
+            success(t('common.save'), t('sitter.profile.updateSuccess', 'Profile updated successfully'));
+            setEditModalOpen(false);
+        } catch (err) {
+            showError(t('common.edit'), t('sitter.profile.updateError', 'Failed to update profile'));
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const handleSignOut = async () => {
         await signOut();
@@ -30,6 +81,9 @@ export default function Profile() {
                             <h2>{profile.name}</h2>
                             <TierBadge tier={profile.tier} />
                             <div className="profile-rating">⭐ {profile.rating} ({profile.reviewCount} reviews)</div>
+                            <Button variant="ghost" size="sm" onClick={openEditModal}>
+                                {t('common.edit')} {t('sitter.profile.title', 'Profile')}
+                            </Button>
                         </div>
                     </div>
                     <div className="profile-stats">
@@ -46,28 +100,28 @@ export default function Profile() {
                     <h3 className="section-title">Identity Verification</h3>
                     <div className="verification-grid">
                         <div className="verify-item verified">
-                            <span className="verify-icon">🏨</span>
+                            <span className="verify-icon" aria-hidden="true">🏨</span>
                             <div className="verify-text">
                                 <span className="verify-label">Hotel Partner Verified</span>
                                 <span className="verify-sub">Grand Hyatt • 2024</span>
                             </div>
-                            <span className="verify-check">✓</span>
+                            <span className="verify-check" aria-label="Verified">✓</span>
                         </div>
                         <div className="verify-item verified">
-                            <span className="verify-icon">🆔</span>
+                            <span className="verify-icon" aria-hidden="true">🆔</span>
                             <div className="verify-text">
                                 <span className="verify-label">Gov. ID Checked</span>
                                 <span className="verify-sub">National Registry</span>
                             </div>
-                            <span className="verify-check">✓</span>
+                            <span className="verify-check" aria-label="Verified">✓</span>
                         </div>
                         <div className="verify-item verified">
-                            <span className="verify-icon">⚖️</span>
+                            <span className="verify-icon" aria-hidden="true">⚖️</span>
                             <div className="verify-text">
                                 <span className="verify-label">Background Clear</span>
                                 <span className="verify-sub">Valid until Dec 2025</span>
                             </div>
-                            <span className="verify-check">✓</span>
+                            <span className="verify-check" aria-label="Verified">✓</span>
                         </div>
                     </div>
                 </CardBody>
@@ -100,114 +154,57 @@ export default function Profile() {
             {/* Settings */}
             <Card>
                 <CardBody>
-                    <div className="settings-menu">
-                        <button className="menu-btn">🔔 Notifications</button>
-                        <button className="menu-btn">📅 Availability</button>
-                        <button className="menu-btn">💰 Bank Account</button>
-                        <button className="menu-btn">📄 Documents</button>
-                        <button className="menu-btn">❓ Help</button>
+                    <div className="settings-menu" role="navigation" aria-label="Settings">
+                        <button className="menu-btn"><span aria-hidden="true">🔔</span> Notifications</button>
+                        <button className="menu-btn"><span aria-hidden="true">📅</span> Availability</button>
+                        <button className="menu-btn"><span aria-hidden="true">💰</span> Bank Account</button>
+                        <button className="menu-btn"><span aria-hidden="true">📄</span> Documents</button>
+                        <button className="menu-btn" onClick={() => success('Help & Support', 'Support: support@kidscarepro.com')}><span aria-hidden="true">❓</span> Help</button>
                     </div>
                 </CardBody>
             </Card>
 
             <Button variant="secondary" fullWidth onClick={handleSignOut}>Sign Out</Button>
+
+            {/* Edit Profile Modal */}
+            <Modal
+                isOpen={editModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                title={t('common.edit') + ' ' + t('sitter.profile.title', 'Profile')}
+                size="sm"
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={() => setEditModalOpen(false)} disabled={isSaving}>
+                            {t('common.cancel')}
+                        </Button>
+                        <Button variant="primary" onClick={handleEditSubmit} disabled={isSaving}>
+                            {isSaving ? t('common.loading') : t('common.save')}
+                        </Button>
+                    </>
+                }
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <Input
+                        label={t('common.name')}
+                        value={editForm.displayName}
+                        onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
+                        placeholder="Display Name"
+                    />
+                    <Input
+                        label={t('common.phone')}
+                        value={editForm.phone}
+                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                        placeholder="+82-10-1234-5678"
+                    />
+                    <Input
+                        label={t('sitter.profile.languages', 'Languages')}
+                        value={editForm.languages}
+                        onChange={(e) => setEditForm({ ...editForm, languages: e.target.value })}
+                        hint={t('sitter.profile.languagesHint', 'Comma-separated, e.g. English, Korean')}
+                        placeholder="English, Korean"
+                    />
+                </div>
+            </Modal>
         </div>
     );
-}
-
-// Styles
-const profileStyles = `
-.sitter-profile { max-width: 480px; margin: 0 auto; }
-
-.profile-header { display: flex; gap: var(--space-4); align-items: center; margin-bottom: var(--space-4); }
-.profile-info h2 { font-size: var(--text-xl); font-weight: var(--font-bold); }
-.profile-rating { font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-1); }
-
-.profile-stats {
-  display: flex;
-  justify-content: space-around;
-  padding: var(--space-4);
-  background: rgba(0,0,0,0.1);
-  border-radius: var(--radius-lg);
-}
-
-.pstat { text-align: center; }
-.pvalue { display: block; font-size: var(--text-xl); font-weight: var(--font-bold); }
-.plabel { font-size: var(--text-xs); color: var(--text-tertiary); }
-
-.section-title {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  margin-bottom: var(--space-3);
-}
-
-.certs-list { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-
-.lang-list { display: flex; flex-direction: column; gap: var(--space-2); font-size: var(--text-sm); }
-
-.settings-menu { display: flex; flex-direction: column; }
-.menu-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--border-color);
-  text-align: left;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: var(--text-sm);
-}
-.menu-btn:last-child { border-bottom: none; }
-.menu-btn:hover { background: var(--glass-bg); }
-
-.verification-grid {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-}
-
-.verify-item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3);
-    background: white;
-    border: 1px solid var(--cream-300);
-    border-radius: var(--radius-md);
-}
-
-.verify-item.verified {
-    background: linear-gradient(to right, #F0FDF4, white);
-    border-color: #BBF7D0;
-}
-
-.verify-icon { font-size: 1.25rem; }
-
-.verify-text { flex: 1; }
-
-.verify-label {
-    display: block;
-    font-weight: var(--font-semibold);
-    font-size: var(--text-sm);
-    color: var(--charcoal-900);
-}
-
-.verify-sub {
-    display: block;
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
-}
-
-.verify-check {
-    color: #10B981;
-    font-weight: bold;
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const s = document.createElement('style'); s.textContent = profileStyles; document.head.appendChild(s);
 }

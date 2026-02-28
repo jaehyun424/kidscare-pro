@@ -9,6 +9,7 @@ import { TierBadge, Badge, SafetyBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useHotelSitters } from '../../hooks/useSitters';
+import '../../styles/pages/hotel-sitter-mgmt.css';
 
 export default function SitterManagement() {
   const { user } = useAuth();
@@ -33,7 +34,7 @@ export default function SitterManagement() {
 
       <div className="sitters-grid">
         {sitters.map((sitter) => (
-          <Card key={sitter.id} className="sitter-card">
+          <Card key={sitter.id} className="sitter-card" aria-label={`Sitter: ${sitter.name}`}>
             <CardBody>
               <div className="sitter-header">
                 <Avatar name={sitter.name} size="xl" variant={sitter.tier === 'gold' ? 'gold' : 'default'} />
@@ -87,99 +88,4 @@ export default function SitterManagement() {
       </div>
     </div>
   );
-}
-
-// Styles
-const sitterStyles = `
-.sitter-management-page {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.sitters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: var(--space-6);
-}
-
-.sitter-card {
-  transition: transform var(--transition-base);
-}
-
-.sitter-card:hover {
-  transform: translateY(-4px);
-}
-
-.sitter-header {
-  display: flex;
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
-}
-
-.sitter-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.sitter-name {
-  font-size: var(--text-lg);
-  font-weight: var(--font-bold);
-}
-
-.sitter-rating {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-}
-
-.sitter-status {
-  display: flex;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
-  flex-wrap: wrap;
-}
-
-.sitter-details {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  background: var(--glass-bg);
-  border-radius: var(--radius-lg);
-  margin-bottom: var(--space-4);
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--space-4);
-}
-
-.detail-label {
-  font-size: var(--text-sm);
-  color: var(--text-tertiary);
-  flex-shrink: 0;
-}
-
-.detail-value {
-  font-size: var(--text-sm);
-  text-align: right;
-}
-
-.detail-value.rate {
-  font-weight: var(--font-semibold);
-  color: var(--gold-500);
-}
-
-.sitter-actions {
-  display: flex;
-  gap: var(--space-3);
-}
-`;
-
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = sitterStyles;
-  document.head.appendChild(styleSheet);
 }
