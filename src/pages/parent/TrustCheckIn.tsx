@@ -1,5 +1,4 @@
-
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
@@ -12,21 +11,30 @@ import { useAuth } from '../../contexts/AuthContext';
 import { DEMO_MODE } from '../../hooks/useDemo';
 import { storageService } from '../../services/storage';
 import { bookingService, sessionService } from '../../services/firestore';
+import '../../styles/pages/parent-trust-checkin.css';
 
 export default function TrustCheckIn() {
     const navigate = useNavigate();
-    const { id: bookingId } = useParams<{ id: string }>();
+    const { bookingId } = useParams<{ bookingId: string }>();
     const { t } = useTranslation();
     const { user } = useAuth();
     const { success, error } = useToast();
     const signatureRef = useRef<SignaturePadRef>(null);
+    const stepHeadingRef = useRef<HTMLHeadingElement>(null);
 
     const [step, setStep] = useState(1);
+
+    // Focus the step heading when step changes
+    useEffect(() => {
+        stepHeadingRef.current?.focus();
+    }, [step]);
+    const userName = `${user?.profile?.firstName || ''} ${user?.profile?.lastName || ''}`.trim() || 'Parent';
+    const userPhone = user?.profile?.phone || '';
     const [formData, setFormData] = useState({
         allergies: 'None',
         medications: 'None',
-        emergencyContact: '+82-10-1234-5678', // Pre-filled from profile in real app
-        emergencyName: 'John Doe',
+        emergencyContact: userPhone,
+        emergencyName: userName,
         rulesAccepted: false,
     });
 
@@ -122,11 +130,11 @@ export default function TrustCheckIn() {
     };
 
     const renderStep1_Medical = () => (
-        <div className="animate-fade-in">
-            <h2 className="section-title">{t('trustCheckin.medicalWellbeing')}</h2>
+        <div className="step-content">
+            <h2 className="section-title" ref={stepHeadingRef} tabIndex={-1}>{t('trustCheckin.medicalWellbeing')}</h2>
             <p className="section-subtitle">{t('trustCheckin.confirmHealthStatus')}</p>
 
-            <div className="space-y-6">
+            <div className="step-fields">
                 <Input
                     label={t('trustCheckin.allergiesLabel')}
                     value={formData.allergies}
@@ -142,11 +150,11 @@ export default function TrustCheckIn() {
     );
 
     const renderStep2_Emergency = () => (
-        <div className="animate-fade-in">
-            <h2 className="section-title">{t('trustCheckin.emergencyProtocol')}</h2>
+        <div className="step-content">
+            <h2 className="section-title" ref={stepHeadingRef} tabIndex={-1}>{t('trustCheckin.emergencyProtocol')}</h2>
             <p className="section-subtitle">{t('trustCheckin.whoToContactFirst')}</p>
 
-            <div className="space-y-6">
+            <div className="step-fields">
                 <Input
                     label={t('trustCheckin.emergencyContactName')}
                     value={formData.emergencyName}
@@ -166,8 +174,8 @@ export default function TrustCheckIn() {
     );
 
     const renderStep3_Rules = () => (
-        <div className="animate-fade-in">
-            <h2 className="section-title">{t('trustCheckin.safetyProtocols')}</h2>
+        <div className="step-content">
+            <h2 className="section-title" ref={stepHeadingRef} tabIndex={-1}>{t('trustCheckin.safetyProtocols')}</h2>
             <p className="section-subtitle">{t('trustCheckin.agreedBoundaries')}</p>
 
             <div className="rules-list">
@@ -182,11 +190,11 @@ export default function TrustCheckIn() {
                     </span>
                 </label>
             </div>
-            <div className="signature-section mt-8">
-                <label className="form-label mb-2 block">{t('trustCheckin.parentSignature')}</label>
+            <div className="signature-section">
+                <label className="signature-label">{t('trustCheckin.parentSignature')}</label>
                 <SignaturePad ref={signatureRef} />
                 <button
-                    className="text-xs text-charcoal-500 mt-2 hover:text-charcoal-900 underline"
+                    className="clear-signature-btn"
                     onClick={() => signatureRef.current?.clear()}
                 >
                     {t('trustCheckin.clearSignature')}
@@ -197,12 +205,12 @@ export default function TrustCheckIn() {
 
     return (
         <div className="trust-checkin-page">
-            <div className="max-w-md mx-auto py-8 px-4">
-                <div className="text-center mb-8">
-                    <h1 className="font-serif text-3xl text-charcoal-900 mb-2">{t('trustCheckin.careHandover')}</h1>
-                    <div className="flex justify-center gap-2">
+            <div className="trust-checkin-container">
+                <div className="trust-checkin-header">
+                    <h1 className="trust-checkin-title">{t('trustCheckin.careHandover')}</h1>
+                    <div className="trust-checkin-steps">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className={`h-1 w-8 rounded-full transition-colors ${step >= i ? 'background-gold' : 'bg-gray-200'}`} />
+                            <div key={i} className={`step-indicator ${step >= i ? 'step-indicator-active' : 'step-indicator-inactive'}`} />
                         ))}
                     </div>
                 </div>
@@ -213,7 +221,7 @@ export default function TrustCheckIn() {
                         {step === 2 && renderStep2_Emergency()}
                         {step === 3 && renderStep3_Rules()}
 
-                        <div className="flex justify-between mt-8 pt-6 border-t border-cream-200">
+                        <div className="checkin-card-footer">
                             {step > 1 ? (
                                 <Button variant="ghost" onClick={handleBack}>{t('common.back')}</Button>
                             ) : (
@@ -237,63 +245,6 @@ export default function TrustCheckIn() {
                     </CardBody>
                 </Card>
             </div>
-
-            <style>{`
-                .trust-checkin-page {
-                    min-height: 100vh;
-                    background-color: var(--cream-100);
-                }
-                .section-title {
-                    font-family: var(--font-serif);
-                    font-size: 1.5rem;
-                    color: var(--charcoal-900);
-                    margin-bottom: 0.5rem;
-                }
-                .section-subtitle {
-                    color: var(--charcoal-500);
-                    margin-bottom: 2rem;
-                    font-size: 0.95rem;
-                }
-                .background-gold {
-                    background-color: var(--gold-500);
-                }
-                .info-box {
-                    background: var(--cream-50);
-                    border: 1px solid var(--cream-200);
-                    padding: 1rem;
-                    border-radius: 4px;
-                    display: flex;
-                    gap: 0.75rem;
-                    align-items: flex-start;
-                    font-size: 0.875rem;
-                    color: var(--charcoal-600);
-                }
-                .checkbox-row {
-                    display: flex;
-                    gap: 1rem;
-                    align-items: flex-start;
-                    cursor: pointer;
-                    padding: 1rem;
-                    border: 1px solid var(--cream-300);
-                    border-radius: 4px;
-                    transition: all 0.2s;
-                }
-                .checkbox-row:hover {
-                    border-color: var(--gold-400);
-                    background: white;
-                }
-                .checkbox-text {
-                    font-size: 0.9rem;
-                    line-height: 1.5;
-                    color: var(--charcoal-700);
-                }
-                input[type="checkbox"] {
-                    margin-top: 0.25rem;
-                    accent-color: var(--gold-500);
-                    width: 1.25rem;
-                    height: 1.25rem;
-                }
-            `}</style>
         </div>
     );
 }

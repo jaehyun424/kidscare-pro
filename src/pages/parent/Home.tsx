@@ -44,6 +44,11 @@ export default function Home() {
           <Skeleton width="100%" height="60px" borderRadius="var(--radius-lg)" />
           <Skeleton width="100%" height="60px" borderRadius="var(--radius-lg)" />
         </div>
+        <div className="home-stats">
+          <Skeleton width="100%" height="80px" borderRadius="var(--radius-lg)" />
+          <Skeleton width="100%" height="80px" borderRadius="var(--radius-lg)" />
+          <Skeleton width="100%" height="80px" borderRadius="var(--radius-lg)" />
+        </div>
         <CardSkeleton />
         <div className="section mt-4">
           <Skeleton width="40%" height="1.5rem" />
@@ -62,7 +67,7 @@ export default function Home() {
     <div className="parent-home animate-fade-in">
       {/* Welcome */}
       <div className="welcome-section">
-        <h1>{t('parent.greeting', { timeOfDay: getTimeOfDay(), name: 'Sarah' })} 👋</h1>
+        <h1>{t('parent.greeting', { timeOfDay: getTimeOfDay(), name: user?.profile?.firstName || 'Guest' })} 👋</h1>
         <p>{t('parent.childcareHandled')}</p>
       </div>
 
@@ -80,6 +85,26 @@ export default function Home() {
           <span className="icon" aria-hidden="true">👶</span>
           <span>{t('parent.children')}</span>
         </Link>
+      </div>
+
+      {/* Dashboard Stats */}
+      <div className="home-stats">
+        <div className="stat-card">
+          <span className="stat-value">{recentSessions.length}</span>
+          <span className="stat-label">{t('parent.totalSessions', 'Sessions')}</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-value">
+            {recentSessions.length > 0
+              ? (recentSessions.reduce((sum, s) => sum + s.rating, 0) / recentSessions.length).toFixed(1)
+              : '—'}
+          </span>
+          <span className="stat-label">{t('parent.avgRating', 'Avg Rating')}</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-value">{upcomingBooking?.childrenIds?.length || 0}</span>
+          <span className="stat-label">{t('parent.children', 'Children')}</span>
+        </div>
       </div>
 
       {/* Upcoming Booking */}

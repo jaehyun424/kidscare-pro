@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/C
 import { Input, Select, Textarea } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { Skeleton } from '../../components/common/Skeleton';
+import ErrorBanner from '../../components/common/ErrorBanner';
 import { useAuth } from '../../contexts/AuthContext';
 import { useHotel } from '../../hooks/useHotel';
 import { useToast } from '../../contexts/ToastContext';
@@ -17,7 +18,7 @@ import '../../styles/pages/hotel-settings.css';
 export default function Settings() {
     const { t } = useTranslation();
     const { user } = useAuth();
-    const { hotel, isLoading, updateHotel } = useHotel(user?.hotelId);
+    const { hotel, isLoading, updateHotel, error: hotelError, retry: retryHotel } = useHotel(user?.hotelId);
     const { success, error: toastError } = useToast();
 
     // ----------------------------------------
@@ -105,22 +106,22 @@ export default function Settings() {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!name.trim()) {
-            errors.name = 'Hotel name is required';
+            errors.name = t('settings.nameRequired');
         }
         if (!email.trim() || !emailRegex.test(email)) {
-            errors.email = 'Valid email is required';
+            errors.email = t('settings.emailRequired');
         }
         if (!phone.trim()) {
-            errors.phone = 'Phone number is required';
+            errors.phone = t('settings.phoneRequired');
         }
         if (commission < 0 || commission > 100) {
-            errors.commission = 'Commission must be between 0 and 100';
+            errors.commission = t('settings.commissionRange');
         }
         if (minBookingHours < 1) {
-            errors.minBookingHours = 'Minimum 1 hour';
+            errors.minBookingHours = t('settings.minOneHour');
         }
         if (maxAdvanceBookingDays < 1) {
-            errors.maxAdvanceBookingDays = 'Minimum 1 day';
+            errors.maxAdvanceBookingDays = t('settings.minOneDay');
         }
 
         setFormErrors(errors);
@@ -157,9 +158,9 @@ export default function Settings() {
                     cancellationPolicy,
                 },
             });
-            success('Settings saved', 'Your hotel settings have been updated.');
+            success(t('settings.settingsSaved'), t('settings.settingsSavedDesc'));
         } catch {
-            toastError('Save failed', 'Could not update settings.');
+            toastError(t('settings.saveFailed'), t('settings.saveFailedDesc'));
         }
         setIsSaving(false);
     };
@@ -205,6 +206,8 @@ export default function Settings() {
                 <p className="page-subtitle">{t('hotel.hotelSettingsSubtitle', "Manage your hotel's childcare service configuration")}</p>
             </div>
 
+            {hotelError && <ErrorBanner error={hotelError} onRetry={retryHotel} />}
+
             <div className="settings-grid" role="form" aria-label="Hotel settings">
                 {/* Hotel Profile */}
                 <Card>
@@ -214,32 +217,32 @@ export default function Settings() {
                     <CardBody>
                         <div className="form-stack">
                             <Input
-                                label="Hotel Name"
+                                label={t('settings.hotelName')}
                                 value={name}
                                 error={formErrors.name}
                                 onChange={(e) => { setName(e.target.value); clearError('name'); }}
-                                placeholder="Enter hotel name"
+                                placeholder={t('settings.enterHotelName')}
                             />
                             <Input
-                                label="Contact Email"
+                                label={t('settings.contactEmail')}
                                 type="email"
                                 value={email}
                                 error={formErrors.email}
                                 onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
-                                placeholder="hotel@example.com"
+                                placeholder={t('settings.emailPlaceholder')}
                             />
                             <Input
-                                label="Contact Phone"
+                                label={t('settings.contactPhone')}
                                 value={phone}
                                 error={formErrors.phone}
                                 onChange={(e) => { setPhone(e.target.value); clearError('phone'); }}
-                                placeholder="+82-2-000-0000"
+                                placeholder={t('settings.phonePlaceholder')}
                             />
                             <Textarea
-                                label="Address"
+                                label={t('settings.address')}
                                 value={address}
                                 onChange={(e) => setAddress(e.target.value)}
-                                placeholder="Enter full address"
+                                placeholder={t('settings.enterAddress')}
                             />
                         </div>
                     </CardBody>
@@ -258,7 +261,7 @@ export default function Settings() {
                                     checked={autoAssign}
                                     onChange={(e) => setAutoAssign(e.target.checked)}
                                 />
-                                <span>Auto-Assign Sitters</span>
+                                <span>{t('settings.autoAssign')}</span>
                             </label>
                             <label className="toggle-option">
                                 <input
@@ -266,10 +269,10 @@ export default function Settings() {
                                     checked={requireGoldForInfant}
                                     onChange={(e) => setRequireGoldForInfant(e.target.checked)}
                                 />
-                                <span>Require Gold Tier for Infants</span>
+                                <span>{t('settings.requireGoldTier')}</span>
                             </label>
                             <Input
-                                label="Min Booking Hours"
+                                label={t('settings.minBookingHours')}
                                 type="number"
                                 value={minBookingHours}
                                 error={formErrors.minBookingHours}
@@ -277,7 +280,7 @@ export default function Settings() {
                                 placeholder="2"
                             />
                             <Input
-                                label="Max Advance Booking Days"
+                                label={t('settings.maxAdvanceDays')}
                                 type="number"
                                 value={maxAdvanceBookingDays}
                                 error={formErrors.maxAdvanceBookingDays}
@@ -289,9 +292,9 @@ export default function Settings() {
                                 value={cancellationPolicy}
                                 onChange={(e) => setCancellationPolicy(e.target.value as CancellationPolicy)}
                                 options={[
-                                    { value: 'flexible', label: 'Flexible' },
-                                    { value: 'moderate', label: 'Moderate' },
-                                    { value: 'strict', label: 'Strict' },
+                                    { value: 'flexible', label: t('settings.flexible') },
+                                    { value: 'moderate', label: t('settings.moderate') },
+                                    { value: 'strict', label: t('settings.strict') },
                                 ]}
                             />
                         </div>
@@ -306,7 +309,7 @@ export default function Settings() {
                     <CardBody>
                         <div className="form-stack">
                             <Input
-                                label="Commission Rate (%)"
+                                label={t('settings.commissionRate')}
                                 type="number"
                                 value={commission}
                                 error={formErrors.commission}
@@ -314,13 +317,13 @@ export default function Settings() {
                                 placeholder="15"
                             />
                             <Select
-                                label="Currency"
+                                label={t('settings.currency')}
                                 value={currency}
                                 onChange={(e) => setCurrency(e.target.value as Currency)}
                                 options={[
-                                    { value: 'KRW', label: 'KRW - Korean Won' },
-                                    { value: 'USD', label: 'USD - US Dollar' },
-                                    { value: 'JPY', label: 'JPY - Japanese Yen' },
+                                    { value: 'KRW', label: t('settings.krw') },
+                                    { value: 'USD', label: t('settings.usd') },
+                                    { value: 'JPY', label: t('settings.jpy') },
                                 ]}
                             />
                         </div>
@@ -340,7 +343,7 @@ export default function Settings() {
                                     checked={notifyNewBooking}
                                     onChange={(e) => setNotifyNewBooking(e.target.checked)}
                                 />
-                                <span>New booking notifications</span>
+                                <span>{t('settings.newBookingNotif')}</span>
                             </label>
                             <label className="toggle-option">
                                 <input
@@ -348,7 +351,7 @@ export default function Settings() {
                                     checked={notifySessionAlerts}
                                     onChange={(e) => setNotifySessionAlerts(e.target.checked)}
                                 />
-                                <span>Session start/end alerts</span>
+                                <span>{t('settings.sessionAlerts')}</span>
                             </label>
                             <label className="toggle-option">
                                 <input
@@ -356,7 +359,7 @@ export default function Settings() {
                                     checked={notifyEmergency}
                                     onChange={(e) => setNotifyEmergency(e.target.checked)}
                                 />
-                                <span>Emergency alerts</span>
+                                <span>{t('settings.emergencyAlerts')}</span>
                             </label>
                             <label className="toggle-option">
                                 <input
@@ -364,7 +367,7 @@ export default function Settings() {
                                     checked={notifyDailySummary}
                                     onChange={(e) => setNotifyDailySummary(e.target.checked)}
                                 />
-                                <span>Daily summary email</span>
+                                <span>{t('settings.dailySummary')}</span>
                             </label>
                         </div>
                     </CardBody>
@@ -372,9 +375,9 @@ export default function Settings() {
             </div>
 
             <div className="settings-actions">
-                <Button variant="secondary" onClick={handleCancel}>Cancel</Button>
+                <Button variant="secondary" onClick={handleCancel}>{t('common.cancel')}</Button>
                 <Button variant="gold" onClick={handleSave} isLoading={isSaving}>
-                    Save Changes
+                    {t('settings.saveChanges')}
                 </Button>
             </div>
         </div>

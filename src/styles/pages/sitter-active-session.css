@@ -69,3 +69,10 @@
 
 .check-item input { accent-color: var(--success-500); width: 18px; height: 18px; }
 .check-item .completed { text-decoration: line-through; color: var(--text-tertiary); }
+
+/* Modal form stack */
+.active-session .modal-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}

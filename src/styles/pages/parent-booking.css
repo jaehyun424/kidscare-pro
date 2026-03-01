@@ -201,6 +201,17 @@
   color: var(--gold-600);
 }
 
+.pricing-breakdown {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--cream-300);
+}
+
+.pricing-breakdown .summary-row {
+  font-size: 0.85rem;
+  padding: 0.5rem 0;
+}
+
 .terms-note {
   font-size: 0.75rem;
   color: var(--charcoal-400);

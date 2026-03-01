@@ -3,9 +3,35 @@
 // ============================================
 
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
 import '../../styles/notification-bell.css';
+
+// Map notification types to navigation paths
+function getNotificationPath(type: string, role?: string): string | null {
+    const rolePrefix = role === 'hotel_staff' ? '/hotel' : role === 'sitter' ? '/sitter' : '/parent';
+    switch (type) {
+        case 'booking_created':
+        case 'booking_confirmed':
+        case 'booking_cancelled':
+            return role === 'hotel_staff' ? '/hotel/bookings' : '/parent/history';
+        case 'sitter_assigned':
+            return `${rolePrefix}`;
+        case 'care_started':
+        case 'care_completed':
+            return role === 'parent' ? '/parent/live-status' : role === 'hotel_staff' ? '/hotel/live' : '/sitter/session';
+        case 'emergency':
+            return role === 'hotel_staff' ? '/hotel/safety' : `${rolePrefix}`;
+        case 'review_received':
+            return role === 'sitter' ? '/sitter/profile' : `${rolePrefix}`;
+        case 'payment_received':
+            return role === 'sitter' ? '/sitter/earnings' : `${rolePrefix}`;
+        default:
+            return null;
+    }
+}
 
 const BellIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -26,7 +52,9 @@ function timeAgo(date: Date): string {
 }
 
 export function NotificationBell() {
+    const { t } = useTranslation();
     const { user } = useAuth();
+    const navigate = useNavigate();
     const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(user?.id);
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -51,7 +79,7 @@ export function NotificationBell() {
             <button
                 className="notification-bell-btn"
                 onClick={() => setIsOpen(!isOpen)}
-                aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
+                aria-label={t('parent.notifications', 'Notifications') + (unreadCount > 0 ? `, ${unreadCount} ${t('common.unread', 'unread')}` : '')}
             >
                 <BellIcon />
                 {unreadCount > 0 && (
@@ -83,7 +111,23 @@ export function NotificationBell() {
                                 <div
                                     key={n.id}
                                     className={`notification-item ${!n.read ? 'notification-unread' : ''}`}
-                                    onClick={() => !n.read && markAsRead(n.id)}
+                                    onClick={() => {
+                                        if (!n.read) markAsRead(n.id);
+                                        const path = getNotificationPath(n.type, user?.role);
+                                        if (path) {
+                                            setIsOpen(false);
+                                            navigate(path);
+                                        }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            if (!n.read) markAsRead(n.id);
+                                            const path = getNotificationPath(n.type, user?.role);
+                                            if (path) { setIsOpen(false); navigate(path); }
+                                        }
+                                    }}
                                 >
                                     <div className="notification-item-content">
                                         <span className="notification-item-title">{n.title}</span>

@@ -12,6 +12,8 @@ import { Input } from '../../components/common/Input';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { useSitterProfile } from '../../hooks/useSitters';
+import { useReviews } from '../../hooks/useReviews';
+import { StarRating } from '../../components/common/ReviewForm';
 import '../../styles/pages/sitter-profile.css';
 
 interface EditForm {
@@ -27,6 +29,7 @@ export default function Profile() {
     const { success, error: showError } = useToast();
     const sitterId = user?.sitterInfo?.sitterId || user?.id;
     const { profile } = useSitterProfile(sitterId);
+    const { reviews, averageRating, isLoading: reviewsLoading } = useReviews(sitterId);
 
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editForm, setEditForm] = useState<EditForm>({
@@ -97,12 +100,12 @@ export default function Profile() {
             {/* Verification Status - NEW */}
             <Card className="mb-4">
                 <CardBody>
-                    <h3 className="section-title">Identity Verification</h3>
+                    <h3 className="section-title">{t('profile.identityVerification')}</h3>
                     <div className="verification-grid">
                         <div className="verify-item verified">
                             <span className="verify-icon" aria-hidden="true">🏨</span>
                             <div className="verify-text">
-                                <span className="verify-label">Hotel Partner Verified</span>
+                                <span className="verify-label">{t('profile.hotelPartnerVerified')}</span>
                                 <span className="verify-sub">Grand Hyatt • 2024</span>
                             </div>
                             <span className="verify-check" aria-label="Verified">✓</span>
@@ -110,15 +113,15 @@ export default function Profile() {
                         <div className="verify-item verified">
                             <span className="verify-icon" aria-hidden="true">🆔</span>
                             <div className="verify-text">
-                                <span className="verify-label">Gov. ID Checked</span>
-                                <span className="verify-sub">National Registry</span>
+                                <span className="verify-label">{t('profile.govIdChecked')}</span>
+                                <span className="verify-sub">{t('profile.nationalRegistry')}</span>
                             </div>
                             <span className="verify-check" aria-label="Verified">✓</span>
                         </div>
                         <div className="verify-item verified">
                             <span className="verify-icon" aria-hidden="true">⚖️</span>
                             <div className="verify-text">
-                                <span className="verify-label">Background Clear</span>
+                                <span className="verify-label">{t('profile.backgroundClear')}</span>
                                 <span className="verify-sub">Valid until Dec 2025</span>
                             </div>
                             <span className="verify-check" aria-label="Verified">✓</span>
@@ -139,6 +142,41 @@ export default function Profile() {
                 </CardBody>
             </Card>
 
+            {/* Reviews */}
+            <Card>
+                <CardBody>
+                    <h3 className="section-title">Reviews</h3>
+                    {reviewsLoading ? (
+                        <p className="text-sm text-charcoal-500">{t('profile.loadingReviews')}</p>
+                    ) : reviews.length > 0 ? (
+                        <>
+                            <div className="reviews-summary">
+                                <StarRating rating={averageRating} />
+                                <span className="reviews-count">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div className="reviews-list">
+                                {reviews.slice(0, 5).map((review) => (
+                                    <div key={review.id} className="review-item">
+                                        <div className="review-item-header">
+                                            <StarRating rating={review.rating} size="sm" />
+                                            <span className="review-date">
+                                                {review.createdAt.toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        {review.comment && (
+                                            <p className="review-comment-text">{review.comment}</p>
+                                        )}
+                                        <span className="review-author">{review.parentName || 'Guest'}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    ) : (
+                        <p className="text-sm text-charcoal-500">{t('profile.noReviewsYet')}</p>
+                    )}
+                </CardBody>
+            </Card>
+
             {/* Languages */}
             <Card>
                 <CardBody>
@@ -154,17 +192,17 @@ export default function Profile() {
             {/* Settings */}
             <Card>
                 <CardBody>
-                    <div className="settings-menu" role="navigation" aria-label="Settings">
-                        <button className="menu-btn"><span aria-hidden="true">🔔</span> Notifications</button>
-                        <button className="menu-btn"><span aria-hidden="true">📅</span> Availability</button>
-                        <button className="menu-btn"><span aria-hidden="true">💰</span> Bank Account</button>
-                        <button className="menu-btn"><span aria-hidden="true">📄</span> Documents</button>
-                        <button className="menu-btn" onClick={() => success('Help & Support', 'Support: support@kidscarepro.com')}><span aria-hidden="true">❓</span> Help</button>
+                    <div className="settings-menu" role="navigation" aria-label={t('profile.settings')}>
+                        <button className="menu-btn" onClick={() => success(t('profile.notifications'), t('profile.notifComingSoon'))}><span aria-hidden="true">🔔</span> {t('profile.notifications')}</button>
+                        <button className="menu-btn" onClick={() => success(t('profile.availability'), t('profile.availComingSoon'))}><span aria-hidden="true">📅</span> {t('profile.availability')}</button>
+                        <button className="menu-btn" onClick={() => success(t('profile.bankAccount'), t('profile.bankComingSoon'))}><span aria-hidden="true">💰</span> {t('profile.bankAccount')}</button>
+                        <button className="menu-btn" onClick={() => success(t('profile.documents'), t('profile.docsComingSoon'))}><span aria-hidden="true">📄</span> {t('profile.documents')}</button>
+                        <button className="menu-btn" onClick={() => success(t('profile.helpLabel'), t('profile.supportEmail'))}><span aria-hidden="true">❓</span> {t('profile.helpLabel')}</button>
                     </div>
                 </CardBody>
             </Card>
 
-            <Button variant="secondary" fullWidth onClick={handleSignOut}>Sign Out</Button>
+            <Button variant="secondary" fullWidth onClick={handleSignOut}>{t('profile.signOut')}</Button>
 
             {/* Edit Profile Modal */}
             <Modal
@@ -183,7 +221,7 @@ export default function Profile() {
                     </>
                 }
             >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="modal-form-stack">
                     <Input
                         label={t('common.name')}
                         value={editForm.displayName}

@@ -1,19 +1,23 @@
 // Sitter Schedule Page
 
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../../components/common/Card';
 import { StatusBadge, TierBadge, SafetyBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Skeleton, SkeletonText } from '../../components/common/Skeleton';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { useSitterBookings } from '../../hooks/useBookings';
 import { useSitterStats } from '../../hooks/useSitters';
 import '../../styles/pages/sitter-schedule.css';
 
 export default function Schedule() {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const { user } = useAuth();
+    const toast = useToast();
     const sitterId = user?.sitterInfo?.sitterId || user?.id;
     const { todaySessions, weekSchedule, isLoading } = useSitterBookings(sitterId);
     const { stats, isLoading: isStatsLoading } = useSitterStats(sitterId);
@@ -83,7 +87,7 @@ export default function Schedule() {
                                 </div>
                                 <div className="session-actions">
                                     {session.status === 'confirmed' && (
-                                        <Button variant="gold" fullWidth>{t('sitter.startSession')}</Button>
+                                        <Button variant="gold" fullWidth onClick={() => { toast.success(t('sitter.startSession'), `Room ${session.room}`); navigate('/sitter/active'); }}>{t('sitter.startSession')}</Button>
                                     )}
                                     {session.status === 'pending' && (
                                         <Button variant="secondary" fullWidth disabled>{t('status.pending')}</Button>

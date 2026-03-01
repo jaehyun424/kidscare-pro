@@ -19,6 +19,7 @@ import './index.css';
 // Auth
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
 
 // Hotel Console
 const HotelDashboard = lazy(() => import('./pages/hotel/Dashboard'));
@@ -44,6 +45,9 @@ const SitterSchedule = lazy(() => import('./pages/sitter/Schedule'));
 const SitterActiveSession = lazy(() => import('./pages/sitter/ActiveSession'));
 const SitterEarnings = lazy(() => import('./pages/sitter/Earnings'));
 const SitterProfile = lazy(() => import('./pages/sitter/Profile'));
+
+// 404
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // ----------------------------------------
 // Loading Spinner
@@ -99,6 +103,7 @@ function AppRoutes() {
         {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         {/* Hotel Console Routes */}
         <Route
@@ -154,7 +159,7 @@ function AppRoutes() {
 
         {/* Default Redirect */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );

@@ -2,7 +2,7 @@
 // KidsCare Pro - Sitter Hooks
 // ============================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DEMO_MODE } from './useDemo';
 import {
     DEMO_SITTERS,
@@ -20,11 +20,18 @@ import { sitterService } from '../services/firestore';
 export function useHotelSitters(hotelId?: string) {
     const [sitters, setSitters] = useState<DemoSitter[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
 
     useEffect(() => {
         if (DEMO_MODE) {
             const timer = setTimeout(() => {
                 setSitters(DEMO_SITTERS);
+                setError(null);
                 setIsLoading(false);
             }, 600);
             return () => clearTimeout(timer);
@@ -35,30 +42,40 @@ export function useHotelSitters(hotelId?: string) {
             return;
         }
 
-        const unsubscribe = sitterService.subscribeToHotelSitters(
-            hotelId,
-            (fbSitters) => {
-                const mapped: DemoSitter[] = fbSitters.map((s) => ({
-                    id: s.id,
-                    name: s.profile.displayName,
-                    tier: s.tier,
-                    rating: s.stats.averageRating,
-                    sessionsCompleted: s.stats.totalSessions,
-                    languages: s.profile.languages,
-                    certifications: s.certifications.map((c) => c.name),
-                    availability: s.status === 'active' ? 'Available' : 'Inactive',
-                    hourlyRate: s.pricing.hourlyRate,
-                    safetyDays: s.stats.safetyRecord,
-                }));
-                setSitters(mapped);
-                setIsLoading(false);
-            }
-        );
+        setIsLoading(true);
 
-        return () => unsubscribe();
-    }, [hotelId]);
+        let unsubscribe: (() => void) | undefined;
+        try {
+            unsubscribe = sitterService.subscribeToHotelSitters(
+                hotelId,
+                (fbSitters) => {
+                    const mapped: DemoSitter[] = fbSitters.map((s) => ({
+                        id: s.id,
+                        name: s.profile.displayName,
+                        tier: s.tier,
+                        rating: s.stats.averageRating,
+                        sessionsCompleted: s.stats.totalSessions,
+                        languages: s.profile.languages,
+                        certifications: s.certifications.map((c) => c.name),
+                        availability: s.status === 'active' ? 'Available' : 'Inactive',
+                        hourlyRate: s.pricing.hourlyRate,
+                        safetyDays: s.stats.safetyRecord,
+                    }));
+                    setSitters(mapped);
+                    setError(null);
+                    setIsLoading(false);
+                }
+            );
+        } catch (err) {
+            console.error('Failed to subscribe to sitters:', err);
+            setError('Failed to load sitters');
+            setIsLoading(false);
+        }
 
-    return { sitters, isLoading };
+        return () => unsubscribe?.();
+    }, [hotelId, retryCount]);
+
+    return { sitters, isLoading, error, retry };
 }
 
 // ----------------------------------------
@@ -67,11 +84,18 @@ export function useHotelSitters(hotelId?: string) {
 export function useSitterStats(sitterId?: string) {
     const [stats, setStats] = useState<DemoSitterStats>(DEMO_SITTER_STATS);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
 
     useEffect(() => {
         if (DEMO_MODE) {
             const timer = setTimeout(() => {
                 setStats(DEMO_SITTER_STATS);
+                setError(null);
                 setIsLoading(false);
             }, 400);
             return () => clearTimeout(timer);
@@ -83,6 +107,7 @@ export function useSitterStats(sitterId?: string) {
         }
 
         let cancelled = false;
+        setIsLoading(true);
 
         async function load() {
             try {
@@ -98,18 +123,22 @@ export function useSitterStats(sitterId?: string) {
                         tier: sitter.tier,
                     });
                 }
+                setError(null);
                 setIsLoading(false);
             } catch (err) {
                 console.error('Failed to load sitter stats:', err);
-                if (!cancelled) setIsLoading(false);
+                if (!cancelled) {
+                    setError('Failed to load sitter stats');
+                    setIsLoading(false);
+                }
             }
         }
 
         load();
         return () => { cancelled = true; };
-    }, [sitterId]);
+    }, [sitterId, retryCount]);
 
-    return { stats, isLoading };
+    return { stats, isLoading, error, retry };
 }
 
 // ----------------------------------------
@@ -118,11 +147,18 @@ export function useSitterStats(sitterId?: string) {
 export function useSitterProfile(sitterId?: string) {
     const [profile, setProfile] = useState<DemoSitterProfile>(DEMO_SITTER_PROFILE);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
 
     useEffect(() => {
         if (DEMO_MODE) {
             const timer = setTimeout(() => {
                 setProfile(DEMO_SITTER_PROFILE);
+                setError(null);
                 setIsLoading(false);
             }, 400);
             return () => clearTimeout(timer);
@@ -134,6 +170,7 @@ export function useSitterProfile(sitterId?: string) {
         }
 
         let cancelled = false;
+        setIsLoading(true);
 
         async function load() {
             try {
@@ -157,16 +194,20 @@ export function useSitterProfile(sitterId?: string) {
                         })),
                     });
                 }
+                setError(null);
                 setIsLoading(false);
             } catch (err) {
                 console.error('Failed to load sitter profile:', err);
-                if (!cancelled) setIsLoading(false);
+                if (!cancelled) {
+                    setError('Failed to load sitter profile');
+                    setIsLoading(false);
+                }
             }
         }
 
         load();
         return () => { cancelled = true; };
-    }, [sitterId]);
+    }, [sitterId, retryCount]);
 
-    return { profile, isLoading };
+    return { profile, isLoading, error, retry };
 }

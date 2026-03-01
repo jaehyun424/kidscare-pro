@@ -10,8 +10,12 @@ import { Input, Select } from '../../components/common/Input';
 import { Badge, StatusBadge, TierBadge } from '../../components/common/Badge';
 import { Avatar } from '../../components/common/Avatar';
 import { Modal } from '../../components/common/Modal';
+import { Pagination, usePagination } from '../../components/common/Pagination';
+import ErrorBanner from '../../components/common/ErrorBanner';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { useHotelBookings } from '../../hooks/useBookings';
+import { useHotelSitters } from '../../hooks/useSitters';
 import type { DemoBooking } from '../../data/demo';
 import '../../styles/pages/hotel-bookings.css';
 
@@ -33,10 +37,47 @@ const PlusIcon = () => (
 export default function Bookings() {
     const { t } = useTranslation();
     const { user } = useAuth();
-    const { bookings } = useHotelBookings(user?.hotelId);
+    const { bookings, error, retry } = useHotelBookings(user?.hotelId);
+    const { sitters } = useHotelSitters(user?.hotelId);
+    const toast = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [selectedBooking, setSelectedBooking] = useState<DemoBooking | null>(null);
+
+    // New Booking modal
+    const [showNewBooking, setShowNewBooking] = useState(false);
+    const [newBookingForm, setNewBookingForm] = useState({ guestName: '', room: '', date: '', time: '18:00', duration: '4', childrenCount: '1' });
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+    const validateBookingForm = () => {
+        const errors: Record<string, string> = {};
+        if (!newBookingForm.guestName.trim()) errors.guestName = t('common.required', 'This field is required');
+        if (!newBookingForm.room.trim()) errors.room = t('common.required', 'This field is required');
+        if (!newBookingForm.date) {
+            errors.date = t('common.required', 'This field is required');
+        } else if (newBookingForm.date < new Date().toISOString().split('T')[0]) {
+            errors.date = t('booking.dateMustBeFuture', 'Date must be today or later');
+        }
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const handleCreateBooking = () => {
+        if (!validateBookingForm()) return;
+        const code = `KCP-${Date.now().toString(36).toUpperCase()}`;
+        toast.success(t('booking.bookingConfirmed'), `${t('hotel.bookingCode')}: ${code}`);
+        setShowNewBooking(false);
+        setNewBookingForm({ guestName: '', room: '', date: '', time: '18:00', duration: '4', childrenCount: '1' });
+        setFormErrors({});
+    };
+
+    // Assign sitter modal
+    const [assignTarget, setAssignTarget] = useState<DemoBooking | null>(null);
+
+    const handleAssignSitter = (sitterName: string) => {
+        toast.success(t('hotel.assign'), `${sitterName} → ${assignTarget?.confirmationCode}`);
+        setAssignTarget(null);
+    };
 
     const STATUS_OPTIONS = [
         { value: '', label: t('common.allStatuses') },
@@ -47,6 +88,8 @@ export default function Bookings() {
         { value: 'cancelled', label: t('status.cancelled') },
     ];
 
+    const [currentPage, setCurrentPage] = useState(1);
+
     const filteredBookings = bookings.filter((booking) => {
         const matchesSearch =
             booking.confirmationCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -55,6 +98,9 @@ export default function Bookings() {
         const matchesStatus = !statusFilter || booking.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
+
+    const { totalPages, getPageItems } = usePagination(filteredBookings, 10);
+    const paginatedBookings = getPageItems(currentPage);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('ko-KR', {
@@ -71,10 +117,12 @@ export default function Bookings() {
                     <h1 className="page-title">{t('nav.bookings')}</h1>
                     <p className="page-subtitle">{t('hotel.manageBookings')}</p>
                 </div>
-                <Button variant="gold" icon={<PlusIcon />}>
+                <Button variant="gold" icon={<PlusIcon />} onClick={() => setShowNewBooking(true)}>
                     {t('hotel.newBooking')}
                 </Button>
             </div>
+
+            {error && <ErrorBanner error={error} onRetry={retry} />}
 
             {/* Filters */}
             <Card className="mb-6">
@@ -98,63 +146,107 @@ export default function Bookings() {
             {/* Bookings Table */}
             <Card>
                 <CardBody>
-                    <div className="bookings-table" role="table" aria-label="Bookings list">
-                        <div className="table-header" role="row">
-                            <span>{t('hotel.bookingCode')}</span>
-                            <span>{t('hotel.guestRoom')}</span>
-                            <span>{t('hotel.childrenInfo')}</span>
-                            <span>{t('auth.sitter')}</span>
-                            <span>{t('hotel.status')}</span>
-                            <span>{t('hotel.amount')}</span>
-                        </div>
-                        {filteredBookings.map((booking) => (
+                    {/* Desktop: semantic table */}
+                    <div className="bookings-table-wrapper">
+                        <table className="bookings-table" aria-label="Bookings list">
+                            <thead>
+                                <tr>
+                                    <th>{t('hotel.bookingCode')}</th>
+                                    <th>{t('hotel.guestRoom')}</th>
+                                    <th>{t('hotel.childrenInfo')}</th>
+                                    <th>{t('auth.sitter')}</th>
+                                    <th>{t('hotel.status')}</th>
+                                    <th>{t('hotel.amount')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginatedBookings.map((booking) => (
+                                    <tr
+                                        key={booking.id}
+                                        className="table-row-clickable"
+                                        tabIndex={0}
+                                        onClick={() => setSelectedBooking(booking)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedBooking(booking); } }}
+                                    >
+                                        <td>
+                                            <span className="booking-code">{booking.confirmationCode}</span>
+                                            <span className="booking-date">{booking.date}</span>
+                                            <span className="booking-time">{booking.time}</span>
+                                        </td>
+                                        <td>
+                                            <span className="guest-name">{booking.parent.name}</span>
+                                            <span className="room-number">{t('common.room')} {booking.room}</span>
+                                        </td>
+                                        <td>
+                                            <div className="children-badges">
+                                                {booking.children.map((child, i) => (
+                                                    <Badge key={i} variant="neutral" size="sm">
+                                                        {child.name} ({child.age}y)
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {booking.sitter ? (
+                                                <div className="sitter-cell">
+                                                    <Avatar name={booking.sitter.name} size="sm" />
+                                                    <div>
+                                                        <span className="sitter-name">{booking.sitter.name}</span>
+                                                        <TierBadge tier={booking.sitter.tier} />
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setAssignTarget(booking); }}>{t('hotel.assign')}</Button>
+                                            )}
+                                        </td>
+                                        <td>
+                                            <StatusBadge status={booking.status} />
+                                        </td>
+                                        <td>
+                                            <span className="amount">{formatCurrency(booking.totalAmount)}</span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile: card view */}
+                    <div className="bookings-mobile">
+                        {paginatedBookings.map((booking) => (
                             <div
                                 key={booking.id}
-                                className="table-row"
-                                role="row"
-                                tabIndex={0}
-                                aria-label={`Booking ${booking.confirmationCode}, ${booking.parent.name}, Room ${booking.room}`}
+                                className="booking-mobile-card"
                                 onClick={() => setSelectedBooking(booking)}
+                                tabIndex={0}
                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedBooking(booking); } }}
                             >
-                                <div className="table-cell">
+                                <div className="booking-mobile-header">
                                     <span className="booking-code">{booking.confirmationCode}</span>
-                                    <span className="booking-date">{booking.date}</span>
-                                    <span className="booking-time">{booking.time}</span>
-                                </div>
-                                <div className="table-cell">
-                                    <span className="guest-name">{booking.parent.name}</span>
-                                    <span className="room-number">{t('common.room')} {booking.room}</span>
-                                </div>
-                                <div className="table-cell">
-                                    {booking.children.map((child, i) => (
-                                        <Badge key={i} variant="neutral" size="sm">
-                                            {child.name} ({child.age}y)
-                                        </Badge>
-                                    ))}
-                                </div>
-                                <div className="table-cell">
-                                    {booking.sitter ? (
-                                        <div className="sitter-cell">
-                                            <Avatar name={booking.sitter.name} size="sm" />
-                                            <div>
-                                                <span className="sitter-name">{booking.sitter.name}</span>
-                                                <TierBadge tier={booking.sitter.tier} />
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <Button variant="secondary" size="sm">{t('hotel.assign')}</Button>
-                                    )}
-                                </div>
-                                <div className="table-cell">
                                     <StatusBadge status={booking.status} />
                                 </div>
-                                <div className="table-cell">
+                                <div className="booking-mobile-body">
+                                    <span>{booking.parent.name} - {t('common.room')} {booking.room}</span>
+                                    <span>{booking.date} {booking.time}</span>
+                                </div>
+                                <div className="booking-mobile-footer">
+                                    {booking.sitter && (
+                                        <div className="sitter-cell">
+                                            <Avatar name={booking.sitter.name} size="sm" />
+                                            <span className="sitter-name">{booking.sitter.name}</span>
+                                        </div>
+                                    )}
                                     <span className="amount">{formatCurrency(booking.totalAmount)}</span>
                                 </div>
                             </div>
                         ))}
                     </div>
+
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                    />
                 </CardBody>
             </Card>
 
@@ -168,13 +260,13 @@ export default function Bookings() {
                 {selectedBooking && (
                     <div className="booking-detail">
                         <div className="detail-section">
-                            <h4>Guest Information</h4>
-                            <p><strong>Name:</strong> {selectedBooking.parent.name}</p>
-                            <p><strong>Phone:</strong> {selectedBooking.parent.phone}</p>
-                            <p><strong>Room:</strong> {selectedBooking.room}</p>
+                            <h4>{t('hotel.guestInfo')}</h4>
+                            <p><strong>{t('common.name')}:</strong> {selectedBooking.parent.name}</p>
+                            <p><strong>{t('common.phone')}:</strong> {selectedBooking.parent.phone}</p>
+                            <p><strong>{t('common.room')}:</strong> {selectedBooking.room}</p>
                         </div>
                         <div className="detail-section">
-                            <h4>Children</h4>
+                            <h4>{t('hotel.childrenInfo')}</h4>
                             {selectedBooking.children.map((child, i) => (
                                 <p key={i}>
                                     {child.name} ({child.age} years)
@@ -183,12 +275,59 @@ export default function Bookings() {
                             ))}
                         </div>
                         <div className="detail-section">
-                            <h4>Schedule</h4>
-                            <p><strong>Date:</strong> {selectedBooking.date}</p>
-                            <p><strong>Time:</strong> {selectedBooking.time}</p>
+                            <h4>{t('hotel.scheduleInfo')}</h4>
+                            <p><strong>{t('common.date')}:</strong> {selectedBooking.date}</p>
+                            <p><strong>{t('common.time')}:</strong> {selectedBooking.time}</p>
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* New Booking Modal */}
+            <Modal
+                isOpen={showNewBooking}
+                onClose={() => setShowNewBooking(false)}
+                title={t('hotel.newBooking')}
+                size="md"
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={() => { setShowNewBooking(false); setFormErrors({}); }}>{t('common.cancel')}</Button>
+                        <Button variant="gold" onClick={handleCreateBooking} disabled={!newBookingForm.guestName.trim() || !newBookingForm.room.trim() || !newBookingForm.date}>{t('common.confirm')}</Button>
+                    </>
+                }
+            >
+                <div className="modal-form-stack">
+                    <Input label={t('hotel.guestInfo')} value={newBookingForm.guestName} onChange={(e) => { setNewBookingForm({ ...newBookingForm, guestName: e.target.value }); if (formErrors.guestName) setFormErrors((prev) => { const { guestName: _, ...rest } = prev; return rest; }); }} placeholder="e.g. Sarah Johnson" error={formErrors.guestName} />
+                    <Input label={t('common.room')} value={newBookingForm.room} onChange={(e) => { setNewBookingForm({ ...newBookingForm, room: e.target.value }); if (formErrors.room) setFormErrors((prev) => { const { room: _, ...rest } = prev; return rest; }); }} placeholder={t('booking.roomPlaceholder')} error={formErrors.room} />
+                    <Input label={t('common.date')} type="date" value={newBookingForm.date} onChange={(e) => { setNewBookingForm({ ...newBookingForm, date: e.target.value }); if (formErrors.date) setFormErrors((prev) => { const { date: _, ...rest } = prev; return rest; }); }} min={new Date().toISOString().split('T')[0]} error={formErrors.date} />
+                    <Select label={t('booking.startTime')} value={newBookingForm.time} onChange={(e) => setNewBookingForm({ ...newBookingForm, time: e.target.value })} options={[{ value: '18:00', label: '18:00' }, { value: '19:00', label: '19:00' }, { value: '20:00', label: '20:00' }, { value: '21:00', label: '21:00' }]} />
+                    <Select label={t('booking.duration')} value={newBookingForm.duration} onChange={(e) => setNewBookingForm({ ...newBookingForm, duration: e.target.value })} options={[{ value: '2', label: '2h' }, { value: '3', label: '3h' }, { value: '4', label: '4h' }, { value: '5', label: '5h' }]} />
+                    <Select label={t('hotel.childrenInfo')} value={newBookingForm.childrenCount} onChange={(e) => setNewBookingForm({ ...newBookingForm, childrenCount: e.target.value })} options={[{ value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3', label: '3' }]} />
+                </div>
+            </Modal>
+
+            {/* Assign Sitter Modal */}
+            <Modal
+                isOpen={!!assignTarget}
+                onClose={() => setAssignTarget(null)}
+                title={`${t('hotel.assign')} - ${assignTarget?.confirmationCode || ''}`}
+                size="md"
+            >
+                <div className="modal-form-stack-sm">
+                    {sitters.filter((s) => s.availability === 'Available').map((sitter) => (
+                        <div key={sitter.id} className="sitter-option-row" onClick={() => handleAssignSitter(sitter.name)}>
+                            <Avatar name={sitter.name} size="sm" />
+                            <div className="sitter-option-info">
+                                <div className="sitter-option-name">{sitter.name}</div>
+                                <div className="sitter-option-detail">{sitter.languages.join(', ')}</div>
+                            </div>
+                            <TierBadge tier={sitter.tier} />
+                        </div>
+                    ))}
+                    {sitters.filter((s) => s.availability === 'Available').length === 0 && (
+                        <p className="no-sitters-message">No available sitters</p>
+                    )}
+                </div>
             </Modal>
         </div>
     );

@@ -84,3 +84,86 @@
   display: flex;
   gap: var(--space-3);
 }
+
+/* Verified badge (replaces Tailwind utility classes) */
+.verified-badge {
+  margin-left: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  background: var(--success-bg);
+  color: var(--success-500);
+}
+
+/* Modal form stacks */
+.sitter-management-page .modal-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sitter-management-page .modal-form-stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Modal profile header */
+.modal-profile-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.modal-profile-name {
+  margin: 0;
+}
+
+/* Modal profile grid */
+.modal-profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+/* Modal tags row */
+.modal-tags-row {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Booking option row */
+.booking-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.booking-option-row:hover {
+  background: var(--glass-bg);
+}
+
+.booking-option-name {
+  font-weight: var(--font-semibold);
+}
+
+.booking-option-detail {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* No items message */
+.no-items-message {
+  text-align: center;
+  color: var(--text-tertiary);
+  padding: var(--space-4);
+}

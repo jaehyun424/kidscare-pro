@@ -38,6 +38,7 @@ export interface Message {
     senderName: string;
     text: string;
     type: 'text' | 'system' | 'emergency';
+    readBy?: string[];
     createdAt: Date;
 }
 
@@ -122,11 +123,38 @@ export const messagingService = {
                     senderName: data.senderName,
                     text: data.text,
                     type: data.type || 'text',
+                    readBy: data.readBy || [],
                     createdAt: data.createdAt?.toDate() || new Date(),
                 };
             });
             callback(messages);
         });
+    },
+
+    // Set typing status
+    async setTyping(conversationId: string, userId: string, isTyping: boolean): Promise<void> {
+        await updateDoc(doc(db, 'conversations', conversationId), {
+            [`typing.${userId}`]: isTyping ? Date.now() : null,
+        });
+    },
+
+    // Mark messages as read
+    async markAsRead(conversationId: string, userId: string): Promise<void> {
+        const q = query(
+            collection(db, 'conversations', conversationId, 'messages'),
+            orderBy('createdAt', 'desc'),
+            limit(50)
+        );
+        const snapshot = await getDocs(q);
+        const batch = snapshot.docs.filter(d => {
+            const data = d.data();
+            return data.senderId !== userId && !(data.readBy || []).includes(userId);
+        });
+        for (const msgDoc of batch) {
+            await updateDoc(doc(db, 'conversations', conversationId, 'messages', msgDoc.id), {
+                readBy: [...(msgDoc.data().readBy || []), userId],
+            });
+        }
     },
 
     // Get user's conversations

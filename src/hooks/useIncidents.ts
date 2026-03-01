@@ -14,11 +14,18 @@ import type { Incident } from '../types';
 export function useHotelIncidents(hotelId?: string) {
     const [incidents, setIncidents] = useState<DemoIncident[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
 
     useEffect(() => {
         if (DEMO_MODE) {
             const timer = setTimeout(() => {
                 setIncidents(DEMO_INCIDENTS);
+                setError(null);
                 setIsLoading(false);
             }, 600);
             return () => clearTimeout(timer);
@@ -29,26 +36,36 @@ export function useHotelIncidents(hotelId?: string) {
             return;
         }
 
-        const unsubscribe = incidentService.subscribeToHotelIncidents(
-            hotelId,
-            (fbIncidents) => {
-                const mapped: DemoIncident[] = fbIncidents.map((i) => ({
-                    id: i.id,
-                    severity: i.severity,
-                    category: i.category,
-                    summary: i.report.summary,
-                    status: i.resolution.status,
-                    reportedAt: i.report.reportedAt instanceof Date ? i.report.reportedAt : new Date(),
-                    sitterName: i.sitterId,
-                    childName: '',
-                }));
-                setIncidents(mapped);
-                setIsLoading(false);
-            }
-        );
+        setIsLoading(true);
 
-        return () => unsubscribe();
-    }, [hotelId]);
+        let unsubscribe: (() => void) | undefined;
+        try {
+            unsubscribe = incidentService.subscribeToHotelIncidents(
+                hotelId,
+                (fbIncidents) => {
+                    const mapped: DemoIncident[] = fbIncidents.map((i) => ({
+                        id: i.id,
+                        severity: i.severity,
+                        category: i.category,
+                        summary: i.report.summary,
+                        status: i.resolution.status,
+                        reportedAt: i.report.reportedAt instanceof Date ? i.report.reportedAt : new Date(),
+                        sitterName: i.sitterId,
+                        childName: '',
+                    }));
+                    setIncidents(mapped);
+                    setError(null);
+                    setIsLoading(false);
+                }
+            );
+        } catch (err) {
+            console.error('Failed to subscribe to incidents:', err);
+            setError('Failed to load incidents');
+            setIsLoading(false);
+        }
+
+        return () => unsubscribe?.();
+    }, [hotelId, retryCount]);
 
     const createIncident = useCallback(async (data: Partial<Incident>) => {
         if (DEMO_MODE) {
@@ -85,5 +102,5 @@ export function useHotelIncidents(hotelId?: string) {
         });
     }, []);
 
-    return { incidents, isLoading, createIncident, updateIncidentStatus };
+    return { incidents, isLoading, createIncident, updateIncidentStatus, error, retry };
 }

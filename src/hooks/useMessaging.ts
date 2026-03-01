@@ -22,7 +22,14 @@ export function useMessaging(userId?: string, conversationId?: string) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
     const [activeConversationId, setActiveConversationId] = useState(conversationId);
+    const [typingUsers] = useState<string[]>([]);
 
     // Subscribe to conversations list
     useEffect(() => {
@@ -31,13 +38,21 @@ export function useMessaging(userId?: string, conversationId?: string) {
             return;
         }
 
-        const unsubscribe = messagingService.subscribeToConversations(userId, (convs) => {
-            setConversations(convs);
+        let unsubscribe: (() => void) | undefined;
+        try {
+            unsubscribe = messagingService.subscribeToConversations(userId, (convs) => {
+                setConversations(convs);
+                setError(null);
+                setIsLoading(false);
+            });
+        } catch (err) {
+            console.error('Failed to subscribe to conversations:', err);
+            setError('Failed to load conversations');
             setIsLoading(false);
-        });
+        }
 
-        return () => unsubscribe();
-    }, [userId]);
+        return () => unsubscribe?.();
+    }, [userId, retryCount]);
 
     // Subscribe to messages in active conversation
     useEffect(() => {
@@ -49,13 +64,21 @@ export function useMessaging(userId?: string, conversationId?: string) {
 
         if (!activeConversationId) return;
 
-        const unsubscribe = messagingService.subscribeToMessages(activeConversationId, (msgs) => {
-            setMessages(msgs);
+        let unsubscribe: (() => void) | undefined;
+        try {
+            unsubscribe = messagingService.subscribeToMessages(activeConversationId, (msgs) => {
+                setMessages(msgs);
+                setError(null);
+                setIsLoading(false);
+            });
+        } catch (err) {
+            console.error('Failed to subscribe to messages:', err);
+            setError('Failed to load messages');
             setIsLoading(false);
-        });
+        }
 
-        return () => unsubscribe();
-    }, [activeConversationId]);
+        return () => unsubscribe?.();
+    }, [activeConversationId, retryCount]);
 
     // Send a message
     const sendMessage = useCallback(async (text: string, senderName: string) => {
@@ -95,13 +118,30 @@ export function useMessaging(userId?: string, conversationId?: string) {
         return convId;
     }, [userId]);
 
+    // Set typing status
+    const setTyping = useCallback(async (isTyping: boolean) => {
+        if (DEMO_MODE || !activeConversationId || !userId) return;
+        await messagingService.setTyping(activeConversationId, userId, isTyping);
+    }, [activeConversationId, userId]);
+
+    // Mark messages as read
+    const markAsRead = useCallback(async () => {
+        if (DEMO_MODE || !activeConversationId || !userId) return;
+        await messagingService.markAsRead(activeConversationId, userId);
+    }, [activeConversationId, userId]);
+
     return {
         messages,
         conversations,
         isLoading,
+        error,
+        retry,
         sendMessage,
         openConversation,
         activeConversationId,
         setActiveConversationId,
+        typingUsers,
+        setTyping,
+        markAsRead,
     };
 }

@@ -145,51 +145,6 @@ function Toast({ toast, onRemove }: ToastProps) {
     );
 }
 
-// Styles for Toast (add to index.css or component)
-const toastStyles = `
-.toast-icon {
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.toast-content {
-  flex: 1;
-}
-
-.toast-title {
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.toast-message {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
-}
-
-.toast-close {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  transition: color var(--transition-fast);
-}
-
-.toast-close:hover {
-  color: var(--text-primary);
-}
-`;
-
-// Inject styles
-if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = toastStyles;
-    document.head.appendChild(styleSheet);
-}
-
 // ----------------------------------------
 // Hook
 // ----------------------------------------

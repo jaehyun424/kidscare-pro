@@ -11,6 +11,7 @@ import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { LanguageSwitcher } from '../../components/common/LanguageSwitcher';
 import loginBg from '../../assets/login-bg.png';
+import '../../styles/pages/login.css';
 
 // Demo accounts for testing
 const DEMO_ACCOUNTS = [
@@ -48,7 +49,7 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       success('Welcome Back', 'Access granted to hospitality console.');
-      
+
       if (email.includes('hotel')) navigate('/hotel');
       else if (email.includes('parent')) navigate('/parent');
       else if (email.includes('sitter')) navigate('/sitter');
@@ -67,9 +68,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-container">
+    <div className="login-container login-page">
       {/* Client Access Column (Left - Image) */}
-      <div className="login-visual">
+      <div className="login-visual" style={{ backgroundImage: `url(${loginBg})` }}>
         <div className="visual-overlay" />
         <div className="visual-content">
           <h1 className="visual-quote">"Uncompromising care for your most important guests."</h1>
@@ -114,10 +115,16 @@ export default function LoginPage() {
               autoComplete="current-password"
             />
 
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
+              <Link to="/forgot-password" className="forgot-password-link">
+                {t('auth.forgotPassword', 'Forgot password?')}
+              </Link>
+            </div>
+
             <div className="mt-4">
               <Button
                 type="submit"
-                variant="primary" // Deep Charcoal
+                variant="primary"
                 fullWidth
                 isLoading={isLoading}
               >
@@ -149,140 +156,11 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
-        
+
         <div className="login-footer">
             <p>© 2026 KidsCare Pro. Tokyo • Seoul • Singapore.</p>
         </div>
       </div>
-
-      <style>{`
-        .login-container {
-          display: flex;
-          min-height: 100vh;
-          background-color: var(--cream-100);
-        }
-
-        .login-visual {
-            display: none;
-        }
-
-        @media (min-width: 1024px) {
-            .login-visual {
-                display: flex;
-                flex: 1;
-                background-image: url(${loginBg});
-                background-size: cover;
-                background-position: center;
-                position: relative;
-                flex-direction: column;
-                justify-content: flex-end;
-                padding: 4rem;
-            }
-        }
-        
-        .visual-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(15,15,15,0.9) 0%, rgba(15,15,15,0.4) 50%, rgba(15,15,15,0.1) 100%);
-        }
-        
-        .visual-content {
-            position: relative;
-            z-index: 10;
-            max-width: 600px;
-        }
-        
-        .visual-quote {
-            font-family: var(--font-serif);
-            font-size: 2.5rem;
-            color: white;
-            line-height: 1.2;
-            margin-bottom: 1.5rem;
-            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        
-        .visual-author {
-            font-family: var(--font-action);
-            color: var(--gold-400);
-            font-size: 0.875rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        .login-form-container {
-            flex: 1;
-            max-width: 100%;
-            display: flex;
-            flex-direction: column;
-            padding: 2rem;
-            background-color: var(--cream-50);
-            position: relative;
-            box-shadow: -10px 0 40px rgba(0,0,0,0.05);
-        }
-        
-        @media (min-width: 1024px) {
-            .login-form-container {
-                max-width: 600px;
-            }
-        }
-
-        .login-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: var(--font-serif);
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .form-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            max-width: 400px;
-            width: 100%;
-            margin: 0 auto;
-        }
-        
-        .mb-2 { margin-bottom: 0.5rem; }
-        .mb-4 { margin-bottom: 1rem; }
-        .mb-8 { margin-bottom: 2rem; }
-        .mt-4 { margin-top: 1rem; }
-        .mt-8 { margin-top: 2rem; }
-        .pt-6 { padding-top: 1.5rem; }
-        .pb-0.5 { padding-bottom: 0.125rem; }
-        
-        .demo-btn {
-            background: white;
-            border: 1px solid var(--cream-300);
-            padding: 0.75rem;
-            border-radius: var(--radius-sm);
-            transition: all 0.2s;
-            color: var(--charcoal-600);
-        }
-        .demo-btn:hover {
-            border-color: var(--gold-500);
-            color: var(--gold-600);
-            background: var(--cream-100);
-        }
-        
-        .login-footer {
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--charcoal-400);
-            margin-top: auto;
-            font-family: var(--font-action);
-            letter-spacing: 0.05em;
-        }
-      `}</style>
     </div>
   );
 }

@@ -93,29 +93,3 @@ export function AvatarGroup({ children, max, size = 'md' }: AvatarGroupProps) {
         </div>
     );
 }
-
-// Additional styles
-const avatarStyles = `
-.avatar-group {
-  display: flex;
-  align-items: center;
-}
-
-.avatar-group-item {
-  margin-left: -8px;
-}
-
-.avatar-group-item:first-child {
-  margin-left: 0;
-}
-
-.avatar-group .avatar {
-  border: 2px solid var(--bg-primary);
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = avatarStyles;
-    document.head.appendChild(styleSheet);
-}

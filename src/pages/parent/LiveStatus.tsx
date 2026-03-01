@@ -23,72 +23,72 @@ export default function LiveStatus() {
 
     return (
         <div className="live-status-page">
-            <div className="max-w-md mx-auto py-6 px-4">
+            <div className="live-status-container">
 
                 {/* Header */}
-                <div className="text-center mb-6">
-                    <h1 className="font-serif text-2xl text-charcoal-900">{t('parent.liveSession')}</h1>
-                    <p className="text-sm text-charcoal-500">{t('parent.updatesFromPlayroom')}</p>
+                <div className="live-status-header">
+                    <h1 className="live-status-title">{t('parent.liveSession')}</h1>
+                    <p className="live-status-subtitle">{t('parent.updatesFromPlayroom')}</p>
                 </div>
 
                 {/* Status Banner */}
-                <div className="status-pulse-card mb-6">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                            <span className="relative flex h-3 w-3">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                <div className="status-pulse-card">
+                    <div className="status-pulse-row">
+                        <div className="status-pulse-indicator">
+                            <span className="status-dot-wrapper" aria-hidden="true">
+                                <span className="status-dot-ping"></span>
+                                <span className="status-dot-solid"></span>
                             </span>
-                            <span className="text-green-700 font-semibold text-sm uppercase tracking-wide">{t('parent.activeCare')}</span>
+                            <span className="sr-only">{t('common.active', 'Active')}</span>
+                            <span className="status-label">{t('parent.activeCare')}</span>
                         </div>
-                        <span className="font-serif text-xl text-green-800">{sessionInfo.elapsedTime}</span>
+                        <span className="status-elapsed" aria-live="polite">{sessionInfo.elapsedTime}</span>
                     </div>
                 </div>
 
                 {/* Sitter Profile (Mini) */}
-                <Card className="mb-6" padding="sm">
-                    <div className="flex items-center gap-4">
+                <Card className="sitter-profile-card" padding="sm">
+                    <div className="sitter-profile-row">
                         <Avatar name={sessionInfo.sitterName} size="lg" variant="gold" />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                                <h3 className="font-serif font-bold text-charcoal-900">{sessionInfo.sitterName}</h3>
+                        <div className="sitter-profile-info">
+                            <div className="sitter-profile-name-row">
+                                <h3 className="sitter-profile-name">{sessionInfo.sitterName}</h3>
                                 <TierBadge tier="gold" />
                             </div>
-                            <p className="text-xs text-charcoal-500">{t('parent.certifiedSpecialist')} • English/Korean</p>
+                            <p className="sitter-profile-details">{t('parent.certifiedSpecialist')} • English/Korean</p>
                         </div>
                         <IconButton
                             variant="ghost"
                             size="md"
                             aria-label="Message Sitter"
-                            icon={<span className="text-xl">💬</span>}
+                            icon={<span className="chat-icon">💬</span>}
                             onClick={() => setChatOpen(true)}
                         />
                     </div>
                 </Card>
 
                 {/* Main Feed */}
-                <div className="mb-8">
+                <div className="activity-feed-section">
                     <h3 className="section-header">{t('parent.activityTimeline')}</h3>
-                    <div className="bg-white rounded-xl border border-cream-300 p-4 shadow-sm">
+                    <div className="activity-feed-card">
                         <ActivityFeed logs={logs as ActivityLog[]} />
                     </div>
                 </div>
 
                 {/* Contact & Emergency Actions */}
-                <div className="space-y-3">
-                    <Button variant="gold" fullWidth className="justify-center" onClick={() => setChatOpen(true)}>
+                <div className="live-status-actions">
+                    <Button variant="gold" fullWidth onClick={() => setChatOpen(true)}>
                         {t('parent.contactSitter')}
                     </Button>
                     <Button
                         variant="danger"
                         fullWidth
-                        className="justify-center"
                         onClick={() => window.location.href = 'tel:119'}
                     >
                         {t('parent.emergencyCall119')}
                     </Button>
-                    <Link to="/parent" className="block">
-                        <Button variant="secondary" fullWidth className="justify-center">
+                    <Link to="/parent" className="return-home-link">
+                        <Button variant="secondary" fullWidth>
                             {t('parent.returnHome')}
                         </Button>
                     </Link>

@@ -3,6 +3,7 @@
 // ============================================
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSitterStats } from '../../hooks/useSitters';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
@@ -70,6 +71,7 @@ const growthPercent = (current: number, previous: number) =>
 // Component
 // ----------------------------------------
 export default function Earnings() {
+    const { t } = useTranslation();
     const { user } = useAuth();
     const sitterId = user?.sitterInfo?.sitterId;
     const { stats, isLoading } = useSitterStats(sitterId);
@@ -84,7 +86,7 @@ export default function Earnings() {
         return (
             <div className="earnings-page animate-fade-in">
                 <Skeleton height="160px" borderRadius="var(--radius-2xl)" />
-                <div className="stats-row" style={{ marginTop: 'var(--space-4)' }}>
+                <div className="stats-row mt-4">
                     <Skeleton height="80px" borderRadius="var(--radius-xl)" />
                     <Skeleton height="80px" borderRadius="var(--radius-xl)" />
                 </div>
@@ -99,7 +101,7 @@ export default function Earnings() {
         <div className="earnings-page animate-fade-in">
             {/* ---- Header + Period Filter ---- */}
             <div className="earnings-header">
-                <h1 className="earnings-page-title">Earnings</h1>
+                <h1 className="earnings-page-title">{t('earnings.title')}</h1>
                 <div className="period-filter" role="tablist" aria-label="Earnings period filter">
                     <Button
                         variant={period === 'this_month' ? 'gold' : 'ghost'}
@@ -108,7 +110,7 @@ export default function Earnings() {
                         role="tab"
                         aria-selected={period === 'this_month'}
                     >
-                        This Month
+                        {t('earnings.thisMonth')}
                     </Button>
                     <Button
                         variant={period === 'last_3_months' ? 'gold' : 'ghost'}
@@ -117,7 +119,7 @@ export default function Earnings() {
                         role="tab"
                         aria-selected={period === 'last_3_months'}
                     >
-                        Last 3 Months
+                        {t('earnings.last3Months')}
                     </Button>
                     <Button
                         variant={period === 'all_time' ? 'gold' : 'ghost'}
@@ -126,7 +128,7 @@ export default function Earnings() {
                         role="tab"
                         aria-selected={period === 'all_time'}
                     >
-                        All Time
+                        {t('earnings.allTime')}
                     </Button>
                 </div>
             </div>
@@ -134,14 +136,14 @@ export default function Earnings() {
             {/* ---- Monthly Summary Card ---- */}
             <Card className="earnings-summary" variant="gold">
                 <CardBody>
-                    <h3 className="earnings-summary-label">This Month</h3>
+                    <h3 className="earnings-summary-label">{t('earnings.thisMonth')}</h3>
                     <div className="earnings-amount">{formatCurrency(DEMO_EARNINGS.thisMonth)}</div>
                     <div className="earnings-meta">
                         <span className="earnings-sessions">
-                            {stats?.totalSessions ?? DEMO_EARNINGS.totalSessions} sessions completed
+                            {stats?.totalSessions ?? DEMO_EARNINGS.totalSessions} {t('earnings.sessionsCompleted')}
                         </span>
                         <span className={`earnings-growth ${growth >= 0 ? 'positive' : 'negative'}`}>
-                            {growth >= 0 ? '+' : ''}{growth}% vs last month
+                            {growth >= 0 ? '+' : ''}{t('earnings.vsLastMonth', { percent: growth })}
                         </span>
                     </div>
                 </CardBody>
@@ -151,13 +153,13 @@ export default function Earnings() {
             <div className="stats-row">
                 <Card>
                     <CardBody>
-                        <span className="stat-label">Pending</span>
+                        <span className="stat-label">{t('earnings.pending')}</span>
                         <span className="stat-value stat-pending">{formatCurrency(DEMO_EARNINGS.pending)}</span>
                     </CardBody>
                 </Card>
                 <Card>
                     <CardBody>
-                        <span className="stat-label">Last Month</span>
+                        <span className="stat-label">{t('earnings.lastMonth')}</span>
                         <span className="stat-value">{formatCurrency(DEMO_EARNINGS.lastMonth)}</span>
                     </CardBody>
                 </Card>
@@ -166,7 +168,7 @@ export default function Earnings() {
             {/* ---- Monthly Earnings Bar Chart ---- */}
             <Card className="chart-card">
                 <CardHeader>
-                    <CardTitle>Monthly Earnings</CardTitle>
+                    <CardTitle>{t('earnings.monthlyEarnings')}</CardTitle>
                 </CardHeader>
                 <CardBody>
                     <div className="chart-container" role="img" aria-label="Monthly earnings bar chart">
@@ -196,7 +198,7 @@ export default function Earnings() {
             {/* ---- Hotel Breakdown ---- */}
             <Card className="breakdown-card">
                 <CardHeader>
-                    <CardTitle>Earnings by Hotel</CardTitle>
+                    <CardTitle>{t('earnings.earningsByHotel')}</CardTitle>
                 </CardHeader>
                 <CardBody>
                     <div className="hotel-breakdown-list">
@@ -204,7 +206,7 @@ export default function Earnings() {
                             <div key={hotel.hotel} className="hotel-breakdown-row">
                                 <div className="hotel-breakdown-info">
                                     <span className="hotel-breakdown-name">{hotel.hotel}</span>
-                                    <span className="hotel-breakdown-sessions">{hotel.sessions} sessions</span>
+                                    <span className="hotel-breakdown-sessions">{hotel.sessions} {t('earnings.sessions')}</span>
                                 </div>
                                 <div className="hotel-breakdown-right">
                                     <span className="hotel-breakdown-amount">{formatCurrency(hotel.amount)}</span>
@@ -225,7 +227,7 @@ export default function Earnings() {
             {/* ---- Recent Payments ---- */}
             <Card className="payments-card">
                 <CardHeader>
-                    <CardTitle>Recent Payments</CardTitle>
+                    <CardTitle>{t('earnings.recentPayments')}</CardTitle>
                 </CardHeader>
                 <CardBody>
                     <div className="payments-list animate-stagger">
@@ -234,7 +236,7 @@ export default function Earnings() {
                                 <div className="payment-info">
                                     <span className="payment-date">{payment.date}</span>
                                     <span className="payment-hotel">{payment.hotel}</span>
-                                    <span className="payment-hours">{payment.hours} hours</span>
+                                    <span className="payment-hours">{payment.hours} {t('earnings.hours')}</span>
                                 </div>
                                 <div className="payment-right">
                                     <span className="payment-amount">{formatCurrency(payment.amount)}</span>
@@ -242,7 +244,7 @@ export default function Earnings() {
                                         variant={payment.status === 'paid' ? 'success' : 'warning'}
                                         size="sm"
                                     >
-                                        {payment.status === 'paid' ? 'Paid' : 'Pending'}
+                                        {payment.status === 'paid' ? t('earnings.paid') : t('earnings.pending')}
                                     </Badge>
                                 </div>
                             </div>

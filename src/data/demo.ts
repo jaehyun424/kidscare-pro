@@ -519,6 +519,66 @@ export const DEMO_NOTIFICATIONS: DemoNotification[] = [
 ];
 
 // ----------------------------------------
+// Reviews (demo)
+// ----------------------------------------
+export interface DemoReview {
+    id: string;
+    bookingId: string;
+    sitterId: string;
+    sitterName: string;
+    parentId: string;
+    parentName: string;
+    rating: number;
+    comment: string;
+    tags: string[];
+    createdAt: Date;
+    response?: { message: string; createdAt: Date };
+}
+
+export const DEMO_REVIEWS: DemoReview[] = [
+    {
+        id: 'r1',
+        bookingId: '1',
+        sitterId: 'demo-sitter-1',
+        sitterName: 'Kim Minjung',
+        parentId: 'demo-parent-1',
+        parentName: 'Sarah Johnson',
+        rating: 5,
+        comment: 'Wonderful experience! Emma had so much fun with arts and crafts. Minjung was incredibly attentive and professional.',
+        tags: ['professional', 'creative', 'attentive'],
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5),
+    },
+    {
+        id: 'r2',
+        bookingId: '2',
+        sitterId: 'demo-sitter-1',
+        sitterName: 'Kim Minjung',
+        parentId: 'demo-parent-2',
+        parentName: 'Tanaka Yuki',
+        rating: 5,
+        comment: 'Both kids loved their time. Great communication throughout with photos and updates.',
+        tags: ['communicative', 'fun', 'safe'],
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12),
+        response: {
+            message: 'Thank you so much! Sota and Yui are wonderful children. I enjoyed our time together!',
+            createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 11),
+        },
+    },
+    {
+        id: 'r3',
+        bookingId: '4',
+        sitterId: 'demo-sitter-3',
+        sitterName: 'Lee Jihye',
+        parentId: 'demo-parent-3',
+        parentName: 'Emily Davis',
+        rating: 4,
+        comment: 'Good session overall. Oliver had a nice time. Would book again.',
+        tags: ['professional', 'punctual'],
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20),
+    },
+];
+
+// ----------------------------------------
 // Incidents (demo)
 // ----------------------------------------
 export interface DemoIncident {

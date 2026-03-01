@@ -32,3 +32,18 @@
 }
 
 .history-amount { font-weight: var(--font-semibold); color: var(--gold-500); }
+
+/* Skeleton loading state */
+.history-skeleton-card {
+  margin-bottom: 0.75rem;
+}
+
+.history-skeleton-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-skeleton-fill {
+  flex: 1;
+}

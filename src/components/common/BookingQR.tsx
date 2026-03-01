@@ -42,24 +42,3 @@ export function BookingQR({
         </div>
     );
 }
-
-// Styles
-const qrStyles = `
-.booking-qr {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-3);
-}
-
-.booking-qr-code {
-    font-size: var(--text-sm);
-    font-weight: var(--font-bold);
-    letter-spacing: 0.1em;
-    color: var(--text-secondary);
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const s = document.createElement('style'); s.textContent = qrStyles; document.head.appendChild(s);
-}

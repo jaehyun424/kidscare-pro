@@ -2,7 +2,7 @@
 // KidsCare Pro - Session Hooks
 // ============================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { DEMO_MODE } from './useDemo';
 import {
     DEMO_ACTIVE_SESSIONS,
@@ -16,7 +16,33 @@ import {
     type DemoActiveSessionInfo,
     type DemoChecklistItem,
 } from '../data/demo';
-import { sessionService } from '../services/firestore';
+import { sessionService, sitterService } from '../services/firestore';
+
+// Helper: format elapsed time from a start Date
+function formatElapsed(startTime: Date): string {
+    const diff = Date.now() - startTime.getTime();
+    if (diff < 0) return '0h 0m 0s';
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    return `${hours}h ${minutes}m ${seconds}s`;
+}
+
+// Cache for sitter name lookups
+const sitterNameCache = new Map<string, string>();
+
+async function resolveSitterName(sitterId: string): Promise<string> {
+    if (!sitterId) return '';
+    if (sitterNameCache.has(sitterId)) return sitterNameCache.get(sitterId)!;
+    try {
+        const sitter = await sitterService.getSitter(sitterId);
+        const name = sitter?.profile?.displayName || sitterId;
+        sitterNameCache.set(sitterId, name);
+        return name;
+    } catch {
+        return sitterId;
+    }
+}
 
 // ----------------------------------------
 // Hotel Active Sessions Hook (for Dashboard + LiveMonitor)
@@ -24,11 +50,18 @@ import { sessionService } from '../services/firestore';
 export function useHotelSessions(hotelId?: string) {
     const [sessions, setSessions] = useState<DemoActiveSession[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
 
     useEffect(() => {
         if (DEMO_MODE) {
             const timer = setTimeout(() => {
                 setSessions(DEMO_ACTIVE_SESSIONS);
+                setError(null);
                 setIsLoading(false);
             }, 600);
             return () => clearTimeout(timer);
@@ -39,41 +72,61 @@ export function useHotelSessions(hotelId?: string) {
             return;
         }
 
+        setIsLoading(true);
+
         // Use real-time subscription for live monitor
-        const unsubscribe = sessionService.subscribeToHotelSessions(
-            hotelId,
-            (fbSessions) => {
-                const mapped: DemoActiveSession[] = fbSessions.map((s) => ({
-                    id: s.id,
-                    sitter: { name: s.sitterId, avatar: null, tier: 'silver' as const },
-                    room: '',
-                    children: [],
-                    childrenText: '',
-                    startTime: s.actualTimes.startedAt
-                        ? new Date(s.actualTimes.startedAt as unknown as string).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
-                        : '',
-                    elapsed: '',
-                    lastUpdate: '',
-                    lastActivity: s.timeline.length > 0 ? s.timeline[s.timeline.length - 1].description : '',
-                    activities: s.timeline.map((t) => ({
-                        time: t.timestamp instanceof Date
-                            ? t.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
-                            : '',
-                        activity: t.description,
-                        type: t.type,
-                    })),
-                    vitals: { mood: 'happy', energy: 'medium' },
-                    status: 'active',
-                }));
-                setSessions(mapped);
-                setIsLoading(false);
-            }
-        );
+        let unsubscribe: (() => void) | undefined;
+        try {
+            unsubscribe = sessionService.subscribeToHotelSessions(
+                hotelId,
+                async (fbSessions) => {
+                    try {
+                        // Resolve sitter names
+                        const namePromises = fbSessions.map((s) => resolveSitterName(s.sitterId));
+                        const names = await Promise.all(namePromises);
 
-        return () => unsubscribe();
-    }, [hotelId]);
+                        const mapped: DemoActiveSession[] = fbSessions.map((s, i) => ({
+                            id: s.id,
+                            sitter: { name: names[i] || s.sitterId, avatar: null, tier: 'silver' as const },
+                            room: '',
+                            children: [],
+                            childrenText: '',
+                            startTime: s.actualTimes.startedAt
+                                ? new Date(s.actualTimes.startedAt as unknown as string).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+                                : '',
+                            elapsed: '',
+                            lastUpdate: '',
+                            lastActivity: s.timeline.length > 0 ? s.timeline[s.timeline.length - 1].description : '',
+                            activities: s.timeline.map((t) => ({
+                                time: t.timestamp instanceof Date
+                                    ? t.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+                                    : '',
+                                activity: t.description,
+                                type: t.type,
+                            })),
+                            vitals: { mood: 'happy', energy: 'medium' },
+                            status: 'active',
+                        }));
+                        setSessions(mapped);
+                        setError(null);
+                        setIsLoading(false);
+                    } catch (err) {
+                        console.error('Failed to process sessions:', err);
+                        setError('Failed to load sessions');
+                        setIsLoading(false);
+                    }
+                }
+            );
+        } catch (err) {
+            console.error('Failed to subscribe to sessions:', err);
+            setError('Failed to load sessions');
+            setIsLoading(false);
+        }
 
-    return { sessions, isLoading };
+        return () => unsubscribe?.();
+    }, [hotelId, retryCount]);
+
+    return { sessions, isLoading, error, retry };
 }
 
 // ----------------------------------------
@@ -83,12 +136,24 @@ export function useLiveStatus(sessionId?: string) {
     const [logs, setLogs] = useState<DemoActivityLog[]>([]);
     const [sessionInfo, setSessionInfo] = useState<DemoLiveSession>(DEMO_LIVE_SESSION);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
+    const liveStartTimeRef = useRef<Date | null>(null);
 
     useEffect(() => {
         if (DEMO_MODE) {
+            // Synthetic start: 83 minutes ago
+            const demoStart = new Date(Date.now() - 83 * 60 * 1000);
+            liveStartTimeRef.current = demoStart;
+
             const timer = setTimeout(() => {
                 setLogs(DEMO_LIVE_STATUS_LOGS);
-                setSessionInfo(DEMO_LIVE_SESSION);
+                setSessionInfo({ ...DEMO_LIVE_SESSION, elapsedTime: formatElapsed(demoStart) });
+                setError(null);
                 setIsLoading(false);
             }, 400);
             return () => clearTimeout(timer);
@@ -99,50 +164,74 @@ export function useLiveStatus(sessionId?: string) {
             return;
         }
 
-        // Real-time subscription via onSnapshot
-        const unsubscribe = sessionService.subscribeToSession(sessionId, (session) => {
-            if (!session) {
-                setIsLoading(false);
-                return;
-            }
+        setIsLoading(true);
 
-            setLogs(session.timeline.map((t: { id: string; type: string; timestamp: Date | unknown; description: string; mediaUrl?: string }) => ({
-                id: t.id,
-                timestamp: t.timestamp instanceof Date ? t.timestamp : new Date(),
-                type: t.type === 'check_in' ? 'checkin' as const
-                    : t.type === 'meal' ? 'meal' as const
-                    : t.type === 'photo' ? 'photo' as const
-                    : 'status' as const,
-                content: t.description,
-                metadata: { photoUrl: t.mediaUrl },
-            })));
+        let unsubscribe: (() => void) | undefined;
+        try {
+            unsubscribe = sessionService.subscribeToSession(sessionId, async (session) => {
+                try {
+                    if (!session) {
+                        setIsLoading(false);
+                        return;
+                    }
 
-            // Calculate elapsed time
-            const startedAt = session.actualTimes?.startedAt;
-            let elapsedTime = '';
-            if (startedAt) {
-                const start = startedAt instanceof Date ? startedAt : new Date(startedAt as unknown as string);
-                const diff = Date.now() - start.getTime();
-                const hours = Math.floor(diff / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                elapsedTime = `${hours}h ${minutes}m`;
-            }
+                    setLogs(session.timeline.map((t: { id: string; type: string; timestamp: Date | unknown; description: string; mediaUrl?: string }) => ({
+                        id: t.id,
+                        timestamp: t.timestamp instanceof Date ? t.timestamp : new Date(),
+                        type: t.type === 'check_in' ? 'checkin' as const
+                            : t.type === 'meal' ? 'meal' as const
+                            : t.type === 'photo' ? 'photo' as const
+                            : 'status' as const,
+                        content: t.description,
+                        metadata: { photoUrl: t.mediaUrl },
+                    })));
 
-            setSessionInfo({
-                sitterId: session.sitterId,
-                sitterName: session.sitterId,
-                sitterTier: 'gold',
-                sitterLanguages: 'English/Korean',
-                elapsedTime,
+                    const startedAt = session.actualTimes?.startedAt;
+                    if (startedAt) {
+                        const start = startedAt instanceof Date ? startedAt : new Date(startedAt as unknown as string);
+                        liveStartTimeRef.current = start;
+                    }
+
+                    const sitterName = await resolveSitterName(session.sitterId);
+                    setSessionInfo({
+                        sitterId: session.sitterId,
+                        sitterName,
+                        sitterTier: 'gold',
+                        sitterLanguages: 'English/Korean',
+                        elapsedTime: liveStartTimeRef.current ? formatElapsed(liveStartTimeRef.current) : '',
+                    });
+
+                    setError(null);
+                    setIsLoading(false);
+                } catch (err) {
+                    console.error('Failed to process live status:', err);
+                    setError('Failed to load live status');
+                    setIsLoading(false);
+                }
             });
-
+        } catch (err) {
+            console.error('Failed to subscribe to live status:', err);
+            setError('Failed to load live status');
             setIsLoading(false);
-        });
+        }
 
-        return () => unsubscribe();
-    }, [sessionId]);
+        return () => unsubscribe?.();
+    }, [sessionId, retryCount]);
 
-    return { logs, sessionInfo, isLoading };
+    // Live elapsed time counter — updates every second
+    useEffect(() => {
+        if (isLoading || !liveStartTimeRef.current) return;
+
+        const interval = setInterval(() => {
+            if (liveStartTimeRef.current) {
+                setSessionInfo((prev) => ({ ...prev, elapsedTime: formatElapsed(liveStartTimeRef.current!) }));
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [isLoading]);
+
+    return { logs, sessionInfo, isLoading, error, retry };
 }
 
 // ----------------------------------------
@@ -152,14 +241,26 @@ export function useActiveSession(userId?: string) {
     const [sessionInfo, setSessionInfo] = useState<DemoActiveSessionInfo>(DEMO_ACTIVE_SESSION_INFO);
     const [checklist, setChecklist] = useState<DemoChecklistItem[]>(DEMO_CHECKLIST_ITEMS);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
     const [sessionId, setSessionId] = useState<string | undefined>();
+    const startTimeRef = useRef<Date | null>(null);
 
     useEffect(() => {
         if (DEMO_MODE) {
+            // Synthetic start time: 83 minutes ago
+            const demoStart = new Date(Date.now() - 83 * 60 * 1000);
+            startTimeRef.current = demoStart;
+
             const timer = setTimeout(() => {
-                setSessionInfo(DEMO_ACTIVE_SESSION_INFO);
+                setSessionInfo({ ...DEMO_ACTIVE_SESSION_INFO, elapsedTime: formatElapsed(demoStart) });
                 setChecklist(DEMO_CHECKLIST_ITEMS);
                 setSessionId('demo-session-1');
+                setError(null);
                 setIsLoading(false);
             }, 400);
             return () => clearTimeout(timer);
@@ -171,10 +272,10 @@ export function useActiveSession(userId?: string) {
         }
 
         let cancelled = false;
+        setIsLoading(true);
 
         async function load() {
             try {
-                // Find active session for this sitter
                 const session = await sessionService.getActiveSession(userId!);
                 if (cancelled || !session) {
                     setIsLoading(false);
@@ -183,15 +284,10 @@ export function useActiveSession(userId?: string) {
 
                 setSessionId(session.id);
 
-                // Calculate elapsed time
                 const startedAt = session.actualTimes?.startedAt;
-                let elapsedTime = '';
                 if (startedAt) {
                     const start = startedAt instanceof Date ? startedAt : new Date(startedAt as unknown as string);
-                    const diff = Date.now() - start.getTime();
-                    const hours = Math.floor(diff / (1000 * 60 * 60));
-                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    elapsedTime = `${hours}h ${minutes}m`;
+                    startTimeRef.current = start;
                 }
 
                 setSessionInfo({
@@ -199,10 +295,9 @@ export function useActiveSession(userId?: string) {
                     children: '',
                     parent: session.parentId,
                     endTime: '',
-                    elapsedTime,
+                    elapsedTime: startTimeRef.current ? formatElapsed(startTimeRef.current) : '',
                 });
 
-                // Map checklist from session data
                 const cl = session.checklist;
                 setChecklist([
                     { id: '1', label: 'Pre-session: Wash hands', completed: true },
@@ -214,16 +309,33 @@ export function useActiveSession(userId?: string) {
                     { id: '7', label: 'Document any incidents', completed: false },
                 ]);
 
+                setError(null);
                 setIsLoading(false);
             } catch (err) {
                 console.error('Failed to load active session:', err);
-                if (!cancelled) setIsLoading(false);
+                if (!cancelled) {
+                    setError('Failed to load session');
+                    setIsLoading(false);
+                }
             }
         }
 
         load();
         return () => { cancelled = true; };
-    }, [userId]);
+    }, [userId, retryCount]);
+
+    // Live elapsed time counter — updates every second
+    useEffect(() => {
+        if (isLoading || !startTimeRef.current) return;
+
+        const interval = setInterval(() => {
+            if (startTimeRef.current) {
+                setSessionInfo((prev) => ({ ...prev, elapsedTime: formatElapsed(startTimeRef.current!) }));
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [isLoading]);
 
     const toggleChecklistItem = useCallback((id: string) => {
         setChecklist((prev) => {
@@ -262,5 +374,5 @@ export function useActiveSession(userId?: string) {
         });
     }, [sessionId]);
 
-    return { sessionInfo, checklist, isLoading, toggleChecklistItem, sessionId };
+    return { sessionInfo, checklist, isLoading, toggleChecklistItem, sessionId, error, retry };
 }

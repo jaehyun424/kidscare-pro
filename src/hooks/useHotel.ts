@@ -14,6 +14,12 @@ import type { Hotel } from '../types';
 export function useHotel(hotelId?: string) {
     const [hotel, setHotel] = useState<Hotel | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
 
     useEffect(() => {
         if (DEMO_MODE) {
@@ -54,6 +60,7 @@ export function useHotel(hotelId?: string) {
                     createdAt: new Date('2024-01-01'),
                     updatedAt: new Date(),
                 });
+                setError(null);
                 setIsLoading(false);
             }, 400);
             return () => clearTimeout(timer);
@@ -64,14 +71,24 @@ export function useHotel(hotelId?: string) {
             return;
         }
 
-        // Real-time subscription
-        const unsubscribe = hotelService.subscribeToHotel(hotelId, (data) => {
-            setHotel(data);
-            setIsLoading(false);
-        });
+        setIsLoading(true);
 
-        return () => unsubscribe();
-    }, [hotelId]);
+        // Real-time subscription
+        let unsubscribe: (() => void) | undefined;
+        try {
+            unsubscribe = hotelService.subscribeToHotel(hotelId, (data) => {
+                setHotel(data);
+                setError(null);
+                setIsLoading(false);
+            });
+        } catch (err) {
+            console.error('Failed to subscribe to hotel:', err);
+            setError('Failed to load hotel data');
+            setIsLoading(false);
+        }
+
+        return () => unsubscribe?.();
+    }, [hotelId, retryCount]);
 
     const updateHotel = useCallback(async (data: Partial<Hotel>) => {
         if (!hotelId) return;
@@ -82,7 +99,7 @@ export function useHotel(hotelId?: string) {
         await hotelService.updateHotelSettings(hotelId, data);
     }, [hotelId]);
 
-    return { hotel, isLoading, updateHotel };
+    return { hotel, isLoading, updateHotel, error, retry };
 }
 
 // ----------------------------------------
@@ -91,21 +108,51 @@ export function useHotel(hotelId?: string) {
 export function useHotels() {
     const [hotels, setHotels] = useState<DemoHotelOption[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
 
     useEffect(() => {
         if (DEMO_MODE) {
             const timer = setTimeout(() => {
                 setHotels(DEMO_HOTELS);
+                setError(null);
                 setIsLoading(false);
             }, 300);
             return () => clearTimeout(timer);
         }
 
-        // In real mode, would query all hotels
-        // For now, return demo data as fallback
-        setHotels(DEMO_HOTELS);
-        setIsLoading(false);
-    }, []);
+        let cancelled = false;
+        setIsLoading(true);
 
-    return { hotels, isLoading };
+        async function load() {
+            try {
+                const fbHotels = await hotelService.getAllHotels();
+                if (cancelled) return;
+                const mapped: DemoHotelOption[] = fbHotels.map((h: Hotel) => ({
+                    value: h.id,
+                    label: h.name,
+                }));
+                setHotels(mapped);
+                setError(null);
+            } catch (err) {
+                console.error('Failed to load hotels:', err);
+                if (!cancelled) {
+                    setError('Failed to load hotels');
+                    // Fallback to demo data on error
+                    setHotels(DEMO_HOTELS);
+                }
+            } finally {
+                if (!cancelled) setIsLoading(false);
+            }
+        }
+
+        load();
+        return () => { cancelled = true; };
+    }, [retryCount]);
+
+    return { hotels, isLoading, error, retry };
 }

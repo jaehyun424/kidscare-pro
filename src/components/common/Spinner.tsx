@@ -44,20 +44,3 @@ export function PageSpinner() {
         </div>
     );
 }
-
-// Additional styles
-const spinnerStyles = `
-.page-spinner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = spinnerStyles;
-    document.head.appendChild(styleSheet);
-}

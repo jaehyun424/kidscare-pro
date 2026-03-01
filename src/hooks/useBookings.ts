@@ -20,8 +20,33 @@ import {
     type DemoSitterSession,
     type DemoWeekDay,
 } from '../data/demo';
-import { bookingService } from '../services/firestore';
+import { bookingService, sitterService } from '../services/firestore';
 import type { DashboardStats } from '../types';
+
+// Cache for sitter name lookups to avoid repeated queries
+const sitterNameCache = new Map<string, string>();
+
+async function resolveSitterName(sitterId: string): Promise<string> {
+    if (!sitterId) return '';
+    if (sitterNameCache.has(sitterId)) return sitterNameCache.get(sitterId)!;
+    try {
+        const sitter = await sitterService.getSitter(sitterId);
+        const name = sitter?.profile?.displayName || sitterId;
+        sitterNameCache.set(sitterId, name);
+        return name;
+    } catch {
+        return sitterId;
+    }
+}
+
+async function resolveSitterNames(sitterIds: string[]): Promise<Map<string, string>> {
+    const unique = [...new Set(sitterIds.filter(Boolean))];
+    const results = new Map<string, string>();
+    await Promise.all(unique.map(async (id) => {
+        results.set(id, await resolveSitterName(id));
+    }));
+    return results;
+}
 
 // ----------------------------------------
 // Hotel Bookings Hook
@@ -30,12 +55,19 @@ export function useHotelBookings(hotelId?: string) {
     const [bookings, setBookings] = useState<DemoBooking[]>([]);
     const [stats, setStats] = useState<DashboardStats>(DEMO_DASHBOARD_STATS);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
 
     useEffect(() => {
         if (DEMO_MODE) {
             const timer = setTimeout(() => {
                 setBookings(DEMO_HOTEL_BOOKINGS);
                 setStats(DEMO_DASHBOARD_STATS);
+                setError(null);
                 setIsLoading(false);
             }, 600);
             return () => clearTimeout(timer);
@@ -47,6 +79,7 @@ export function useHotelBookings(hotelId?: string) {
         }
 
         let cancelled = false;
+        setIsLoading(true);
 
         async function load() {
             try {
@@ -55,6 +88,10 @@ export function useHotelBookings(hotelId?: string) {
                     bookingService.getBookingStats(hotelId!),
                 ]);
                 if (!cancelled) {
+                    // Resolve sitter names
+                    const sitterIds = fbBookings.map((b) => b.sitterId).filter(Boolean) as string[];
+                    const nameMap = await resolveSitterNames(sitterIds);
+
                     // Transform Firestore bookings to DemoBooking shape
                     const mapped: DemoBooking[] = fbBookings.map((b) => ({
                         id: b.id,
@@ -66,25 +103,29 @@ export function useHotelBookings(hotelId?: string) {
                         room: b.location.roomNumber || '',
                         parent: { name: b.parentId, phone: '' },
                         children: b.children.map((c) => ({ name: c.firstName, age: c.age })),
-                        sitter: b.sitterId ? { name: b.sitterId, tier: 'silver' as const } : null,
+                        sitter: b.sitterId ? { name: nameMap.get(b.sitterId) || b.sitterId, tier: 'silver' as const } : null,
                         status: b.status as DemoBooking['status'],
                         totalAmount: b.pricing.total,
                     }));
                     setBookings(mapped);
                     setStats(fbStats);
+                    setError(null);
                     setIsLoading(false);
                 }
             } catch (err) {
                 console.error('Failed to load hotel bookings:', err);
-                if (!cancelled) setIsLoading(false);
+                if (!cancelled) {
+                    setError('Failed to load bookings');
+                    setIsLoading(false);
+                }
             }
         }
 
         load();
         return () => { cancelled = true; };
-    }, [hotelId]);
+    }, [hotelId, retryCount]);
 
-    return { bookings, stats, isLoading };
+    return { bookings, stats, isLoading, error, retry };
 }
 
 // ----------------------------------------
@@ -95,6 +136,12 @@ export function useParentBookings(parentId?: string) {
     const [history, setHistory] = useState<DemoHistoryItem[]>([]);
     const [recentSessions, setRecentSessions] = useState<DemoRecentSession[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
 
     useEffect(() => {
         if (DEMO_MODE) {
@@ -102,6 +149,7 @@ export function useParentBookings(parentId?: string) {
                 setUpcomingBooking(DEMO_UPCOMING_BOOKING);
                 setHistory(DEMO_HISTORY);
                 setRecentSessions(DEMO_RECENT_SESSIONS);
+                setError(null);
                 setIsLoading(false);
             }, 600);
             return () => clearTimeout(timer);
@@ -113,11 +161,16 @@ export function useParentBookings(parentId?: string) {
         }
 
         let cancelled = false;
+        setIsLoading(true);
 
         async function load() {
             try {
                 const fbBookings = await bookingService.getParentBookings(parentId!);
                 if (cancelled) return;
+
+                // Resolve sitter names
+                const sitterIds = fbBookings.map((b) => b.sitterId).filter(Boolean) as string[];
+                const nameMap = await resolveSitterNames(sitterIds);
 
                 // Find upcoming (confirmed, future)
                 const upcoming = fbBookings.find((b) =>
@@ -125,6 +178,7 @@ export function useParentBookings(parentId?: string) {
                 );
 
                 if (upcoming) {
+                    const sitterName = upcoming.sitterId ? (nameMap.get(upcoming.sitterId) || upcoming.sitterId) : '';
                     setUpcomingBooking({
                         id: upcoming.id,
                         confirmationCode: upcoming.confirmationCode,
@@ -132,7 +186,7 @@ export function useParentBookings(parentId?: string) {
                         time: `${upcoming.schedule.startTime} - ${upcoming.schedule.endTime}`,
                         hotel: upcoming.hotelId,
                         room: upcoming.location.roomNumber || '',
-                        sitter: { name: upcoming.sitterId || '', rating: 0 },
+                        sitter: { name: sitterName, rating: 0 },
                         childrenIds: upcoming.children.map((c) => c.childId),
                         status: upcoming.status as 'confirmed' | 'pending',
                     });
@@ -147,7 +201,7 @@ export function useParentBookings(parentId?: string) {
                         : String(b.schedule.date),
                     time: `${b.schedule.startTime}-${b.schedule.endTime}`,
                     hotel: b.hotelId,
-                    sitter: b.sitterId || '',
+                    sitter: b.sitterId ? (nameMap.get(b.sitterId) || b.sitterId) : '',
                     duration: `${b.schedule.duration}h`,
                     amount: b.pricing.total,
                     rating: b.review?.rating || 0,
@@ -162,18 +216,22 @@ export function useParentBookings(parentId?: string) {
                     rating: b.review?.rating || 0,
                 })));
 
+                setError(null);
                 setIsLoading(false);
             } catch (err) {
                 console.error('Failed to load parent bookings:', err);
-                if (!cancelled) setIsLoading(false);
+                if (!cancelled) {
+                    setError('Failed to load bookings');
+                    setIsLoading(false);
+                }
             }
         }
 
         load();
         return () => { cancelled = true; };
-    }, [parentId]);
+    }, [parentId, retryCount]);
 
-    return { upcomingBooking, history, recentSessions, isLoading };
+    return { upcomingBooking, history, recentSessions, isLoading, error, retry };
 }
 
 // ----------------------------------------
@@ -183,12 +241,19 @@ export function useSitterBookings(sitterId?: string) {
     const [todaySessions, setTodaySessions] = useState<DemoSitterSession[]>([]);
     const [weekSchedule, setWeekSchedule] = useState<DemoWeekDay[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
 
     useEffect(() => {
         if (DEMO_MODE) {
             const timer = setTimeout(() => {
                 setTodaySessions(DEMO_TODAY_SESSIONS);
                 setWeekSchedule(DEMO_WEEK_SCHEDULE);
+                setError(null);
                 setIsLoading(false);
             }, 600);
             return () => clearTimeout(timer);
@@ -200,6 +265,7 @@ export function useSitterBookings(sitterId?: string) {
         }
 
         let cancelled = false;
+        setIsLoading(true);
 
         async function load() {
             try {
@@ -223,18 +289,42 @@ export function useSitterBookings(sitterId?: string) {
                     status: b.status as 'confirmed' | 'pending' | 'in_progress',
                 })));
 
-                // Week schedule placeholder (would need more complex date logic)
-                setWeekSchedule(DEMO_WEEK_SCHEDULE);
+                // Build week schedule from actual booking data
+                const now = new Date();
+                const dayOfWeek = now.getDay(); // 0=Sun
+                const monday = new Date(now);
+                monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+                monday.setHours(0, 0, 0, 0);
+
+                const weekDays: DemoWeekDay[] = [];
+                const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                for (let i = 0; i < 7; i++) {
+                    const dayDate = new Date(monday);
+                    dayDate.setDate(monday.getDate() + i);
+                    const dayStr = dayDate.toISOString().split('T')[0];
+                    const count = fbBookings.filter((b) => {
+                        const d = b.schedule.date instanceof Date
+                            ? b.schedule.date.toISOString().split('T')[0]
+                            : String(b.schedule.date);
+                        return d === dayStr;
+                    }).length;
+                    weekDays.push({ date: `${dayNames[i]} ${dayDate.getDate()}`, sessions: count });
+                }
+                setWeekSchedule(weekDays);
+                setError(null);
                 setIsLoading(false);
             } catch (err) {
                 console.error('Failed to load sitter bookings:', err);
-                if (!cancelled) setIsLoading(false);
+                if (!cancelled) {
+                    setError('Failed to load schedule');
+                    setIsLoading(false);
+                }
             }
         }
 
         load();
         return () => { cancelled = true; };
-    }, [sitterId]);
+    }, [sitterId, retryCount]);
 
     const createBooking = useCallback(async (data: Record<string, unknown>) => {
         if (DEMO_MODE) {
@@ -245,5 +335,5 @@ export function useSitterBookings(sitterId?: string) {
         return booking;
     }, []);
 
-    return { todaySessions, weekSchedule, isLoading, createBooking };
+    return { todaySessions, weekSchedule, isLoading, createBooking, error, retry };
 }

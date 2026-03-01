@@ -3,10 +3,12 @@
 // ============================================
 
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { TierBadge, SafetyBadge } from '../../components/common/Badge';
 import { Skeleton } from '../../components/common/Skeleton';
+import ErrorBanner from '../../components/common/ErrorBanner';
 import { useAuth } from '../../contexts/AuthContext';
 import { useHotelBookings } from '../../hooks/useBookings';
 import { useHotelSessions } from '../../hooks/useSessions';
@@ -92,11 +94,7 @@ const DEMO_REVENUE_LAST_MONTH: RevenueDataPoint[] = [
     { label: 'Wk 4', revenue: 25800000, bookings: 46 },
 ];
 
-const PERIOD_LABELS: Record<Period, string> = {
-    this_week: 'This Week',
-    this_month: 'This Month',
-    last_month: 'Last Month',
-};
+// Period labels moved into component to access t()
 
 // ----------------------------------------
 // Stat Card Component
@@ -133,9 +131,17 @@ function StatCard({ icon, label, value, subValue, color }: StatCardProps) {
 // Main Component
 // ----------------------------------------
 export default function Reports() {
+    const { t } = useTranslation();
+
+    const PERIOD_LABELS: Record<Period, string> = {
+        this_week: t('time.thisWeek'),
+        this_month: t('time.thisMonth'),
+        last_month: t('earnings.lastMonth'),
+    };
+
     const { user } = useAuth();
-    const { bookings, stats, isLoading: bookingsLoading } = useHotelBookings(user?.hotelId);
-    const { sessions, isLoading: sessionsLoading } = useHotelSessions(user?.hotelId);
+    const { bookings, stats, isLoading: bookingsLoading, error: bookingsError, retry: retryBookings } = useHotelBookings(user?.hotelId);
+    const { sessions, isLoading: sessionsLoading, error: sessionsError, retry: retrySessions } = useHotelSessions(user?.hotelId);
     const { sitters, isLoading: sittersLoading } = useHotelSitters(user?.hotelId);
     const { success } = useToast();
 
@@ -194,9 +200,34 @@ export default function Reports() {
         return `\u20A9${amount.toLocaleString()}`;
     };
 
-    // Export handler
+    // Export handler — real CSV download
     const handleExport = () => {
-        success('Export Started', 'Your report is being generated as PDF.');
+        const headers = ['Period', 'Revenue', 'Bookings'];
+        const rows = chartData.map((d) => [d.label, String(d.revenue), String(d.bookings)]);
+        const sitterHeaders = ['Sitter', 'Tier', 'Rating', 'Sessions', 'Safety Days'];
+        const sitterRows = sitters.map((s) => [s.name, s.tier, String(s.rating), String(s.sessionsCompleted), String(s.safetyDays)]);
+
+        const csvContent = [
+            `Report: ${PERIOD_LABELS[period]}`,
+            '',
+            'Revenue Data',
+            headers.join(','),
+            ...rows.map((r) => r.join(',')),
+            '',
+            'Sitter Performance',
+            sitterHeaders.join(','),
+            ...sitterRows.map((r) => r.join(',')),
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `kidscare-report-${period}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+
+        success('Export Complete', 'CSV report has been downloaded.');
     };
 
     // ----------------------------------------
@@ -238,13 +269,16 @@ export default function Reports() {
             {/* Header */}
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Reports & Analytics</h1>
-                    <p className="page-subtitle">Performance metrics and business insights</p>
+                    <h1 className="page-title">{t('reports.title')}</h1>
+                    <p className="page-subtitle">{t('reports.subtitle')}</p>
                 </div>
                 <Button variant="gold" icon={<DownloadIcon />} onClick={handleExport}>
-                    Export Report
+                    {t('reports.exportReport')}
                 </Button>
             </div>
+
+            {bookingsError && <ErrorBanner error={bookingsError} onRetry={retryBookings} />}
+            {sessionsError && <ErrorBanner error={sessionsError} onRetry={retrySessions} />}
 
             {/* Period Selector */}
             <div className="rpt-period-tabs" role="tablist" aria-label="Report period">
@@ -265,30 +299,30 @@ export default function Reports() {
             <div className="rpt-stats-grid">
                 <StatCard
                     icon={<CalendarIcon />}
-                    label="Total Bookings"
+                    label={t('reports.totalBookings')}
                     value={stats.todayBookings}
-                    subValue={`${stats.pendingBookings} pending`}
+                    subValue={`${stats.pendingBookings} ${t('status.pending').toLowerCase()}`}
                     color="primary"
                 />
                 <StatCard
                     icon={<LiveIcon />}
-                    label="Active Sessions"
+                    label={t('reports.activeSessions')}
                     value={sessions.length}
-                    subValue="In progress now"
+                    subValue={t('reports.inProgressNow')}
                     color="warning"
                 />
                 <StatCard
                     icon={<CheckIcon />}
-                    label="Completion Rate"
+                    label={t('reports.completionRate')}
                     value={`${completionRate}%`}
-                    subValue={`${stats.completedToday} completed today`}
+                    subValue={`${stats.completedToday} ${t('reports.completedToday')}`}
                     color="success"
                 />
                 <StatCard
                     icon={<CurrencyIcon />}
-                    label="Today's Revenue"
+                    label={t('reports.todaysRevenue')}
                     value={formatCurrency(stats.todayRevenue)}
-                    subValue={`${stats.safetyDays} days without incident`}
+                    subValue={`${stats.safetyDays} ${t('reports.daysWithoutIncident')}`}
                     color="gold"
                 />
             </div>
@@ -298,22 +332,22 @@ export default function Reports() {
                 {/* Revenue Chart */}
                 <Card className="animate-fade-in-up stagger-1">
                     <CardHeader>
-                        <CardTitle subtitle={`${PERIOD_LABELS[period]} \u2014 ${totalChartBookings} bookings`}>
-                            Revenue Overview
+                        <CardTitle subtitle={`${PERIOD_LABELS[period]} \u2014 ${totalChartBookings} ${t('reports.bookings')}`}>
+                            {t('reports.revenueOverview')}
                         </CardTitle>
                     </CardHeader>
                     <CardBody>
                         <div className="rpt-chart-summary">
                             <div className="rpt-chart-total">
-                                <span className="rpt-chart-total-label">Total Revenue</span>
+                                <span className="rpt-chart-total-label">{t('reports.totalRevenue')}</span>
                                 <span className="rpt-chart-total-value">{formatCompact(totalChartRevenue)}</span>
                             </div>
                             <div className="rpt-chart-total">
-                                <span className="rpt-chart-total-label">Bookings</span>
+                                <span className="rpt-chart-total-label">{t('nav.bookings')}</span>
                                 <span className="rpt-chart-total-value">{totalChartBookings}</span>
                             </div>
                             <div className="rpt-chart-total">
-                                <span className="rpt-chart-total-label">Avg / Day</span>
+                                <span className="rpt-chart-total-label">{t('reports.avgPerDay')}</span>
                                 <span className="rpt-chart-total-value">
                                     {formatCompact(Math.round(totalChartRevenue / chartData.length))}
                                 </span>
@@ -332,7 +366,7 @@ export default function Reports() {
                                             />
                                         </div>
                                         <div className="rpt-bar-label">{d.label}</div>
-                                        <div className="rpt-bar-bookings">{d.bookings} bkgs</div>
+                                        <div className="rpt-bar-bookings">{d.bookings} {t('reports.bkgs')}</div>
                                     </div>
                                 );
                             })}
@@ -343,8 +377,8 @@ export default function Reports() {
                 {/* Sitter Performance Table */}
                 <Card className="animate-fade-in-up stagger-2">
                     <CardHeader>
-                        <CardTitle subtitle={`${sitters.length} sitters \u2014 Avg rating ${avgRating}`}>
-                            Sitter Performance
+                        <CardTitle subtitle={`${sitters.length} ${t('reports.sitters')} \u2014 ${t('reports.avgRating')} ${avgRating}`}>
+                            {t('reports.sitterPerformance')}
                         </CardTitle>
                     </CardHeader>
                     <CardBody>
@@ -352,11 +386,11 @@ export default function Reports() {
                             <table className="rpt-table">
                                 <thead>
                                     <tr>
-                                        <th>Sitter</th>
-                                        <th>Tier</th>
-                                        <th>Rating</th>
-                                        <th>Sessions</th>
-                                        <th>Safety</th>
+                                        <th>{t('reports.sitter')}</th>
+                                        <th>{t('reports.tier')}</th>
+                                        <th>{t('reports.rating')}</th>
+                                        <th>{t('reports.sessionCount')}</th>
+                                        <th>{t('reports.safetyScore')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -383,7 +417,7 @@ export default function Reports() {
                                     {sitters.length === 0 && (
                                         <tr>
                                             <td colSpan={5} className="rpt-table-empty">
-                                                No sitter data available.
+                                                {t('reports.noSitterData')}
                                             </td>
                                         </tr>
                                     )}

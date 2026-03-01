@@ -2,7 +2,7 @@
 // KidsCare Pro - Hotel Dashboard
 // ============================================
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
@@ -10,9 +10,16 @@ import { Button } from '../../components/common/Button';
 import { Badge, StatusBadge, TierBadge, SafetyBadge } from '../../components/common/Badge';
 import { Avatar } from '../../components/common/Avatar';
 import { Skeleton } from '../../components/common/Skeleton';
+import { Modal } from '../../components/common/Modal';
+import { Input, Select } from '../../components/common/Input';
+import { PeriodSelector } from '../../components/common/DatePicker';
+import ErrorBanner from '../../components/common/ErrorBanner';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { useHotelBookings } from '../../hooks/useBookings';
 import { useHotelSessions } from '../../hooks/useSessions';
+import { useHotelSitters } from '../../hooks/useSitters';
+import type { DemoBooking } from '../../data/demo';
 import '../../styles/pages/hotel-dashboard.css';
 
 // ----------------------------------------
@@ -98,9 +105,47 @@ function StatCard({ icon, label, value, subValue, color }: StatCardProps) {
 export default function Dashboard() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { bookings: todayBookings, stats, isLoading: bookingsLoading } = useHotelBookings(user?.hotelId);
-  const { sessions: activeSessions, isLoading: sessionsLoading } = useHotelSessions(user?.hotelId);
+  const { bookings: todayBookings, stats, isLoading: bookingsLoading, error: bookingsError, retry: retryBookings } = useHotelBookings(user?.hotelId);
+  const { sessions: activeSessions, isLoading: sessionsLoading, error: sessionsError, retry: retrySessions } = useHotelSessions(user?.hotelId);
+  const { sitters } = useHotelSitters(user?.hotelId);
+  const toast = useToast();
   const isLoading = bookingsLoading || sessionsLoading;
+  const [period, setPeriod] = useState('today');
+
+  // New Booking modal
+  const [showNewBooking, setShowNewBooking] = useState(false);
+  const [newBookingForm, setNewBookingForm] = useState({ guestName: '', room: '', date: '', time: '18:00', duration: '4', childrenCount: '1' });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  const validateBookingForm = () => {
+    const errors: Record<string, string> = {};
+    if (!newBookingForm.guestName.trim()) errors.guestName = t('common.required', 'This field is required');
+    if (!newBookingForm.room.trim()) errors.room = t('common.required', 'This field is required');
+    if (!newBookingForm.date) {
+      errors.date = t('common.required', 'This field is required');
+    } else if (newBookingForm.date < new Date().toISOString().split('T')[0]) {
+      errors.date = t('booking.dateMustBeFuture', 'Date must be today or later');
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleCreateBooking = () => {
+    if (!validateBookingForm()) return;
+    const code = `KCP-${Date.now().toString(36).toUpperCase()}`;
+    toast.success(t('booking.bookingConfirmed'), `${t('hotel.bookingCode')}: ${code}`);
+    setShowNewBooking(false);
+    setNewBookingForm({ guestName: '', room: '', date: '', time: '18:00', duration: '4', childrenCount: '1' });
+    setFormErrors({});
+  };
+
+  // Assign sitter modal
+  const [assignTarget, setAssignTarget] = useState<DemoBooking | null>(null);
+
+  const handleAssignSitter = (sitterName: string) => {
+    toast.success(t('hotel.assign'), `${sitterName} → ${assignTarget?.confirmationCode}`);
+    setAssignTarget(null);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ko-KR', {
@@ -134,10 +179,17 @@ export default function Dashboard() {
           <h1 className="dashboard-title">{t('nav.dashboard')}</h1>
           <p className="dashboard-subtitle">{t('hotel.todayOverview')}</p>
         </div>
-        <Button variant="gold" icon={<PlusIcon />}>
-          {t('hotel.newBooking')}
-        </Button>
+        <div className="dashboard-header-actions">
+          <PeriodSelector value={period} onChange={setPeriod} />
+          <Button variant="gold" icon={<PlusIcon />} onClick={() => setShowNewBooking(true)}>
+            {t('hotel.newBooking')}
+          </Button>
+        </div>
       </div>
+
+      {/* Error Banners */}
+      {bookingsError && <ErrorBanner error={bookingsError} onRetry={retryBookings} />}
+      {sessionsError && <ErrorBanner error={sessionsError} onRetry={retrySessions} />}
 
       {/* Safety Record Banner */}
       <div className="safety-banner animate-fade-in-up">
@@ -224,7 +276,7 @@ export default function Dashboard() {
                         </div>
                       </>
                     ) : (
-                      <Button variant="secondary" size="sm">
+                      <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setAssignTarget(booking); }}>
                         {t('hotel.assign')}
                       </Button>
                     )}
@@ -243,7 +295,7 @@ export default function Dashboard() {
             </Link>
           }>
             <CardTitle subtitle={t('hotel.recentActivity')}>
-              <span className="flex items-center gap-2">
+              <span className="live-monitor-title-row">
                 {t('nav.liveMonitor')}
                 <span className="status-dot status-dot-success" aria-hidden="true" />
               </span>
@@ -274,6 +326,53 @@ export default function Dashboard() {
           </CardBody>
         </Card>
       </div>
+
+      {/* New Booking Modal */}
+      <Modal
+        isOpen={showNewBooking}
+        onClose={() => setShowNewBooking(false)}
+        title={t('hotel.newBooking')}
+        size="md"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => { setShowNewBooking(false); setFormErrors({}); }}>{t('common.cancel')}</Button>
+            <Button variant="gold" onClick={handleCreateBooking} disabled={!newBookingForm.guestName.trim() || !newBookingForm.room.trim() || !newBookingForm.date}>{t('common.confirm')}</Button>
+          </>
+        }
+      >
+        <div className="modal-form-stack">
+          <Input label={t('hotel.guestInfo')} value={newBookingForm.guestName} onChange={(e) => { setNewBookingForm({ ...newBookingForm, guestName: e.target.value }); if (formErrors.guestName) setFormErrors((prev) => { const { guestName: _, ...rest } = prev; return rest; }); }} placeholder="e.g. Sarah Johnson" error={formErrors.guestName} />
+          <Input label={t('common.room')} value={newBookingForm.room} onChange={(e) => { setNewBookingForm({ ...newBookingForm, room: e.target.value }); if (formErrors.room) setFormErrors((prev) => { const { room: _, ...rest } = prev; return rest; }); }} placeholder={t('booking.roomPlaceholder')} error={formErrors.room} />
+          <Input label={t('common.date')} type="date" value={newBookingForm.date} onChange={(e) => { setNewBookingForm({ ...newBookingForm, date: e.target.value }); if (formErrors.date) setFormErrors((prev) => { const { date: _, ...rest } = prev; return rest; }); }} min={new Date().toISOString().split('T')[0]} error={formErrors.date} />
+          <Select label={t('booking.startTime')} value={newBookingForm.time} onChange={(e) => setNewBookingForm({ ...newBookingForm, time: e.target.value })} options={[{ value: '18:00', label: '18:00' }, { value: '19:00', label: '19:00' }, { value: '20:00', label: '20:00' }, { value: '21:00', label: '21:00' }]} />
+          <Select label={t('booking.duration')} value={newBookingForm.duration} onChange={(e) => setNewBookingForm({ ...newBookingForm, duration: e.target.value })} options={[{ value: '2', label: '2h' }, { value: '3', label: '3h' }, { value: '4', label: '4h' }, { value: '5', label: '5h' }]} />
+          <Select label={t('hotel.childrenInfo')} value={newBookingForm.childrenCount} onChange={(e) => setNewBookingForm({ ...newBookingForm, childrenCount: e.target.value })} options={[{ value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3', label: '3' }]} />
+        </div>
+      </Modal>
+
+      {/* Assign Sitter Modal */}
+      <Modal
+        isOpen={!!assignTarget}
+        onClose={() => setAssignTarget(null)}
+        title={`${t('hotel.assign')} - ${assignTarget?.confirmationCode || ''}`}
+        size="md"
+      >
+        <div className="modal-form-stack-sm">
+          {sitters.filter((s) => s.availability === 'Available').map((sitter) => (
+            <div key={sitter.id} className="sitter-option-row" onClick={() => handleAssignSitter(sitter.name)}>
+              <Avatar name={sitter.name} size="sm" variant={sitter.tier === 'gold' ? 'gold' : 'default'} />
+              <div className="sitter-option-info">
+                <div className="sitter-option-name">{sitter.name}</div>
+                <div className="sitter-option-detail">{sitter.languages.join(', ')}</div>
+              </div>
+              <TierBadge tier={sitter.tier} />
+            </div>
+          ))}
+          {sitters.filter((s) => s.availability === 'Available').length === 0 && (
+            <p className="no-sitters-message">No available sitters</p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

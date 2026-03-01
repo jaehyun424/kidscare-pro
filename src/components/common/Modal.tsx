@@ -153,37 +153,3 @@ export function ConfirmModal({
         </Modal>
     );
 }
-
-// Additional styles
-const modalStyles = `
-.modal-root {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: var(--z-modal);
-}
-
-.modal-title {
-  font-size: var(--text-xl);
-  font-weight: var(--font-semibold);
-}
-
-.modal-sm { max-width: 400px; }
-.modal-md { max-width: 500px; }
-.modal-lg { max-width: 700px; }
-.modal-xl { max-width: 900px; }
-.modal-full { 
-  max-width: calc(100% - 2rem); 
-  max-height: calc(100% - 2rem);
-  width: 100%;
-  height: 100%;
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = modalStyles;
-    document.head.appendChild(styleSheet);
-}

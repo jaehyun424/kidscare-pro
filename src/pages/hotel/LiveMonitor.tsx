@@ -7,13 +7,18 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
-import { TierBadge } from '../../components/common/Badge';
+import { Badge, TierBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { ChatPanel } from '../../components/common/ChatPanel';
 import { EmptyState } from '../../components/common/EmptyState';
+import { Modal } from '../../components/common/Modal';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { Skeleton, SkeletonCircle, SkeletonText } from '../../components/common/Skeleton';
+import ErrorBanner from '../../components/common/ErrorBanner';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { useHotelSessions } from '../../hooks/useSessions';
+import type { DemoActiveSession } from '../../data/demo';
 import '../../styles/pages/hotel-live-monitor.css';
 
 // Icons
@@ -34,13 +39,21 @@ const AlertIcon = () => (
 export default function LiveMonitor() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { sessions, isLoading } = useHotelSessions(user?.hotelId);
+  const { sessions, isLoading, error, retry } = useHotelSessions(user?.hotelId);
+  const toast = useToast();
   const [chatOpen, setChatOpen] = useState(false);
   const [chatTarget, setChatTarget] = useState<{ id: string; name: string } | null>(null);
+  const [showEmergency, setShowEmergency] = useState(false);
+  const [detailSession, setDetailSession] = useState<DemoActiveSession | null>(null);
 
   const handleContactSitter = (sitterName: string) => {
     setChatTarget({ id: `sitter-${sitterName}`, name: sitterName });
     setChatOpen(true);
+  };
+
+  const handleEmergencyConfirm = () => {
+    toast.warning('Emergency Protocol Activated', 'All sitters have been notified. Hotel security has been alerted.');
+    setShowEmergency(false);
   };
 
   if (isLoading) {
@@ -58,7 +71,7 @@ export default function LiveMonitor() {
             <div key={i} className="card">
               <div className="flex gap-4 items-center">
                 <SkeletonCircle size={48} />
-                <div style={{ flex: 1 }}>
+                <div className="skeleton-flex-fill">
                   <Skeleton width="50%" height="1.25rem" />
                   <Skeleton width="30%" height="0.875rem" className="mt-2" />
                 </div>
@@ -89,12 +102,14 @@ export default function LiveMonitor() {
               {t('hotel.live')}
             </span>
           </h1>
-          <p className="page-subtitle">{t('hotel.activeSessionsNow', { count: sessions.length })}</p>
+          <p className="page-subtitle" aria-live="polite">{t('hotel.activeSessionsNow', { count: sessions.length })}</p>
         </div>
-        <Button variant="danger" icon={<AlertIcon />}>
+        <Button variant="danger" icon={<AlertIcon />} onClick={() => setShowEmergency(true)}>
           {t('hotel.emergencyProtocol')}
         </Button>
       </div>
+
+      {error && <ErrorBanner error={error} onRetry={retry} />}
 
       {sessions.length > 0 ? (
       <div className="sessions-grid">
@@ -152,7 +167,7 @@ export default function LiveMonitor() {
                 <Button variant="ghost" size="sm" icon={<PhoneIcon />} onClick={() => handleContactSitter(session.sitter.name)}>
                   {t('hotel.contactSitter')}
                 </Button>
-                <Button variant="secondary" size="sm">
+                <Button variant="secondary" size="sm" onClick={() => setDetailSession(session)}>
                   {t('hotel.viewDetails')}
                 </Button>
               </div>
@@ -163,10 +178,67 @@ export default function LiveMonitor() {
       ) : (
         <EmptyState
           icon="📡"
-          title={t('hotel.noActiveSessions', 'No active sessions')}
-          description={t('hotel.noActiveSessionsDesc', 'Active childcare sessions will appear here in real time.')}
+          title={t('liveMonitor.noActiveSessions')}
+          description={t('liveMonitor.noActiveSessionsDesc')}
         />
       )}
+
+      {/* Emergency Protocol Confirm */}
+      <ConfirmDialog
+        isOpen={showEmergency}
+        onClose={() => setShowEmergency(false)}
+        onConfirm={handleEmergencyConfirm}
+        title={t('hotel.emergencyProtocol')}
+        message={t('liveMonitor.emergencyConfirm')}
+        confirmText={t('liveMonitor.activate')}
+        variant="danger"
+      />
+
+      {/* Session Detail Modal */}
+      <Modal
+        isOpen={!!detailSession}
+        onClose={() => setDetailSession(null)}
+        title={detailSession ? `${detailSession.sitter.name} - ${t('common.room')} ${detailSession.room}` : ''}
+        size="lg"
+      >
+        {detailSession && (
+          <div className="detail-modal-stack">
+            <div className="detail-modal-header">
+              <Avatar name={detailSession.sitter.name} size="lg" variant={detailSession.sitter.tier === 'gold' ? 'gold' : 'default'} />
+              <div>
+                <div className="detail-modal-name">{detailSession.sitter.name}</div>
+                <TierBadge tier={detailSession.sitter.tier} />
+              </div>
+            </div>
+            <div className="detail-modal-grid">
+              <div><strong>{t('liveMonitor.roomLabel')}</strong> {detailSession.room}</div>
+              <div><strong>{t('liveMonitor.startedLabel')}</strong> {detailSession.startTime}</div>
+              <div><strong>{t('liveMonitor.elapsedLabel')}</strong> {detailSession.elapsed}</div>
+              <div><strong>{t('liveMonitor.moodLabel')}</strong> {detailSession.vitals.mood}</div>
+              <div><strong>{t('liveMonitor.energyLabel')}</strong> {detailSession.vitals.energy}</div>
+            </div>
+            <div>
+              <strong>{t('activeSession.children')}:</strong>
+              <div className="detail-modal-tags">
+                {detailSession.children.map((child, i) => (
+                  <Badge key={i} variant="neutral">{child.name} ({child.age}y)</Badge>
+                ))}
+              </div>
+            </div>
+            <div>
+              <strong>{t('liveMonitor.activityTimeline')}</strong>
+              <div className="detail-timeline-section">
+                {detailSession.activities.map((activity, i) => (
+                  <div key={i} className={`detail-timeline-item${i < detailSession.activities.length - 1 ? '' : ' detail-timeline-item-last'}`}>
+                    <span className="detail-timeline-time">{activity.time}</span>
+                    <span>{activity.activity}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Chat Panel */}
       <ChatPanel

@@ -1,0 +1,37 @@
+/* Review Form Component */
+
+.review-form-intro {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.review-stars-label {
+  margin-left: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.review-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+/* Star Rating sizes */
+.star-rating.star-rating-sm {
+  font-size: 0.875rem;
+}
+
+.star-rating.star-rating-md {
+  font-size: 1.125rem;
+}
+
+.star-rating.star-rating-lg {
+  font-size: 1.5rem;
+}
+
+.star-value {
+  font-size: 0.875rem;
+  margin-left: 0.25rem;
+}

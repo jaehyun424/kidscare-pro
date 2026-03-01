@@ -117,3 +117,34 @@
 
 .menu-item:hover { background: var(--glass-bg); }
 .menu-item:last-child { border-bottom: none; }
+
+.menu-item-value {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+
+/* Profile empty/loading states */
+.profile-empty-state {
+  text-align: center;
+  padding: var(--space-4);
+}
+
+.profile-no-children {
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: var(--space-4);
+}
+
+/* Profile form stack (child modal) */
+.profile-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Small spinner variant */
+.spinner.spinner-sm {
+  width: 16px;
+  height: 16px;
+}

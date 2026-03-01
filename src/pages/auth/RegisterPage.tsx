@@ -12,6 +12,7 @@ import { Input, Select } from '../../components/common/Input';
 import { LanguageSwitcher } from '../../components/common/LanguageSwitcher';
 import type { UserRole } from '../../types';
 import loginBg from '../../assets/login-bg.png';
+import '../../styles/pages/register.css';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
@@ -92,7 +93,7 @@ export default function RegisterPage() {
     return (
         <div className="register-container">
             {/* Visual Column (Left) */}
-            <div className="register-visual">
+            <div className="register-visual" style={{ backgroundImage: `url(${loginBg})` }}>
                 <div className="visual-overlay" />
                 <div className="visual-content">
                     <h1 className="visual-title">Join the Standard of Excellence</h1>
@@ -208,113 +209,6 @@ export default function RegisterPage() {
                 </div>
             </div>
 
-            <style>{`
-                .register-container {
-                    display: flex;
-                    min-height: 100vh;
-                    background-color: var(--cream-100);
-                }
-
-                .register-visual {
-                    display: none;
-                }
-
-                @media (min-width: 1024px) {
-                    .register-visual {
-                        display: flex;
-                        flex: 1;
-                        background-image: url(${loginBg});
-                        background-size: cover;
-                        background-position: center;
-                        position: relative;
-                        flex-direction: column;
-                        justify-content: center;
-                        padding: 4rem;
-                    }
-                }
-
-                .visual-overlay {
-                    position: absolute;
-                    inset: 0;
-                    background: linear-gradient(to right, rgba(28,28,28,0.9) 0%, rgba(28,28,28,0.7) 100%);
-                }
-
-                .visual-content {
-                    position: relative;
-                    z-index: 10;
-                    max-width: 500px;
-                    color: white;
-                }
-
-                .visual-title {
-                    font-family: var(--font-serif);
-                    font-size: 3rem;
-                    margin-bottom: 2rem;
-                    line-height: 1.1;
-                }
-
-                .visual-list {
-                    list-style: none;
-                    padding: 0;
-                }
-
-                .visual-list li {
-                    font-family: var(--font-action);
-                    font-size: 1rem;
-                    margin-bottom: 1rem;
-                    letter-spacing: 0.05em;
-                    color: var(--cream-200);
-                }
-
-                .register-form-container {
-                    flex: 1;
-                    max-width: 100%;
-                    display: flex;
-                    flex-direction: column;
-                    padding: 2rem;
-                    background-color: white;
-                    overflow-y: auto;
-                }
-
-                @media (min-width: 1024px) {
-                    .register-form-container {
-                        max-width: 600px;
-                    }
-                }
-
-                .login-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 2rem;
-                }
-                
-                .brand-logo {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    font-family: var(--font-serif);
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                }
-
-                .form-wrapper {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    max-width: 480px;
-                    width: 100%;
-                    margin: 0 auto;
-                }
-
-                .gap-4 { gap: 1rem; }
-                .grid { display: grid; }
-                .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-                .mb-6 { margin-bottom: 1.5rem; }
-                .mt-4 { margin-top: 1rem; }
-                .mt-6 { margin-top: 1.5rem; }
-            `}</style>
         </div>
     );
 }

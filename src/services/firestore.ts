@@ -537,6 +537,20 @@ export const hotelService = {
         });
     },
 
+    // Get all hotels
+    async getAllHotels(): Promise<Hotel[]> {
+        const q = query(
+            collection(db, COLLECTIONS.hotels),
+            orderBy('name'),
+            limit(50)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((d) => ({
+            id: d.id,
+            ...convertTimestamps(d.data()),
+        })) as Hotel[];
+    },
+
     // Subscribe to hotel (real-time)
     subscribeToHotel(hotelId: string, callback: (hotel: Hotel | null) => void) {
         return onSnapshot(doc(db, COLLECTIONS.hotels, hotelId), (d) => {

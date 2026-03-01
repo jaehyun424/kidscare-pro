@@ -2,7 +2,7 @@
 // KidsCare Pro - Parent Booking Page
 // ============================================
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody } from '../../components/common/Card';
@@ -25,7 +25,7 @@ const TIME_SLOTS = [
 
 export default function Booking() {
     const navigate = useNavigate();
-    const { success } = useToast();
+    const { success, error: showError } = useToast();
     const { t } = useTranslation();
     const { user } = useAuth();
     const { children } = useChildren(user?.id);
@@ -38,10 +38,26 @@ export default function Booking() {
         date: '',
         startTime: '',
         duration: '4',
-        children: ['1'],
+        children: [] as string[],
         notes: '',
     });
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+    // Initialize all children as selected when they load
+    useEffect(() => {
+        if (children.length > 0 && formData.children.length === 0) {
+            setFormData((prev) => ({ ...prev, children: children.map((c) => c.id) }));
+        }
+    }, [children]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const toggleChild = (childId: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            children: prev.children.includes(childId)
+                ? prev.children.filter((id) => id !== childId)
+                : [...prev.children, childId],
+        }));
+    };
 
     const validateStep1 = () => {
         const errors: Record<string, string> = {};
@@ -142,16 +158,31 @@ export default function Booking() {
             navigate('/parent');
         } catch (err) {
             console.error('Booking creation failed:', err);
+            showError(t('errors.unknownError', 'An error occurred'), t('booking.bookingFailed', 'Failed to create booking. Please try again.'));
         } finally {
             setIsLoading(false);
         }
     };
 
-    const calculatePrice = () => {
+    const calculatePricing = () => {
         const baseRate = 70000;
         const hours = parseInt(formData.duration) || 4;
-        return baseRate * hours;
+        const baseTotal = baseRate * hours;
+        const childrenCount = formData.children.length || 1;
+        const additionalChildCharge = childrenCount > 1 ? (childrenCount - 1) * 20000 * hours : 0;
+        const subtotal = baseTotal + additionalChildCharge;
+
+        // Night surcharge: after 22:00
+        const startHour = parseInt(formData.startTime?.split(':')[0] || '18');
+        const endHour = startHour + hours;
+        const nightHours = Math.max(0, endHour - 22);
+        const nightSurcharge = nightHours > 0 ? nightHours * 15000 : 0;
+
+        const total = subtotal + nightSurcharge;
+        return { baseRate, hours, baseTotal, additionalChildCharge, childrenCount, nightSurcharge, subtotal, total };
     };
+
+    const calculatePrice = () => calculatePricing().total;
 
     return (
         <div className="booking-page animate-fade-in">
@@ -231,7 +262,11 @@ export default function Booking() {
                         <div className="children-selection">
                             {children.map((child) => (
                                 <label key={child.id} className="child-option">
-                                    <input type="checkbox" defaultChecked={true} />
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.children.includes(child.id)}
+                                        onChange={() => toggleChild(child.id)}
+                                    />
                                     <div className="child-info">
                                         <span className="child-name">{child.name}</span>
                                         <span className="child-age">{child.age} {t('common.age')}</span>
@@ -278,8 +313,35 @@ export default function Booking() {
                             </div>
                             <div className="summary-row">
                                 <span>{t('parent.children')}</span>
-                                <span>{children.map(c => c.name + ' (' + c.age + 'y)').join(', ')}</span>
+                                <span>{children.filter(c => formData.children.includes(c.id)).map(c => c.name + ' (' + c.age + 'y)').join(', ')}</span>
                             </div>
+                            {formData.notes && (
+                                <div className="summary-row">
+                                    <span>{t('booking.specialRequests')}</span>
+                                    <span>{formData.notes}</span>
+                                </div>
+                            )}
+
+                            {/* Pricing Breakdown */}
+                            <div className="pricing-breakdown">
+                                <div className="summary-row">
+                                    <span>Base rate (₩{calculatePricing().baseRate.toLocaleString()} × {calculatePricing().hours}h)</span>
+                                    <span>₩{calculatePricing().baseTotal.toLocaleString()}</span>
+                                </div>
+                                {calculatePricing().additionalChildCharge > 0 && (
+                                    <div className="summary-row">
+                                        <span>Additional child ({calculatePricing().childrenCount - 1} × ₩20,000/h)</span>
+                                        <span>₩{calculatePricing().additionalChildCharge.toLocaleString()}</span>
+                                    </div>
+                                )}
+                                {calculatePricing().nightSurcharge > 0 && (
+                                    <div className="summary-row">
+                                        <span>Night surcharge (after 22:00)</span>
+                                        <span>₩{calculatePricing().nightSurcharge.toLocaleString()}</span>
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="summary-row total">
                                 <span>{t('booking.totalCost')}</span>
                                 <span className="price">₩{calculatePrice().toLocaleString()}</span>

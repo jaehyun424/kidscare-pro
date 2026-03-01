@@ -13,11 +13,18 @@ import { childrenService } from '../services/firestore';
 export function useChildren(parentId?: string) {
     const [children, setChildren] = useState<DemoChild[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+    const retry = useCallback(() => {
+        setError(null);
+        setRetryCount((c) => c + 1);
+    }, []);
 
     useEffect(() => {
         if (DEMO_MODE) {
             const timer = setTimeout(() => {
                 setChildren(DEMO_CHILDREN);
+                setError(null);
                 setIsLoading(false);
             }, 400);
             return () => clearTimeout(timer);
@@ -29,6 +36,7 @@ export function useChildren(parentId?: string) {
         }
 
         let cancelled = false;
+        setIsLoading(true);
 
         async function load() {
             try {
@@ -42,16 +50,20 @@ export function useChildren(parentId?: string) {
                     allergies: c.allergies,
                     gender: c.gender,
                 })));
+                setError(null);
                 setIsLoading(false);
             } catch (err) {
                 console.error('Failed to load children:', err);
-                if (!cancelled) setIsLoading(false);
+                if (!cancelled) {
+                    setError('Failed to load children');
+                    setIsLoading(false);
+                }
             }
         }
 
         load();
         return () => { cancelled = true; };
-    }, [parentId]);
+    }, [parentId, retryCount]);
 
     const addChild = useCallback(async (data: Omit<DemoChild, 'id'>) => {
         if (DEMO_MODE) {
@@ -119,5 +131,5 @@ export function useChildren(parentId?: string) {
         setChildren((prev) => prev.filter((c) => c.id !== childId));
     }, [parentId]);
 
-    return { children, isLoading, addChild, updateChild, removeChild };
+    return { children, isLoading, addChild, updateChild, removeChild, error, retry };
 }

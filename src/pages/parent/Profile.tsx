@@ -194,11 +194,11 @@ export default function Profile() {
                     <h3 className="section-title">{t('parent.myChildren')}</h3>
                     <div className="children-list">
                         {isLoading ? (
-                            <div style={{ textAlign: 'center', padding: 'var(--space-4)' }}>
+                            <div className="profile-empty-state">
                                 <span className="spinner" />
                             </div>
                         ) : children.length === 0 ? (
-                            <p style={{ color: 'var(--text-tertiary)', textAlign: 'center', padding: 'var(--space-4)' }}>
+                            <p className="profile-no-children">
                                 {t('common.none') || 'None'}
                             </p>
                         ) : (
@@ -236,17 +236,17 @@ export default function Profile() {
             <Card>
                 <CardBody>
                     <div className="settings-menu" role="navigation" aria-label="Settings">
-                        <button className="menu-item"><span aria-hidden="true">🔔</span> {t('parent.notifications')}</button>
+                        <button className="menu-item" onClick={() => toast.info(t('parent.notifications'), 'Notification preferences coming soon')}><span aria-hidden="true">🔔</span> {t('parent.notifications')}</button>
                         <button className="menu-item" onClick={() => setShowLanguagePicker(true)}>
                             <span aria-hidden="true">🌐</span> {t('auth.preferredLanguage')}
-                            <span style={{ marginLeft: 'auto', fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
+                            <span className="menu-item-value">
                                 {currentLang.flag} {currentLang.label}
                             </span>
                         </button>
-                        <button className="menu-item"><span aria-hidden="true">💳</span> {t('parent.paymentMethods')}</button>
-                        <button className="menu-item"><span aria-hidden="true">📄</span> {t('parent.termsOfService')}</button>
-                        <button className="menu-item"><span aria-hidden="true">🔒</span> {t('parent.privacyPolicy')}</button>
-                        <button className="menu-item"><span aria-hidden="true">❓</span> {t('parent.help')}</button>
+                        <button className="menu-item" onClick={() => toast.info(t('parent.paymentMethods'), 'Payment management coming soon')}><span aria-hidden="true">💳</span> {t('parent.paymentMethods')}</button>
+                        <button className="menu-item" onClick={() => window.open('https://kidscarepro.com/terms', '_blank')}><span aria-hidden="true">📄</span> {t('parent.termsOfService')}</button>
+                        <button className="menu-item" onClick={() => window.open('https://kidscarepro.com/privacy', '_blank')}><span aria-hidden="true">🔒</span> {t('parent.privacyPolicy')}</button>
+                        <button className="menu-item" onClick={() => toast.info(t('parent.help'), 'Support: support@kidscarepro.com')}><span aria-hidden="true">❓</span> {t('parent.help')}</button>
                     </div>
                 </CardBody>
             </Card>
@@ -267,12 +267,12 @@ export default function Profile() {
                             {t('common.cancel')}
                         </Button>
                         <Button variant="primary" onClick={handleChildSubmit} disabled={isSaving}>
-                            {isSaving ? <span className="spinner" style={{ width: 16, height: 16 }} /> : t('common.save')}
+                            {isSaving ? <span className="spinner spinner-sm" /> : t('common.save')}
                         </Button>
                     </>
                 }
             >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                <div className="profile-form-stack">
                     <Input
                         label={t('common.name')}
                         value={childForm.name}

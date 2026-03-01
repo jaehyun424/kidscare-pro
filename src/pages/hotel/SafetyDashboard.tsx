@@ -2,13 +2,15 @@
 // KidsCare Pro - Safety Dashboard Page
 // ============================================
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { SafetyBadge, Badge } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
 import { Select, Textarea, Input } from '../../components/common/Input';
 import { Skeleton } from '../../components/common/Skeleton';
+import ErrorBanner from '../../components/common/ErrorBanner';
 import { useAuth } from '../../contexts/AuthContext';
 import { useHotel } from '../../hooks/useHotel';
 import { useHotelIncidents } from '../../hooks/useIncidents';
@@ -41,18 +43,18 @@ const ShieldIcon = () => (
 // ----------------------------------------
 // Helpers
 // ----------------------------------------
-function getRelativeTime(date: Date): string {
+function getRelativeTime(date: Date, t: (key: string, opts?: Record<string, unknown>) => string): string {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 1) return 'just now';
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays === 1) return '1 day ago';
-    return `${diffDays} days ago`;
+    if (diffMins < 1) return t('safety.justNow');
+    if (diffMins < 60) return t('safety.minAgo', { count: diffMins });
+    if (diffHours < 24) return t('safety.hourAgo', { count: diffHours });
+    if (diffDays === 1) return t('safety.dayAgo');
+    return t('safety.daysAgo', { count: diffDays });
 }
 
 function getSeverityColor(severity: string): string {
@@ -83,42 +85,40 @@ function formatCategory(category: string): string {
 }
 
 // ----------------------------------------
-// Severity Options
-// ----------------------------------------
-const SEVERITY_OPTIONS = [
-    { value: 'low', label: 'Low' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'high', label: 'High' },
-    { value: 'critical', label: 'Critical' },
-];
-
-const CATEGORY_OPTIONS = [
-    { value: 'injury', label: 'Injury' },
-    { value: 'illness', label: 'Illness' },
-    { value: 'property_damage', label: 'Property Damage' },
-    { value: 'complaint', label: 'Complaint' },
-    { value: 'safety_concern', label: 'Safety Concern' },
-    { value: 'other', label: 'Other' },
-];
-
-const FILTER_TABS: { key: FilterTab; label: string }[] = [
-    { key: 'all', label: 'All' },
-    { key: 'open', label: 'Open' },
-    { key: 'investigating', label: 'Investigating' },
-    { key: 'resolved', label: 'Resolved' },
-    { key: 'closed', label: 'Closed' },
-];
-
-// ----------------------------------------
 // Component
 // ----------------------------------------
 export default function SafetyDashboard() {
+    const { t } = useTranslation();
     const { user } = useAuth();
     const hotelId = user?.hotelId;
     const { hotel, isLoading: hotelLoading } = useHotel(hotelId);
-    const { incidents, isLoading: incidentsLoading, createIncident, updateIncidentStatus } = useHotelIncidents(hotelId);
+    const { incidents, isLoading: incidentsLoading, createIncident, updateIncidentStatus, error: incidentsError, retry: retryIncidents } = useHotelIncidents(hotelId);
     const { stats, isLoading: bookingsLoading } = useHotelBookings(hotelId);
     const toast = useToast();
+
+    const SEVERITY_OPTIONS = [
+        { value: 'low', label: t('safety.low') },
+        { value: 'medium', label: t('safety.medium') },
+        { value: 'high', label: t('safety.high') },
+        { value: 'critical', label: t('safety.critical') },
+    ];
+
+    const CATEGORY_OPTIONS = [
+        { value: 'injury', label: t('safety.injury') },
+        { value: 'illness', label: t('safety.illness') },
+        { value: 'property_damage', label: t('safety.propertyDamage') },
+        { value: 'complaint', label: t('safety.complaint') },
+        { value: 'safety_concern', label: t('safety.safetyConcern') },
+        { value: 'other', label: t('safety.other') },
+    ];
+
+    const FILTER_TABS: { key: FilterTab; label: string }[] = [
+        { key: 'all', label: t('common.all') },
+        { key: 'open', label: t('safety.open') },
+        { key: 'investigating', label: t('safety.investigating') },
+        { key: 'resolved', label: t('safety.resolved') },
+        { key: 'closed', label: t('safety.closed') },
+    ];
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -129,6 +129,8 @@ export default function SafetyDashboard() {
     const [formCategory, setFormCategory] = useState('injury');
     const [formSitterName, setFormSitterName] = useState('');
     const [formSummary, setFormSummary] = useState('');
+    const [formSummaryError, setFormSummaryError] = useState('');
+    const summaryRef = useRef<HTMLTextAreaElement>(null);
 
     // Filter state
     const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
@@ -156,6 +158,7 @@ export default function SafetyDashboard() {
         setFormCategory('injury');
         setFormSitterName('');
         setFormSummary('');
+        setFormSummaryError('');
         setIsModalOpen(true);
     };
 
@@ -164,10 +167,15 @@ export default function SafetyDashboard() {
     };
 
     const handleSubmit = async () => {
-        if (!formSummary.trim()) {
-            toast.warning('Missing Information', 'Please provide a summary of the incident.');
+        if (!formSummary.trim() || formSummary.trim().length < 10) {
+            const errorMsg = !formSummary.trim()
+                ? t('common.required', 'This field is required')
+                : t('safety.summaryTooShort', 'Summary must be at least 10 characters');
+            setFormSummaryError(errorMsg);
+            summaryRef.current?.focus();
             return;
         }
+        setFormSummaryError('');
 
         setIsSubmitting(true);
         try {
@@ -182,10 +190,10 @@ export default function SafetyDashboard() {
                     reportedAt: new Date(),
                 },
             });
-            toast.success('Incident Reported', 'The incident has been recorded successfully.');
+            toast.success(t('safety.incidentReported'), t('safety.reportedSuccess'));
             closeModal();
         } catch {
-            toast.error('Failed', 'Could not create incident report. Please try again.');
+            toast.error('Failed', t('safety.reportFailed'));
         } finally {
             setIsSubmitting(false);
         }
@@ -194,9 +202,9 @@ export default function SafetyDashboard() {
     const handleStatusChange = async (incidentId: string, newStatus: 'investigating' | 'resolved' | 'closed') => {
         try {
             await updateIncidentStatus(incidentId, newStatus);
-            toast.success('Status Updated', `Incident status changed to ${newStatus}.`);
+            toast.success(t('safety.statusUpdated'), t('safety.statusChangedTo', { status: newStatus }));
         } catch {
-            toast.error('Failed', 'Could not update incident status.');
+            toast.error('Failed', t('safety.statusUpdateFailed'));
         }
     };
 
@@ -230,8 +238,8 @@ export default function SafetyDashboard() {
             {/* Page Header */}
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Safety Record Dashboard</h1>
-                    <p className="page-subtitle">Track and maintain your hotel's safety excellence</p>
+                    <h1 className="page-title">{t('safety.title')}</h1>
+                    <p className="page-subtitle">{t('safety.subtitle')}</p>
                 </div>
                 <div className="safety-header-actions">
                     <SafetyBadge days={safetyDays} />
@@ -241,22 +249,24 @@ export default function SafetyDashboard() {
                         icon={<PlusIcon />}
                         onClick={openModal}
                     >
-                        Report Incident
+                        {t('safety.reportIncident')}
                     </Button>
                 </div>
             </div>
 
+            {incidentsError && <ErrorBanner error={incidentsError} onRetry={retryIncidents} />}
+
             {/* Main Safety Banner */}
             <div className="safety-main-banner">
-                <div className="safety-number">{safetyDays}</div>
+                <div className="safety-number" aria-live="polite">{safetyDays}</div>
                 <div className="safety-text">
-                    <h2>Consecutive Days Without Incidents</h2>
+                    <h2>{t('safety.consecutiveDays')}</h2>
                     <p>
                         {safetyDays >= 100
-                            ? 'Your hotel maintains an excellent safety record. Keep up the great work!'
+                            ? t('safety.excellentRecord')
                             : safetyDays >= 30
-                                ? 'Good progress on safety. Stay vigilant to reach the 100-day milestone!'
-                                : 'Building your safety record. Every safe day counts!'}
+                                ? t('safety.goodProgress')
+                                : t('safety.buildingRecord')}
                     </p>
                 </div>
             </div>
@@ -265,46 +275,46 @@ export default function SafetyDashboard() {
             <div className="safety-stats-row">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Current Month</CardTitle>
+                        <CardTitle>{t('safety.currentMonth')}</CardTitle>
                     </CardHeader>
                     <CardBody>
                         <div className="safety-stat">
                             <span className="number">{stats.completedToday}</span>
-                            <span className="label">Sessions Completed</span>
+                            <span className="label">{t('safety.sessionsCompleted')}</span>
                         </div>
                         <div className="safety-stat">
                             <span className={`number ${monthlyIncidentCount === 0 ? 'text-success' : 'text-error'}`}>
                                 {monthlyIncidentCount}
                             </span>
-                            <span className="label">Incidents This Month</span>
+                            <span className="label">{t('safety.incidentsThisMonth')}</span>
                         </div>
                         <div className="safety-stat">
                             <span className="number text-gold">{complianceRate}%</span>
-                            <span className="label">Compliance Rate</span>
+                            <span className="label">{t('safety.complianceRate')}</span>
                         </div>
                     </CardBody>
                 </Card>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Trust Protocol Stats</CardTitle>
+                        <CardTitle>{t('safety.trustProtocolStats')}</CardTitle>
                     </CardHeader>
                     <CardBody>
                         <div className="protocol-list">
                             <div className="protocol-item">
-                                <span>Digital Badge Verified</span>
+                                <span>{t('safety.digitalBadge')}</span>
                                 <Badge variant="success">156/156</Badge>
                             </div>
                             <div className="protocol-item">
-                                <span>Safe Word Confirmed</span>
+                                <span>{t('safety.safeWordConfirmed')}</span>
                                 <Badge variant="success">156/156</Badge>
                             </div>
                             <div className="protocol-item">
-                                <span>Joint Checklist Completed</span>
+                                <span>{t('safety.jointChecklist')}</span>
                                 <Badge variant="success">154/156</Badge>
                             </div>
                             <div className="protocol-item">
-                                <span>Emergency Consent Signed</span>
+                                <span>{t('safety.emergencyConsent')}</span>
                                 <Badge variant="success">156/156</Badge>
                             </div>
                         </div>
@@ -317,12 +327,12 @@ export default function SafetyDashboard() {
                 <CardHeader
                     action={
                         <Button variant="ghost" size="sm" icon={<PlusIcon />} onClick={openModal}>
-                            New Report
+                            {t('safety.reportNewIncident')}
                         </Button>
                     }
                 >
                     <CardTitle subtitle={`${incidents.length} total incidents on record`}>
-                        Incident History
+                        {t('safety.incidentHistory')}
                     </CardTitle>
                 </CardHeader>
                 <CardBody>
@@ -350,10 +360,10 @@ export default function SafetyDashboard() {
                     {filteredIncidents.length === 0 ? (
                         <div className="empty-incidents">
                             <span className="empty-icon"><ShieldIcon /></span>
-                            <h4>No Incidents</h4>
+                            <h4>{t('safety.noIncidents')}</h4>
                             <p>
                                 {activeFilter === 'all'
-                                    ? `No incidents have been reported in the last ${safetyDays} days.`
+                                    ? t('safety.noIncidentsDesc')
                                     : `No ${activeFilter} incidents found.`}
                             </p>
                         </div>
@@ -379,13 +389,13 @@ export default function SafetyDashboard() {
                                             <p className="incident-summary">{incident.summary}</p>
                                             <div className="incident-meta">
                                                 {incident.sitterName && (
-                                                    <span className="incident-meta-item">Sitter: {incident.sitterName}</span>
+                                                    <span className="incident-meta-item">{t('safety.sitter', { name: incident.sitterName })}</span>
                                                 )}
                                                 {incident.childName && (
-                                                    <span className="incident-meta-item">Child: {incident.childName}</span>
+                                                    <span className="incident-meta-item">{t('safety.child', { name: incident.childName })}</span>
                                                 )}
                                                 <span className="incident-meta-item">
-                                                    {getRelativeTime(incident.reportedAt)}
+                                                    {getRelativeTime(incident.reportedAt, t)}
                                                 </span>
                                                 <span className="incident-meta-item incident-date-full">
                                                     {incident.reportedAt.toLocaleDateString()}
@@ -400,7 +410,7 @@ export default function SafetyDashboard() {
                                                 size="sm"
                                                 onClick={() => handleStatusChange(incident.id, 'investigating')}
                                             >
-                                                Investigate
+                                                {t('safety.investigate')}
                                             </Button>
                                         )}
                                         {incident.status === 'investigating' && (
@@ -409,7 +419,7 @@ export default function SafetyDashboard() {
                                                 size="sm"
                                                 onClick={() => handleStatusChange(incident.id, 'resolved')}
                                             >
-                                                Resolve
+                                                {t('safety.resolve')}
                                             </Button>
                                         )}
                                         {incident.status === 'resolved' && (
@@ -418,7 +428,7 @@ export default function SafetyDashboard() {
                                                 size="sm"
                                                 onClick={() => handleStatusChange(incident.id, 'closed')}
                                             >
-                                                Close
+                                                {t('safety.close')}
                                             </Button>
                                         )}
                                     </div>
@@ -433,15 +443,15 @@ export default function SafetyDashboard() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={closeModal}
-                title="Report New Incident"
+                title={t('safety.reportNewIncident')}
                 size="md"
                 footer={
                     <>
                         <Button variant="secondary" onClick={closeModal} disabled={isSubmitting}>
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button variant="danger" onClick={handleSubmit} isLoading={isSubmitting}>
-                            Submit Report
+                            {t('safety.submitReport')}
                         </Button>
                     </>
                 }
@@ -449,30 +459,32 @@ export default function SafetyDashboard() {
                 <div className="incident-form">
                     <div className="incident-form-row">
                         <Select
-                            label="Severity"
+                            label={t('safety.severity')}
                             options={SEVERITY_OPTIONS}
                             value={formSeverity}
                             onChange={(e) => setFormSeverity(e.target.value)}
                         />
                         <Select
-                            label="Category"
+                            label={t('safety.category')}
                             options={CATEGORY_OPTIONS}
                             value={formCategory}
                             onChange={(e) => setFormCategory(e.target.value)}
                         />
                     </div>
                     <Input
-                        label="Sitter Name (optional)"
-                        placeholder="Enter sitter name if applicable"
+                        label={t('safety.sitterNameOptional')}
+                        placeholder={t('safety.enterSitterName')}
                         value={formSitterName}
                         onChange={(e) => setFormSitterName(e.target.value)}
                     />
                     <Textarea
-                        label="Incident Summary"
-                        placeholder="Describe what happened, when, and any actions taken..."
+                        ref={summaryRef}
+                        label={t('safety.incidentSummary')}
+                        placeholder={t('safety.describeSummary')}
                         value={formSummary}
-                        onChange={(e) => setFormSummary(e.target.value)}
+                        onChange={(e) => { setFormSummary(e.target.value); if (formSummaryError) setFormSummaryError(''); }}
                         rows={5}
+                        error={formSummaryError}
                     />
                 </div>
             </Modal>

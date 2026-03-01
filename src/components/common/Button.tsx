@@ -100,36 +100,3 @@ export function IconButton({
         </button>
     );
 }
-
-// Additional styles
-const buttonStyles = `
-.btn-full {
-  width: 100%;
-}
-
-.btn-icon-left {
-  display: flex;
-  margin-right: var(--space-2);
-}
-
-.btn-icon-right {
-  display: flex;
-  margin-left: var(--space-2);
-}
-
-.btn-icon-sm {
-  width: 32px;
-  height: 32px;
-}
-
-.btn-icon-lg {
-  width: 48px;
-  height: 48px;
-}
-`;
-
-if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = buttonStyles;
-    document.head.appendChild(styleSheet);
-}

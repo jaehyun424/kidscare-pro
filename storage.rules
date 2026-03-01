@@ -7,20 +7,38 @@ service firebase.storage {
     }
 
     function isImageType() {
-      return request.resource.contentType.matches('image/.*');
+      return request.resource.contentType.matches('image/(jpeg|png|gif|webp)');
+    }
+
+    function isPdfOrImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|gif|webp)')
+        || request.resource.contentType == 'application/pdf';
     }
 
     function isUnder10MB() {
       return request.resource.size < 10 * 1024 * 1024;
     }
 
-    // Booking signatures
-    match /bookings/{bookingId}/signatures/{fileName} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && isImageType() && isUnder10MB();
+    function isUnder5MB() {
+      return request.resource.size < 5 * 1024 * 1024;
     }
 
-    // Session activity photos
+    // Profile avatars - only owner can write
+    match /users/{userId}/avatar/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn()
+        && request.auth.uid == userId
+        && isImageType()
+        && isUnder5MB();
+    }
+
+    // Booking signatures - authenticated users with size/type limits
+    match /bookings/{bookingId}/signatures/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isImageType() && isUnder5MB();
+    }
+
+    // Session activity photos - sitters only
     match /sessions/{sessionId}/photos/{fileName} {
       allow read: if isSignedIn();
       allow write: if isSignedIn() && isImageType() && isUnder10MB();
@@ -32,16 +50,19 @@ service firebase.storage {
       allow write: if isSignedIn() && isImageType() && isUnder10MB();
     }
 
-    // Sitter documents
+    // Sitter documents (PDF or images only, ownership enforced)
     match /sitters/{sitterId}/documents/{fileName} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn() && isUnder10MB();
+      allow write: if isSignedIn()
+        && request.auth.uid == sitterId
+        && isPdfOrImage()
+        && isUnder10MB();
     }
 
-    // Hotel logos
+    // Hotel logos - hotel staff can write
     match /hotels/{hotelId}/logo.png {
       allow read: if true;
-      allow write: if isSignedIn() && isImageType() && isUnder10MB();
+      allow write: if isSignedIn() && isImageType() && isUnder5MB();
     }
 
     // Deny everything else

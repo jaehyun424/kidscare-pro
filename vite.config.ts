@@ -53,7 +53,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
           'router': ['react-router-dom'],
           'firebase-core': ['firebase/app', 'firebase/auth'],
           'firebase-db': ['firebase/firestore'],
@@ -61,7 +60,6 @@ export default defineConfig({
           'i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
           'qr': ['qrcode.react', 'jsqr'],
           'pdf': ['jspdf'],
-          'utils': ['date-fns'],
         },
       },
     },

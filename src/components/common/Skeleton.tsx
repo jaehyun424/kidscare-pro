@@ -39,7 +39,7 @@ export function Skeleton({
         borderRadius,
     };
 
-    return <div className={`skeleton ${className}`} style={style} />;
+    return <div className={`skeleton ${className}`} style={style} aria-hidden="true" />;
 }
 
 // ----------------------------------------
@@ -92,26 +92,4 @@ export function CardSkeleton() {
             </div>
         </div>
     );
-}
-
-// Additional styles
-const skeletonStyles = `
-.skeleton-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.skeleton-line {
-  opacity: 0.7;
-}
-
-.mt-2 { margin-top: 0.5rem; }
-.mt-4 { margin-top: 1rem; }
-`;
-
-if (typeof document !== 'undefined') {
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = skeletonStyles;
-    document.head.appendChild(styleSheet);
 }

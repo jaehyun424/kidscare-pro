@@ -3,10 +3,13 @@
 // ============================================
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import jsQR from 'jsqr';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
+import { Input } from '../../components/common/Input';
 import { Badge } from '../../components/common/Badge';
+import { Tabs, TabPanel } from '../../components/common/Tabs';
 import { useToast } from '../../contexts/ToastContext';
 import '../../styles/pages/hotel-scan-checkin.css';
 
@@ -28,6 +31,7 @@ type ScanStatus = 'idle' | 'scanning' | 'success' | 'error';
 // Component
 // ----------------------------------------
 export default function ScanCheckIn() {
+    const { t } = useTranslation();
     const toast = useToast();
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -37,6 +41,10 @@ export default function ScanCheckIn() {
     const [scanStatus, setScanStatus] = useState<ScanStatus>('idle');
     const [scannedData, setScannedData] = useState<QRPayload | null>(null);
     const [cameraError, setCameraError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState('scan');
+    const [manualCode, setManualCode] = useState('');
+    const [manualLoading, setManualLoading] = useState(false);
+    const [manualCodeError, setManualCodeError] = useState('');
 
     // ---- Start Camera ----
     const startCamera = useCallback(async () => {
@@ -56,7 +64,7 @@ export default function ScanCheckIn() {
             }
         } catch (err) {
             console.error('Camera access failed:', err);
-            setCameraError('Camera access denied. Please allow camera permissions.');
+            setCameraError(t('scan.cameraDenied'));
             setScanStatus('idle');
         }
     }, []);
@@ -104,7 +112,7 @@ export default function ScanCheckIn() {
                         setScannedData(parsed);
                         setScanStatus('success');
                         stopCamera();
-                        toast.success('QR Code Scanned', `Booking ${parsed.confirmationCode} verified!`);
+                        toast.success(t('scan.qrScanned'), t('scan.bookingVerifiedMsg', { code: parsed.confirmationCode }));
                         return;
                     }
                 } catch {
@@ -132,9 +140,38 @@ export default function ScanCheckIn() {
     // ---- Confirm Check-In ----
     const handleConfirmCheckIn = () => {
         if (!scannedData) return;
-        toast.success('Check-In Confirmed', `Booking ${scannedData.confirmationCode} has been checked in.`);
+        toast.success(t('scan.checkInConfirmed'), t('scan.checkInConfirmedMsg', { code: scannedData.confirmationCode }));
         setScanStatus('idle');
         setScannedData(null);
+    };
+
+    // ---- Manual Code Lookup ----
+    const handleManualLookup = async () => {
+        if (!manualCode.trim()) {
+            setManualCodeError(t('common.required', 'This field is required'));
+            return;
+        }
+        setManualCodeError('');
+        setManualLoading(true);
+        try {
+            // Simulate lookup (in real mode, would call bookingService.getByConfirmationCode)
+            await new Promise((r) => setTimeout(r, 800));
+            const fakePayload: QRPayload = {
+                type: 'kidscare_checkin',
+                bookingId: `booking-${manualCode}`,
+                confirmationCode: manualCode.toUpperCase(),
+                parentId: 'manual-lookup',
+                hotelId: 'grand-hyatt-seoul',
+                timestamp: new Date().toISOString(),
+            };
+            setScannedData(fakePayload);
+            setScanStatus('success');
+            toast.success(t('scan.qrScanned'), t('scan.bookingVerifiedMsg', { code: fakePayload.confirmationCode }));
+        } catch {
+            toast.error(t('scan.notFound'), t('scan.noBookingFound'));
+        } finally {
+            setManualLoading(false);
+        }
     };
 
     // ---- Reset ----
@@ -142,6 +179,7 @@ export default function ScanCheckIn() {
         setScanStatus('idle');
         setScannedData(null);
         setCameraError(null);
+        setManualCode('');
     };
 
     // ----------------------------------------
@@ -150,16 +188,60 @@ export default function ScanCheckIn() {
     return (
         <div className="scan-page animate-fade-in">
             <div className="page-header">
-                <h1 className="page-title">QR Check-In</h1>
-                <p className="page-subtitle">Scan a guest's QR code to verify their booking</p>
+                <h1 className="page-title">{t('scan.title')}</h1>
+                <p className="page-subtitle">{t('scan.subtitle')}</p>
             </div>
 
             <div className="scan-content">
+                {/* Tab Selection */}
+                <Tabs
+                    tabs={[
+                        { id: 'scan', label: t('scan.qrScanner') },
+                        { id: 'manual', label: t('scan.manualCode') },
+                    ]}
+                    activeTab={activeTab}
+                    onChange={setActiveTab}
+                    variant="pills"
+                />
+
+                {/* Manual Code Entry */}
+                <TabPanel id="manual" activeTab={activeTab}>
+                    <Card className="scan-card">
+                        <CardHeader>
+                            <CardTitle subtitle={t('scan.manualSubtitle')}>
+                                {t('scan.manualCheckIn')}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="manual-entry">
+                                <Input
+                                    label={t('scan.confirmationCode')}
+                                    value={manualCode}
+                                    onChange={(e) => { setManualCode(e.target.value); if (manualCodeError) setManualCodeError(''); }}
+                                    placeholder={t('scan.codePlaceholder')}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleManualLookup(); }}
+                                    error={manualCodeError}
+                                />
+                                <Button
+                                    variant="gold"
+                                    fullWidth
+                                    onClick={handleManualLookup}
+                                    isLoading={manualLoading}
+                                    disabled={!manualCode.trim()}
+                                >
+                                    {t('scan.lookUpBooking')}
+                                </Button>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </TabPanel>
+
                 {/* Scanner Area */}
+                <TabPanel id="scan" activeTab={activeTab}>
                 <Card className="scan-card">
                     <CardHeader>
-                        <CardTitle subtitle="Point camera at the guest's QR code">
-                            Scanner
+                        <CardTitle subtitle={t('scan.pointCamera')}>
+                            {t('scan.scanner')}
                         </CardTitle>
                     </CardHeader>
                     <CardBody>
@@ -168,9 +250,9 @@ export default function ScanCheckIn() {
                                 <div className="scan-icon">
                                     <QRIcon />
                                 </div>
-                                <p>Tap the button below to start scanning</p>
+                                <p>{t('scan.tapToStart')}</p>
                                 <Button variant="gold" onClick={startCamera}>
-                                    Start Scanner
+                                    {t('scan.startScanner')}
                                 </Button>
                             </div>
                         )}
@@ -182,7 +264,7 @@ export default function ScanCheckIn() {
                                 </div>
                                 <p>{cameraError}</p>
                                 <Button variant="primary" onClick={startCamera}>
-                                    Try Again
+                                    {t('scan.tryAgain')}
                                 </Button>
                             </div>
                         )}
@@ -217,35 +299,36 @@ export default function ScanCheckIn() {
                                 <div className="scan-success-icon">
                                     <CheckCircleIcon />
                                 </div>
-                                <h3>Booking Verified</h3>
-                                <Badge variant="success" size="sm">Valid QR Code</Badge>
+                                <h3>{t('scan.bookingVerified')}</h3>
+                                <Badge variant="success" size="sm">{t('scan.validQRCode')}</Badge>
                             </div>
                         )}
                     </CardBody>
                 </Card>
+                </TabPanel>
 
                 {/* Scanned Data */}
                 {scannedData && (
                     <Card className="scan-data-card animate-fade-in-up">
                         <CardHeader>
-                            <CardTitle>Booking Details</CardTitle>
+                            <CardTitle>{t('scan.bookingDetails')}</CardTitle>
                         </CardHeader>
                         <CardBody>
                             <div className="scan-data-grid">
                                 <div className="scan-data-item">
-                                    <span className="scan-data-label">Confirmation</span>
+                                    <span className="scan-data-label">{t('scan.confirmation')}</span>
                                     <span className="scan-data-value">{scannedData.confirmationCode}</span>
                                 </div>
                                 <div className="scan-data-item">
-                                    <span className="scan-data-label">Booking ID</span>
+                                    <span className="scan-data-label">{t('scan.bookingId')}</span>
                                     <span className="scan-data-value">{scannedData.bookingId}</span>
                                 </div>
                                 <div className="scan-data-item">
-                                    <span className="scan-data-label">Hotel</span>
+                                    <span className="scan-data-label">{t('scan.hotel')}</span>
                                     <span className="scan-data-value">{scannedData.hotelId || 'N/A'}</span>
                                 </div>
                                 <div className="scan-data-item">
-                                    <span className="scan-data-label">Scanned At</span>
+                                    <span className="scan-data-label">{t('scan.scannedAt')}</span>
                                     <span className="scan-data-value">
                                         {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                     </span>
@@ -254,10 +337,10 @@ export default function ScanCheckIn() {
 
                             <div className="scan-actions">
                                 <Button variant="secondary" onClick={handleReset}>
-                                    Scan Another
+                                    {t('scan.scanAnother')}
                                 </Button>
                                 <Button variant="gold" onClick={handleConfirmCheckIn}>
-                                    Confirm Check-In
+                                    {t('scan.confirmCheckIn')}
                                 </Button>
                             </div>
                         </CardBody>

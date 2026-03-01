@@ -27,6 +27,13 @@
   font-size: 1.125rem;
 }
 
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 /* Safety Banner */
 .safety-banner {
   background: var(--bg-card);
@@ -322,3 +329,57 @@
     border-radius: 50%;
 }
 .status-dot-success { background-color: var(--success-500); }
+
+/* Live monitor title row (replaces Tailwind "flex items-center gap-2") */
+.live-monitor-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Modal form stacks */
+.dashboard .modal-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dashboard .modal-form-stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Sitter option row (assign sitter modal) */
+.sitter-option-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.sitter-option-row:hover {
+  background: var(--glass-bg);
+}
+
+.sitter-option-info {
+  flex: 1;
+}
+
+.sitter-option-name {
+  font-weight: var(--font-semibold);
+}
+
+.sitter-option-detail {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.no-sitters-message {
+  text-align: center;
+  color: var(--text-tertiary);
+  padding: var(--space-4);
+}
