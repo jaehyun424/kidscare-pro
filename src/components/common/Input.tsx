@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Input Component
+// Petit Stay - Input Component
 // ============================================
 
 import React, { forwardRef, useId } from 'react';

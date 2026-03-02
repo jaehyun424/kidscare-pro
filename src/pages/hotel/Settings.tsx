@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Hotel Settings Page
+// Petit Stay - Hotel Settings Page
 // ============================================
 
 import { useState, useEffect, useCallback } from 'react';
@@ -12,6 +12,7 @@ import ErrorBanner from '../../components/common/ErrorBanner';
 import { useAuth } from '../../contexts/AuthContext';
 import { useHotel } from '../../hooks/useHotel';
 import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import type { Currency, CancellationPolicy } from '../../types';
 import '../../styles/pages/hotel-settings.css';
 
@@ -20,6 +21,7 @@ export default function Settings() {
     const { user } = useAuth();
     const { hotel, isLoading, updateHotel, error: hotelError, retry: retryHotel } = useHotel(user?.hotelId);
     const { success, error: toastError } = useToast();
+    const { isDark, toggleTheme } = useTheme();
 
     // ----------------------------------------
     // Hotel Profile state
@@ -327,6 +329,23 @@ export default function Settings() {
                                 ]}
                             />
                         </div>
+                    </CardBody>
+                </Card>
+
+                {/* Display */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle subtitle={t('hotel.displaySettingsSubtitle', 'Appearance preferences')}>{t('common.theme', 'Theme')}</CardTitle>
+                    </CardHeader>
+                    <CardBody>
+                        <label className="toggle-option">
+                            <input
+                                type="checkbox"
+                                checked={isDark}
+                                onChange={toggleTheme}
+                            />
+                            <span>{isDark ? `🌙 ${t('common.dark')}` : `☀️ ${t('common.light')}`}</span>
+                        </label>
                     </CardBody>
                 </Card>
 

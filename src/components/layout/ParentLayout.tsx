@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Parent App Layout (Bottom Nav)
+// Petit Stay - Parent App Layout (Bottom Nav)
 // ============================================
 
 import { NavLink, Outlet } from 'react-router-dom';
@@ -77,7 +77,7 @@ export function ParentLayout() {
             <header className="parent-header">
                 <div className="parent-header-logo">
                     <span className="logo-icon">👶</span>
-                    <span className="logo-text">KidsCare<span className="text-gold">Pro</span></span>
+                    <span className="logo-text">Petit<span className="text-gold">Stay</span></span>
                 </div>
                 <div className="parent-header-right">
                     <NotificationBell />

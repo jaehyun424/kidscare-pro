@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Parent Booking Page
+// Petit Stay - Parent Booking Page
 // ============================================
 
 import React, { useState, useEffect } from 'react';
@@ -61,14 +61,14 @@ export default function Booking() {
 
     const validateStep1 = () => {
         const errors: Record<string, string> = {};
-        if (!formData.date) errors.date = 'Date is required';
+        if (!formData.date) errors.date = t('validation.dateRequired');
         else {
             const selected = new Date(formData.date);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            if (selected < today) errors.date = 'Cannot select a past date';
+            if (selected < today) errors.date = t('validation.pastDate');
         }
-        if (!formData.startTime) errors.startTime = 'Start time is required';
+        if (!formData.startTime) errors.startTime = t('validation.startTimeRequired');
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     };

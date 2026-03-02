@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Pagination Component
+// Petit Stay - Pagination Component
 // ============================================
 
 interface PaginationProps {

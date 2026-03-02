@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Firebase Configuration
+// Petit Stay - Firebase Configuration
 // Real Firebase Integration
 // ============================================
 

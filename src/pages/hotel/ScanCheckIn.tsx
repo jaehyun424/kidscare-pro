@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Hotel QR Scan Check-In Page
+// Petit Stay - Hotel QR Scan Check-In Page
 // ============================================
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -108,7 +108,7 @@ export default function ScanCheckIn() {
             if (code) {
                 try {
                     const parsed: QRPayload = JSON.parse(code.data);
-                    if (parsed.type === 'kidscare_checkin' && parsed.bookingId) {
+                    if (parsed.type === 'petitstay_checkin' && parsed.bookingId) {
                         setScannedData(parsed);
                         setScanStatus('success');
                         stopCamera();
@@ -157,7 +157,7 @@ export default function ScanCheckIn() {
             // Simulate lookup (in real mode, would call bookingService.getByConfirmationCode)
             await new Promise((r) => setTimeout(r, 800));
             const fakePayload: QRPayload = {
-                type: 'kidscare_checkin',
+                type: 'petitstay_checkin',
                 bookingId: `booking-${manualCode}`,
                 confirmationCode: manualCode.toUpperCase(),
                 parentId: 'manual-lookup',

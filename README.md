@@ -1,4 +1,4 @@
-# 🍼 KidsCare Pro
+# 🍼 Petit Stay
 
 > **Premium Hotel Childcare Platform**  
 > 호텔 투숙객을 위한 프리미엄 아이돌봄 서비스 플랫폼

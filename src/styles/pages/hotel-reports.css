@@ -154,6 +154,25 @@
     font-weight: var(--font-bold);
 }
 
+.rpt-chart-change {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-sm);
+    margin-top: 0.25rem;
+}
+
+.rpt-change-up {
+    color: var(--success-500);
+    background: var(--success-bg);
+}
+
+.rpt-change-down {
+    color: var(--error-500);
+    background: color-mix(in srgb, var(--error-500) 10%, transparent);
+}
+
 /* Bar Chart */
 .rpt-bar-chart {
     display: flex;

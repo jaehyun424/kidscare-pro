@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Skeleton Loading Components
+// Petit Stay - Skeleton Loading Components
 // ============================================
 
 

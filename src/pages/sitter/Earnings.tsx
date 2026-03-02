@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Sitter Earnings Page
+// Petit Stay - Sitter Earnings Page
 // ============================================
 
 import { useState } from 'react';

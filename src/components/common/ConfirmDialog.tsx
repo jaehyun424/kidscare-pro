@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Confirm Dialog Component
+// Petit Stay - Confirm Dialog Component
 // ============================================
 
 import { Modal } from './Modal';

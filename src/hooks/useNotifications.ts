@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Notification Hooks
+// Petit Stay - Notification Hooks
 // ============================================
 
 import { useState, useEffect, useCallback } from 'react';
@@ -71,5 +71,13 @@ export function useNotifications(userId?: string) {
         await notificationService.markAllAsRead(userId);
     }, [userId]);
 
-    return { notifications, unreadCount, isLoading, markAsRead, markAllAsRead };
+    const deleteNotification = useCallback(async (notificationId: string) => {
+        if (DEMO_MODE) {
+            setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+            return;
+        }
+        await notificationService.deleteNotification(notificationId);
+    }, []);
+
+    return { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, deleteNotification };
 }

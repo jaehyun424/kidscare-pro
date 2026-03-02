@@ -1,12 +1,28 @@
 {
-  "name": "KidsCare Pro - Hospitality Childcare",
-  "short_name": "KidsCare Pro",
+  "name": "Petit Stay - Hospitality Childcare",
+  "short_name": "Petit Stay",
   "description": "Premium childcare management for luxury hotels. Real-time monitoring, booking, and sitter coordination.",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#F4EBD9",
   "background_color": "#FBFBF9",
   "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["lifestyle", "business", "kids"],
+  "shortcuts": [
+    {
+      "name": "Book Now",
+      "short_name": "Book",
+      "url": "/parent/book",
+      "icons": [{ "src": "/icons/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "url": "/hotel",
+      "icons": [{ "src": "/icons/icon-192.svg", "sizes": "192x192" }]
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.svg",

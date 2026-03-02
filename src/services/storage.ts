@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Firebase Storage Service
+// Petit Stay - Firebase Storage Service
 // Photo uploads, signature storage, documents
 // ============================================
 

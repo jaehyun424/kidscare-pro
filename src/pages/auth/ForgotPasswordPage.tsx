@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Forgot Password Page
+// Petit Stay - Forgot Password Page
 // ============================================
 
 import React, { useState } from 'react';
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
         <div className="visual-overlay" />
         <div className="visual-content">
           <h1 className="visual-quote">"Uncompromising care for your most important guests."</h1>
-          <p className="visual-author">— KidsCare Pro Hospitality Standard</p>
+          <p className="visual-author">— Petit Stay Hospitality Standard</p>
         </div>
       </div>
 
@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
         <div className="login-header">
           <div className="brand-logo">
             <span className="logo-icon">✨</span>
-            <span className="logo-text">KidsCare<span className="text-gold">Pro</span></span>
+            <span className="logo-text">Petit<span className="text-gold">Stay</span></span>
           </div>
           <LanguageSwitcher />
         </div>
@@ -143,7 +143,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         <div className="login-footer">
-          <p>&copy; 2026 KidsCare Pro. Tokyo &bull; Seoul &bull; Singapore.</p>
+          <p>&copy; 2026 Petit Stay. Tokyo &bull; Seoul &bull; Singapore.</p>
         </div>
       </div>
     </div>

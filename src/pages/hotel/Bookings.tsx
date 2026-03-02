@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Hotel Bookings Page
+// Petit Stay - Hotel Bookings Page
 // ============================================
 
 import { useState } from 'react';

@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Avatar Component
+// Petit Stay - Avatar Component
 // ============================================
 
 import React from 'react';

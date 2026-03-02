@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Firestore Service
+// Petit Stay - Firestore Service
 // Database operations for all entities
 // ============================================
 
@@ -233,6 +233,36 @@ export const bookingService = {
             updatedAt: serverTimestamp(),
         });
     },
+
+    // Get bookings by date range for a hotel
+    async getBookingsByDateRange(hotelId: string, start: Date, end: Date): Promise<Booking[]> {
+        const q = query(
+            collection(db, COLLECTIONS.bookings),
+            where('hotelId', '==', hotelId),
+            where('schedule.date', '>=', start),
+            where('schedule.date', '<=', end),
+            orderBy('schedule.date', 'asc')
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((d) => ({
+            id: d.id,
+            ...convertTimestamps(d.data()),
+        })) as Booking[];
+    },
+
+    // Search bookings by confirmation code, guest name, or room number (client-side filter)
+    async searchBookings(hotelId: string, searchQuery: string): Promise<Booking[]> {
+        const allBookings = await bookingService.getHotelBookings(hotelId);
+        const q = searchQuery.toLowerCase().trim();
+        if (!q) return allBookings;
+
+        return allBookings.filter((b) => {
+            const code = (b.confirmationCode || '').toLowerCase();
+            const name = ((b as unknown as Record<string, unknown>).guestName as string || '').toLowerCase();
+            const room = (b.location?.roomNumber || '').toLowerCase();
+            return code.includes(q) || name.includes(q) || room.includes(q);
+        });
+    },
 };
 
 // ----------------------------------------
@@ -429,6 +459,23 @@ export const sitterService = {
             where('status', '==', 'completed'),
             orderBy('completedAt', 'desc'),
             limit(100)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((d) => ({
+            id: d.id,
+            ...convertTimestamps(d.data()),
+        })) as Booking[];
+    },
+
+    // Get sitter earnings filtered by date period
+    async getSitterEarningsByPeriod(sitterId: string, start: Date, end: Date): Promise<Booking[]> {
+        const q = query(
+            collection(db, COLLECTIONS.bookings),
+            where('sitterId', '==', sitterId),
+            where('status', '==', 'completed'),
+            where('completedAt', '>=', start),
+            where('completedAt', '<=', end),
+            orderBy('completedAt', 'desc')
         );
         const snapshot = await getDocs(q);
         return snapshot.docs.map((d) => ({
@@ -690,6 +737,11 @@ export const notificationService = {
             })) as Notification[];
             callback(notifications);
         });
+    },
+
+    // Delete a notification
+    async deleteNotification(notificationId: string): Promise<void> {
+        await deleteDoc(doc(db, COLLECTIONS.notifications, notificationId));
     },
 
     // Get unread count

@@ -1,5 +1,5 @@
 /* ============================================
-   KidsCare Pro - Hospitality Design System
+   Petit Stay - Hospitality Design System
    Theme: Quiet Luxury (Deep Charcoal, Cream, Gold)
    ============================================ */
 
@@ -50,7 +50,11 @@
   --text-primary: var(--charcoal-900);
   --text-secondary: var(--charcoal-600);
   --text-tertiary: var(--charcoal-500);
+  --text-muted: var(--charcoal-400);
+  --text-disabled: var(--charcoal-300);
   --border-color: var(--cream-300);
+  --border-warning: var(--warning-500);
+  --border-error: var(--error-500);
 
   /* Status Colors */
   --success-50: #EAF2ED;
@@ -149,6 +153,19 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* iOS safe area support */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Focus-visible accessibility */
+:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
 body {
@@ -1358,3 +1375,78 @@ p {
 /* BookingQR */
 .booking-qr { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); }
 .booking-qr-code { font-size: var(--text-sm); font-weight: var(--font-bold); letter-spacing: 0.1em; color: var(--text-secondary); }
+
+/* ----------------------------------------
+   Demo Mode Banner
+   ---------------------------------------- */
+.demo-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-toast);
+  background: linear-gradient(90deg, var(--gold-600), var(--gold-500));
+  color: white;
+  text-align: center;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom));
+}
+
+.demo-banner-dismiss {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  margin-left: var(--space-3);
+  font-size: var(--text-xs);
+  opacity: 0.8;
+  text-decoration: underline;
+}
+.demo-banner-dismiss:hover { opacity: 1; }
+
+/* ----------------------------------------
+   Responsive: small screen improvements
+   ---------------------------------------- */
+@media (max-width: 480px) {
+  .quick-actions {
+    grid-template-columns: 1fr !important;
+  }
+  .rpt-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .rpt-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ----------------------------------------
+   iOS Safe Area for bottom nav
+   ---------------------------------------- */
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Password toggle icon */
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  padding: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.password-toggle:hover { color: var(--text-primary); }
+.password-field-wrapper { position: relative; }
+.password-field-wrapper .form-input,
+.password-field-wrapper .input { padding-right: 2.5rem; }

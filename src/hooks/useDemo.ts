@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Demo Mode Detection
+// Petit Stay - Demo Mode Detection
 // Shared utility for all hooks
 // ============================================
 

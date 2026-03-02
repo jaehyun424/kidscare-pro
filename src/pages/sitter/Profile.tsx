@@ -8,13 +8,27 @@ import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
 import { TierBadge, Badge } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
-import { Input } from '../../components/common/Input';
+import { Input, Select } from '../../components/common/Input';
+import { WeeklyScheduleGrid } from '../../components/sitter/WeeklyScheduleGrid';
+import { DocumentUploader, type UploadedDocument } from '../../components/sitter/DocumentUploader';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useSitterProfile } from '../../hooks/useSitters';
 import { useReviews } from '../../hooks/useReviews';
 import { StarRating } from '../../components/common/ReviewForm';
+import { DEMO_SITTER_AVAILABILITY, DEMO_SITTER_DOCUMENTS } from '../../data/demo';
+import type { WeeklyAvailability } from '../../types';
 import '../../styles/pages/sitter-profile.css';
+
+const BANK_OPTIONS = [
+    { value: 'kb', label: 'KB Kookmin Bank' },
+    { value: 'shinhan', label: 'Shinhan Bank' },
+    { value: 'woori', label: 'Woori Bank' },
+    { value: 'hana', label: 'Hana Bank' },
+    { value: 'nh', label: 'NH NongHyup Bank' },
+    { value: 'ibk', label: 'IBK Industrial Bank' },
+];
 
 interface EditForm {
     displayName: string;
@@ -27,6 +41,7 @@ export default function Profile() {
     const navigate = useNavigate();
     const { signOut, user, updateUserProfile } = useAuth();
     const { success, error: showError } = useToast();
+    const { isDark, toggleTheme } = useTheme();
     const sitterId = user?.sitterInfo?.sitterId || user?.id;
     const { profile } = useSitterProfile(sitterId);
     const { reviews, averageRating, isLoading: reviewsLoading } = useReviews(sitterId);
@@ -38,6 +53,18 @@ export default function Profile() {
         languages: '',
     });
     const [isSaving, setIsSaving] = useState(false);
+
+    // Availability modal
+    const [showAvailModal, setShowAvailModal] = useState(false);
+    const [availability, setAvailability] = useState<WeeklyAvailability>(DEMO_SITTER_AVAILABILITY as WeeklyAvailability);
+
+    // Bank info modal
+    const [showBankModal, setShowBankModal] = useState(false);
+    const [bankForm, setBankForm] = useState({ bankName: 'kb', accountNumber: '', accountHolder: '' });
+
+    // Documents modal
+    const [showDocsModal, setShowDocsModal] = useState(false);
+    const [documents, setDocuments] = useState<UploadedDocument[]>(DEMO_SITTER_DOCUMENTS);
 
     const openEditModal = () => {
         setEditForm({
@@ -61,7 +88,7 @@ export default function Profile() {
             });
             success(t('common.save'), t('sitter.profile.updateSuccess', 'Profile updated successfully'));
             setEditModalOpen(false);
-        } catch (err) {
+        } catch {
             showError(t('common.edit'), t('sitter.profile.updateError', 'Failed to update profile'));
         } finally {
             setIsSaving(false);
@@ -71,6 +98,17 @@ export default function Profile() {
     const handleSignOut = async () => {
         await signOut();
         navigate('/login');
+    };
+
+    const handleSaveAvailability = () => {
+        success(t('common.save'), t('profile.weeklySchedule'));
+        setShowAvailModal(false);
+    };
+
+    const handleSaveBankInfo = () => {
+        if (!bankForm.accountNumber || !bankForm.accountHolder) return;
+        success(t('common.save'), t('profile.bankAccount'));
+        setShowBankModal(false);
     };
 
     return (
@@ -97,7 +135,7 @@ export default function Profile() {
                 </CardBody>
             </Card>
 
-            {/* Verification Status - NEW */}
+            {/* Verification Status */}
             <Card className="mb-4">
                 <CardBody>
                     <h3 className="section-title">{t('profile.identityVerification')}</h3>
@@ -193,10 +231,13 @@ export default function Profile() {
             <Card>
                 <CardBody>
                     <div className="settings-menu" role="navigation" aria-label={t('profile.settings')}>
-                        <button className="menu-btn" onClick={() => success(t('profile.notifications'), t('profile.notifComingSoon'))}><span aria-hidden="true">🔔</span> {t('profile.notifications')}</button>
-                        <button className="menu-btn" onClick={() => success(t('profile.availability'), t('profile.availComingSoon'))}><span aria-hidden="true">📅</span> {t('profile.availability')}</button>
-                        <button className="menu-btn" onClick={() => success(t('profile.bankAccount'), t('profile.bankComingSoon'))}><span aria-hidden="true">💰</span> {t('profile.bankAccount')}</button>
-                        <button className="menu-btn" onClick={() => success(t('profile.documents'), t('profile.docsComingSoon'))}><span aria-hidden="true">📄</span> {t('profile.documents')}</button>
+                        <button className="menu-btn" onClick={toggleTheme}>
+                            <span aria-hidden="true">{isDark ? '🌙' : '☀️'}</span> {t('common.theme')}
+                            <span className="menu-item-value">{isDark ? t('common.dark') : t('common.light')}</span>
+                        </button>
+                        <button className="menu-btn" onClick={() => setShowAvailModal(true)}><span aria-hidden="true">📅</span> {t('profile.availability')}</button>
+                        <button className="menu-btn" onClick={() => setShowBankModal(true)}><span aria-hidden="true">💰</span> {t('profile.bankAccount')}</button>
+                        <button className="menu-btn" onClick={() => setShowDocsModal(true)}><span aria-hidden="true">📄</span> {t('profile.documents')}</button>
                         <button className="menu-btn" onClick={() => success(t('profile.helpLabel'), t('profile.supportEmail'))}><span aria-hidden="true">❓</span> {t('profile.helpLabel')}</button>
                     </div>
                 </CardBody>
@@ -242,6 +283,71 @@ export default function Profile() {
                         placeholder="English, Korean"
                     />
                 </div>
+            </Modal>
+
+            {/* Availability Modal */}
+            <Modal
+                isOpen={showAvailModal}
+                onClose={() => setShowAvailModal(false)}
+                title={t('profile.weeklySchedule')}
+                size="md"
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={() => setShowAvailModal(false)}>{t('common.cancel')}</Button>
+                        <Button variant="primary" onClick={handleSaveAvailability}>{t('common.save')}</Button>
+                    </>
+                }
+            >
+                <WeeklyScheduleGrid availability={availability} onChange={setAvailability} />
+            </Modal>
+
+            {/* Bank Info Modal */}
+            <Modal
+                isOpen={showBankModal}
+                onClose={() => setShowBankModal(false)}
+                title={t('profile.bankAccount')}
+                size="sm"
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={() => setShowBankModal(false)}>{t('common.cancel')}</Button>
+                        <Button variant="primary" onClick={handleSaveBankInfo}>{t('common.save')}</Button>
+                    </>
+                }
+            >
+                <div className="modal-form-stack">
+                    <Select
+                        label={t('profile.bankName')}
+                        value={bankForm.bankName}
+                        onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })}
+                        options={BANK_OPTIONS}
+                    />
+                    <Input
+                        label={t('profile.accountNumber')}
+                        value={bankForm.accountNumber}
+                        onChange={(e) => setBankForm({ ...bankForm, accountNumber: e.target.value })}
+                        placeholder="000-0000-0000-00"
+                    />
+                    <Input
+                        label={t('profile.accountHolder')}
+                        value={bankForm.accountHolder}
+                        onChange={(e) => setBankForm({ ...bankForm, accountHolder: e.target.value })}
+                        placeholder="Account holder name"
+                    />
+                </div>
+            </Modal>
+
+            {/* Documents Modal */}
+            <Modal
+                isOpen={showDocsModal}
+                onClose={() => setShowDocsModal(false)}
+                title={t('profile.documents')}
+                size="sm"
+            >
+                <DocumentUploader
+                    sitterId={sitterId || ''}
+                    documents={documents}
+                    onDocumentsChange={setDocuments}
+                />
             </Modal>
         </div>
     );

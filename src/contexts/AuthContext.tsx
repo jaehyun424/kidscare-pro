@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Authentication Context
+// Petit Stay - Authentication Context
 // Real Firebase Auth Integration
 // ============================================
 

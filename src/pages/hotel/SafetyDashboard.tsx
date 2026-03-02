@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Safety Dashboard Page
+// Petit Stay - Safety Dashboard Page
 // ============================================
 
 import { useState, useMemo, useRef } from 'react';

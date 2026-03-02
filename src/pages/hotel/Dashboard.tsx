@@ -1,9 +1,9 @@
 // ============================================
-// KidsCare Pro - Hotel Dashboard
+// Petit Stay - Hotel Dashboard
 // ============================================
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -77,9 +77,11 @@ interface StatCardProps {
   value: string | number;
   subValue?: string;
   color: 'primary' | 'gold' | 'success' | 'warning';
+  to?: string;
 }
 
-function StatCard({ icon, label, value, subValue, color }: StatCardProps) {
+function StatCard({ icon, label, value, subValue, color, to }: StatCardProps) {
+  const navigate = useNavigate();
   const colorClasses = {
     primary: 'stat-card-primary',
     gold: 'stat-card-gold',
@@ -88,7 +90,13 @@ function StatCard({ icon, label, value, subValue, color }: StatCardProps) {
   };
 
   return (
-    <div className={`stat-card ${colorClasses[color]}`} role="group" aria-label={label}>
+    <div
+      className={`stat-card ${colorClasses[color]} ${to ? 'stat-card-clickable' : ''}`}
+      role="group"
+      aria-label={label}
+      onClick={to ? () => navigate(to) : undefined}
+      style={to ? { cursor: 'pointer' } : undefined}
+    >
       <div className="stat-card-icon" aria-hidden="true">{icon}</div>
       <div className="stat-card-content">
         <div className="stat-card-value">{value}</div>
@@ -209,6 +217,7 @@ export default function Dashboard() {
           value={stats.todayBookings}
           subValue={`${stats.pendingBookings} ${t('status.pending').toLowerCase()}`}
           color="primary"
+          to="/hotel/bookings"
         />
         <StatCard
           icon={<LiveIcon />}
@@ -216,18 +225,21 @@ export default function Dashboard() {
           value={stats.activeNow}
           subValue={t('status.inProgress')}
           color="warning"
+          to="/hotel/live"
         />
         <StatCard
           icon={<CheckIcon />}
           label={t('status.completed')}
           value={stats.completedToday}
           color="success"
+          to="/hotel/reports"
         />
         <StatCard
           icon={<CurrencyIcon />}
           label={t('hotel.totalRevenue')}
           value={formatCurrency(stats.todayRevenue)}
           color="gold"
+          to="/hotel/reports"
         />
       </div>
 
@@ -246,43 +258,53 @@ export default function Dashboard() {
           </CardHeader>
           <CardBody>
             <div className="booking-list">
-              {todayBookings.map((booking) => (
-                <div key={booking.id} className="booking-item">
-                  <div className="booking-item-main">
-                    <div className="booking-item-header">
-                      <span className="booking-code">{booking.confirmationCode}</span>
-                      <StatusBadge status={booking.status} />
-                    </div>
-                    <div className="booking-item-details">
-                      <span>🕐 {booking.time}</span>
-                      <span>🚪 {t('common.room')} {booking.room}</span>
-                      <span>👤 {booking.parent.name}</span>
-                    </div>
-                    <div className="booking-item-children">
-                      {booking.children.map((child, i) => (
-                        <Badge key={i} variant="neutral" size="sm">
-                          {child.name} ({child.age}y)
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="booking-item-sitter">
-                    {booking.sitter ? (
-                      <>
-                        <Avatar name={booking.sitter.name} size="sm" variant={booking.sitter.tier === 'gold' ? 'gold' : 'default'} />
-                        <div className="sitter-info">
-                          <span className="sitter-name">{booking.sitter.name}</span>
-                          <TierBadge tier={booking.sitter.tier} />
-                        </div>
-                      </>
-                    ) : (
-                      <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setAssignTarget(booking); }}>
-                        {t('hotel.assign')}
-                      </Button>
-                    )}
-                  </div>
+              {todayBookings.length === 0 ? (
+                <div className="empty-state">
+                  <CalendarIcon />
+                  <p className="empty-state-text">{t('parent.noUpcomingBookings')}</p>
+                  <Button variant="gold" size="sm" onClick={() => setShowNewBooking(true)}>
+                    {t('hotel.newBooking')}
+                  </Button>
                 </div>
-              ))}
+              ) : (
+                todayBookings.map((booking) => (
+                  <div key={booking.id} className="booking-item">
+                    <div className="booking-item-main">
+                      <div className="booking-item-header">
+                        <span className="booking-code">{booking.confirmationCode}</span>
+                        <StatusBadge status={booking.status} />
+                      </div>
+                      <div className="booking-item-details">
+                        <span>🕐 {booking.time}</span>
+                        <span>🚪 {t('common.room')} {booking.room}</span>
+                        <span>👤 {booking.parent.name}</span>
+                      </div>
+                      <div className="booking-item-children">
+                        {booking.children.map((child, i) => (
+                          <Badge key={i} variant="neutral" size="sm">
+                            {child.name} ({child.age}y)
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="booking-item-sitter">
+                      {booking.sitter ? (
+                        <>
+                          <Avatar name={booking.sitter.name} size="sm" variant={booking.sitter.tier === 'gold' ? 'gold' : 'default'} />
+                          <div className="sitter-info">
+                            <span className="sitter-name">{booking.sitter.name}</span>
+                            <TierBadge tier={booking.sitter.tier} />
+                          </div>
+                        </>
+                      ) : (
+                        <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); setAssignTarget(booking); }}>
+                          {t('hotel.assign')}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardBody>
         </Card>
@@ -303,25 +325,33 @@ export default function Dashboard() {
           </CardHeader>
           <CardBody>
             <div className="live-list">
-              {activeSessions.map((session) => (
-                <div key={session.id} className="live-item">
-                  <div className="live-item-header">
-                    <Avatar name={session.sitter.name} size="sm" variant={session.sitter.tier === 'gold' ? 'gold' : 'default'} />
-                    <div className="live-item-info">
-                      <span className="live-item-name">{session.sitter.name}</span>
-                      <span className="live-item-room">{t('common.room')} {session.room}</span>
-                    </div>
-                    <div className="live-item-time">
-                      <span className="live-item-elapsed">{session.elapsed}</span>
-                      <span className="live-item-start">{t('hotel.started')} {session.startTime}</span>
-                    </div>
-                  </div>
-                  <div className="live-item-activity">
-                    <span className="status-dot status-dot-success" aria-hidden="true" />
-                    {session.lastActivity}
-                  </div>
+              {activeSessions.length === 0 ? (
+                <div className="empty-state">
+                  <LiveIcon />
+                  <p className="empty-state-text">{t('liveMonitor.noActiveSessions')}</p>
+                  <p className="empty-state-sub">{t('liveMonitor.noActiveSessionsDesc')}</p>
                 </div>
-              ))}
+              ) : (
+                activeSessions.map((session) => (
+                  <div key={session.id} className="live-item">
+                    <div className="live-item-header">
+                      <Avatar name={session.sitter.name} size="sm" variant={session.sitter.tier === 'gold' ? 'gold' : 'default'} />
+                      <div className="live-item-info">
+                        <span className="live-item-name">{session.sitter.name}</span>
+                        <span className="live-item-room">{t('common.room')} {session.room}</span>
+                      </div>
+                      <div className="live-item-time">
+                        <span className="live-item-elapsed">{session.elapsed}</span>
+                        <span className="live-item-start">{t('hotel.started')} {session.startTime}</span>
+                      </div>
+                    </div>
+                    <div className="live-item-activity">
+                      <span className="status-dot status-dot-success" aria-hidden="true" />
+                      {session.lastActivity}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardBody>
         </Card>

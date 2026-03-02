@@ -61,7 +61,7 @@ service firebase.storage {
 
     // Hotel logos - hotel staff can write
     match /hotels/{hotelId}/logo.png {
-      allow read: if true;
+      allow read: if isSignedIn();
       allow write: if isSignedIn() && isImageType() && isUnder5MB();
     }
 

@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - EmptyState Component
+// Petit Stay - EmptyState Component
 // Reusable empty state display for pages with no data
 // ============================================
 

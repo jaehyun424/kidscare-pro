@@ -1,10 +1,11 @@
 // ============================================
-// KidsCare Pro - Cloud Functions
+// Petit Stay - Cloud Functions
 // ============================================
 
 import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 import { initializeApp } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getFirestore, FieldValue, QueryDocumentSnapshot } from "firebase-admin/firestore";
 
 initializeApp();
 const db = getFirestore();
@@ -39,7 +40,7 @@ async function getHotelStaffIds(hotelId: string): Promise<string[]> {
     .where("role", "==", "hotel_staff")
     .where("hotelId", "==", hotelId)
     .get();
-  return snapshot.docs.map((doc) => doc.id);
+  return snapshot.docs.map((doc: QueryDocumentSnapshot) => doc.id);
 }
 
 // ----------------------------------------
@@ -240,5 +241,161 @@ export const onBookingCancelled = onDocumentUpdated(
     }
 
     await Promise.all(promises);
+  }
+);
+
+// ----------------------------------------
+// scheduledNoShowDetection: Detect no-show bookings every 15 minutes
+// If a booking's scheduled start is 30+ minutes ago and no session started, mark as no_show
+// ----------------------------------------
+export const scheduledNoShowDetection = onSchedule(
+  { schedule: "every 15 minutes", timeZone: "Asia/Seoul" },
+  async () => {
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - 30 * 60 * 1000); // 30 minutes ago
+
+    // Find confirmed bookings with scheduled start before cutoff
+    const bookingsSnap = await db
+      .collection("bookings")
+      .where("status", "==", "confirmed")
+      .where("scheduledStart", "<=", cutoff)
+      .get();
+
+    if (bookingsSnap.empty) return;
+
+    const batch = db.batch();
+    const notifyPromises: Promise<void>[] = [];
+
+    for (const bookingDoc of bookingsSnap.docs) {
+      const booking = bookingDoc.data();
+
+      // Check if a session exists for this booking
+      const sessionSnap = await db
+        .collection("sessions")
+        .where("bookingId", "==", bookingDoc.id)
+        .limit(1)
+        .get();
+
+      if (sessionSnap.empty) {
+        // No session started — mark as no_show
+        batch.update(bookingDoc.ref, {
+          status: "no_show",
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+
+        // Notify hotel staff
+        if (booking.hotelId) {
+          const staffIds = await getHotelStaffIds(booking.hotelId);
+          staffIds.forEach((staffId) => {
+            notifyPromises.push(
+              createNotification(
+                staffId,
+                "booking_cancelled",
+                "No-Show Detected",
+                `Booking ${booking.confirmationCode || bookingDoc.id} marked as no-show.`,
+                { bookingId: bookingDoc.id, hotelId: booking.hotelId }
+              )
+            );
+          });
+        }
+      }
+    }
+
+    await batch.commit();
+    await Promise.all(notifyPromises);
+  }
+);
+
+// ----------------------------------------
+// onReviewCreated: Recalculate sitter average rating + notify sitter
+// ----------------------------------------
+export const onReviewCreated = onDocumentCreated(
+  "reviews/{reviewId}",
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) return;
+
+    const review = snapshot.data();
+    const sitterId = review.sitterId;
+    if (!sitterId) return;
+
+    // Recalculate average rating
+    const reviewsSnap = await db
+      .collection("reviews")
+      .where("sitterId", "==", sitterId)
+      .get();
+
+    let totalRating = 0;
+    let count = 0;
+    reviewsSnap.docs.forEach((doc: QueryDocumentSnapshot) => {
+      const r = doc.data();
+      if (typeof r.rating === "number") {
+        totalRating += r.rating;
+        count++;
+      }
+    });
+
+    const averageRating = count > 0 ? Math.round((totalRating / count) * 10) / 10 : 0;
+
+    // Update sitter document with new rating
+    const sitterRef = db.collection("sitters").doc(sitterId);
+    const sitterDoc = await sitterRef.get();
+
+    if (sitterDoc.exists) {
+      await sitterRef.update({
+        rating: averageRating,
+        reviewCount: count,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+
+    // Notify the sitter about the new review
+    const rating = review.rating || 0;
+    const stars = "⭐".repeat(Math.min(rating, 5));
+    await createNotification(
+      sitterId,
+      "review_received",
+      "New Review Received",
+      `You received a ${stars} (${rating}/5) review.`,
+      { reviewId: event.params.reviewId, rating }
+    );
+  }
+);
+
+// ----------------------------------------
+// scheduledCleanup: Daily cleanup of old read notifications (03:00 KST)
+// Deletes read notifications older than 30 days, in batches of 500
+// ----------------------------------------
+export const scheduledCleanup = onSchedule(
+  { schedule: "0 3 * * *", timeZone: "Asia/Seoul" },
+  async () => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+
+    const query = db
+      .collection("notifications")
+      .where("read", "==", true)
+      .where("createdAt", "<=", cutoff)
+      .limit(500);
+
+    let deleted = 0;
+    let snapshot = await query.get();
+
+    while (!snapshot.empty) {
+      const batch = db.batch();
+      snapshot.docs.forEach((doc: QueryDocumentSnapshot) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      deleted += snapshot.docs.length;
+
+      // Get next batch
+      if (snapshot.docs.length < 500) break;
+      snapshot = await query.get();
+    }
+
+    if (deleted > 0) {
+      console.log(`scheduledCleanup: Deleted ${deleted} old read notifications.`);
+    }
   }
 );

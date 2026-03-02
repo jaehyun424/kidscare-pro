@@ -8,9 +8,12 @@ import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
 import { Modal, ConfirmModal } from '../../components/common/Modal';
 import { Input, Select } from '../../components/common/Input';
+import { PaymentMethodCardDisplay } from '../../components/common/PaymentMethodCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { useChildren } from '../../hooks/useChildren';
 import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { DEMO_PAYMENT_METHODS, type DemoPaymentMethod } from '../../data/demo';
 import type { DemoChild } from '../../data/demo';
 import '../../styles/pages/parent-profile.css';
 
@@ -48,6 +51,7 @@ export default function Profile() {
     const { t, i18n } = useTranslation();
     const { children, isLoading, addChild, updateChild, removeChild } = useChildren(user?.id);
     const toast = useToast();
+    const { toggleTheme, isDark } = useTheme();
 
     // Modal state
     const [showChildModal, setShowChildModal] = useState(false);
@@ -62,6 +66,20 @@ export default function Profile() {
 
     // Language picker
     const [showLanguagePicker, setShowLanguagePicker] = useState(false);
+
+    // Notification preferences modal
+    const [showNotifModal, setShowNotifModal] = useState(false);
+    const [notifPrefs, setNotifPrefs] = useState({
+        push: user?.notifications?.push ?? true,
+        email: user?.notifications?.email ?? true,
+        sms: user?.notifications?.sms ?? false,
+    });
+
+    // Payment methods modal
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [paymentMethods, setPaymentMethods] = useState<DemoPaymentMethod[]>(DEMO_PAYMENT_METHODS);
+    const [showAddCard, setShowAddCard] = useState(false);
+    const [cardForm, setCardForm] = useState({ number: '', expiry: '', holder: '' });
 
     // --- Child modal helpers ---
 
@@ -162,6 +180,38 @@ export default function Profile() {
         toast.success(t('auth.preferredLanguage'), lang?.label || code);
     };
 
+    // --- Notification preferences ---
+
+    const handleSaveNotifPrefs = () => {
+        toast.success(t('profile.notificationPreferences'), t('common.save'));
+        setShowNotifModal(false);
+    };
+
+    // --- Payment methods ---
+
+    const handleAddCard = () => {
+        if (!cardForm.number || !cardForm.expiry || !cardForm.holder) return;
+        const last4 = cardForm.number.replace(/\s/g, '').slice(-4);
+        const [mm, yy] = cardForm.expiry.split('/');
+        const newCard: DemoPaymentMethod = {
+            id: `pm_${Date.now()}`,
+            brand: 'visa',
+            last4,
+            expiryMonth: parseInt(mm) || 1,
+            expiryYear: 2000 + (parseInt(yy) || 25),
+            holderName: cardForm.holder,
+            isDefault: paymentMethods.length === 0,
+        };
+        setPaymentMethods([...paymentMethods, newCard]);
+        setCardForm({ number: '', expiry: '', holder: '' });
+        setShowAddCard(false);
+        toast.success(t('profile.addPaymentMethod'), `**** ${last4}`);
+    };
+
+    const handleRemoveCard = (id: string) => {
+        setPaymentMethods(paymentMethods.filter((p) => p.id !== id));
+    };
+
     // --- Sign out ---
 
     const handleSignOut = async () => {
@@ -236,17 +286,23 @@ export default function Profile() {
             <Card>
                 <CardBody>
                     <div className="settings-menu" role="navigation" aria-label="Settings">
-                        <button className="menu-item" onClick={() => toast.info(t('parent.notifications'), 'Notification preferences coming soon')}><span aria-hidden="true">🔔</span> {t('parent.notifications')}</button>
+                        <button className="menu-item" onClick={() => setShowNotifModal(true)}><span aria-hidden="true">🔔</span> {t('parent.notifications')}</button>
                         <button className="menu-item" onClick={() => setShowLanguagePicker(true)}>
                             <span aria-hidden="true">🌐</span> {t('auth.preferredLanguage')}
                             <span className="menu-item-value">
                                 {currentLang.flag} {currentLang.label}
                             </span>
                         </button>
-                        <button className="menu-item" onClick={() => toast.info(t('parent.paymentMethods'), 'Payment management coming soon')}><span aria-hidden="true">💳</span> {t('parent.paymentMethods')}</button>
-                        <button className="menu-item" onClick={() => window.open('https://kidscarepro.com/terms', '_blank')}><span aria-hidden="true">📄</span> {t('parent.termsOfService')}</button>
-                        <button className="menu-item" onClick={() => window.open('https://kidscarepro.com/privacy', '_blank')}><span aria-hidden="true">🔒</span> {t('parent.privacyPolicy')}</button>
-                        <button className="menu-item" onClick={() => toast.info(t('parent.help'), 'Support: support@kidscarepro.com')}><span aria-hidden="true">❓</span> {t('parent.help')}</button>
+                        <button className="menu-item" onClick={toggleTheme}>
+                            <span aria-hidden="true">{isDark ? '🌙' : '☀️'}</span> {t('common.theme')}
+                            <span className="menu-item-value">
+                                {isDark ? t('common.dark') : t('common.light')}
+                            </span>
+                        </button>
+                        <button className="menu-item" onClick={() => setShowPaymentModal(true)}><span aria-hidden="true">💳</span> {t('parent.paymentMethods')}</button>
+                        <button className="menu-item" onClick={() => window.open('https://petitstay.com/terms', '_blank')}><span aria-hidden="true">📄</span> {t('parent.termsOfService')}</button>
+                        <button className="menu-item" onClick={() => window.open('https://petitstay.com/privacy', '_blank')}><span aria-hidden="true">🔒</span> {t('parent.privacyPolicy')}</button>
+                        <button className="menu-item" onClick={() => toast.info(t('parent.help'), t('profile.supportEmail'))}><span aria-hidden="true">❓</span> {t('parent.help')}</button>
                     </div>
                 </CardBody>
             </Card>
@@ -340,6 +396,90 @@ export default function Profile() {
                             )}
                         </button>
                     ))}
+                </div>
+            </Modal>
+
+            {/* Notification Preferences Modal */}
+            <Modal
+                isOpen={showNotifModal}
+                onClose={() => setShowNotifModal(false)}
+                title={t('profile.notificationPreferences')}
+                size="sm"
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={() => setShowNotifModal(false)}>{t('common.cancel')}</Button>
+                        <Button variant="primary" onClick={handleSaveNotifPrefs}>{t('common.save')}</Button>
+                    </>
+                }
+            >
+                <div className="profile-form-stack">
+                    <label className="toggle-option">
+                        <input type="checkbox" checked={notifPrefs.push} onChange={(e) => setNotifPrefs({ ...notifPrefs, push: e.target.checked })} />
+                        <span>{t('profile.pushNotifications')}</span>
+                    </label>
+                    <label className="toggle-option">
+                        <input type="checkbox" checked={notifPrefs.email} onChange={(e) => setNotifPrefs({ ...notifPrefs, email: e.target.checked })} />
+                        <span>{t('profile.emailNotifications')}</span>
+                    </label>
+                    <label className="toggle-option">
+                        <input type="checkbox" checked={notifPrefs.sms} onChange={(e) => setNotifPrefs({ ...notifPrefs, sms: e.target.checked })} />
+                        <span>{t('profile.smsNotifications')}</span>
+                    </label>
+                </div>
+            </Modal>
+
+            {/* Payment Methods Modal */}
+            <Modal
+                isOpen={showPaymentModal}
+                onClose={() => { setShowPaymentModal(false); setShowAddCard(false); }}
+                title={t('parent.paymentMethods')}
+                size="sm"
+            >
+                <div className="profile-form-stack">
+                    {paymentMethods.length === 0 ? (
+                        <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                            {t('profile.noPaymentMethods')}
+                        </p>
+                    ) : (
+                        paymentMethods.map((card) => (
+                            <PaymentMethodCardDisplay
+                                key={card.id}
+                                card={card}
+                                onRemove={handleRemoveCard}
+                            />
+                        ))
+                    )}
+
+                    {showAddCard ? (
+                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                            <Input
+                                label={t('profile.cardNumber')}
+                                value={cardForm.number}
+                                onChange={(e) => setCardForm({ ...cardForm, number: e.target.value })}
+                                placeholder="**** **** **** ****"
+                            />
+                            <Input
+                                label={t('profile.expiry')}
+                                value={cardForm.expiry}
+                                onChange={(e) => setCardForm({ ...cardForm, expiry: e.target.value })}
+                                placeholder="MM/YY"
+                            />
+                            <Input
+                                label={t('profile.cardHolder')}
+                                value={cardForm.holder}
+                                onChange={(e) => setCardForm({ ...cardForm, holder: e.target.value })}
+                                placeholder="Card holder name"
+                            />
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                <Button variant="secondary" onClick={() => setShowAddCard(false)} fullWidth>{t('common.cancel')}</Button>
+                                <Button variant="gold" onClick={handleAddCard} fullWidth>{t('common.save')}</Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <Button variant="secondary" fullWidth onClick={() => setShowAddCard(true)}>
+                            + {t('profile.addCard')}
+                        </Button>
+                    )}
                 </div>
             </Modal>
         </div>

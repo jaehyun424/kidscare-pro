@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Common Components Export
+// Petit Stay - Common Components Export
 // ============================================
 
 export { Button, IconButton } from './Button';

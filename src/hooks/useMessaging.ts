@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Messaging Hook
+// Petit Stay - Messaging Hook
 // ============================================
 
 import { useState, useEffect, useCallback } from 'react';

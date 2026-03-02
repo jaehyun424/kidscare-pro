@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Booking Hooks
+// Petit Stay - Booking Hooks
 // Transparently switches between demo and Firestore data
 // ============================================
 
@@ -23,16 +23,32 @@ import {
 import { bookingService, sitterService } from '../services/firestore';
 import type { DashboardStats } from '../types';
 
-// Cache for sitter name lookups to avoid repeated queries
+// LRU cache for sitter name lookups (capped at 100 entries)
+const CACHE_LIMIT = 100;
 const sitterNameCache = new Map<string, string>();
+
+function cachePut(key: string, value: string) {
+    if (sitterNameCache.size >= CACHE_LIMIT) {
+        // Evict oldest entry (first key in Map iteration order)
+        const oldest = sitterNameCache.keys().next().value;
+        if (oldest !== undefined) sitterNameCache.delete(oldest);
+    }
+    sitterNameCache.set(key, value);
+}
 
 async function resolveSitterName(sitterId: string): Promise<string> {
     if (!sitterId) return '';
-    if (sitterNameCache.has(sitterId)) return sitterNameCache.get(sitterId)!;
+    if (sitterNameCache.has(sitterId)) {
+        // Move to end (most recently used)
+        const val = sitterNameCache.get(sitterId)!;
+        sitterNameCache.delete(sitterId);
+        sitterNameCache.set(sitterId, val);
+        return val;
+    }
     try {
         const sitter = await sitterService.getSitter(sitterId);
         const name = sitter?.profile?.displayName || sitterId;
-        sitterNameCache.set(sitterId, name);
+        cachePut(sitterId, name);
         return name;
     } catch {
         return sitterId;

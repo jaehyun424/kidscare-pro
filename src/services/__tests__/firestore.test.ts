@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================
-// KidsCare Pro - Firestore Service Tests
+// Petit Stay - Firestore Service Tests
 // Verifies service layer CRUD operations with
 // mocked Firebase SDK functions.
 // ============================================

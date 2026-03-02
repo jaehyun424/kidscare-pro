@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Button Component
+// Petit Stay - Button Component
 // ============================================
 
 

@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - 404 Not Found Page
+// Petit Stay - 404 Not Found Page
 // ============================================
 
 import { Link } from 'react-router-dom';

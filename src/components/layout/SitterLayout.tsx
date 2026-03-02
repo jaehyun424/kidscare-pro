@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Sitter App Layout
+// Petit Stay - Sitter App Layout
 // ============================================
 
 
@@ -76,7 +76,7 @@ export function SitterLayout() {
             <header className="sitter-header">
                 <div className="sitter-header-left">
                     <span className="logo-icon">👶</span>
-                    <span className="logo-text">KidsCare<span className="text-gold">Pro</span></span>
+                    <span className="logo-text">Petit<span className="text-gold">Stay</span></span>
                 </div>
                 <div className="sitter-header-right">
                     <TierBadge tier="gold" showLabel={false} />

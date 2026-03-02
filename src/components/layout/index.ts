@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Layout Components Export
+// Petit Stay - Layout Components Export
 // ============================================
 
 export { HotelLayout } from './HotelLayout';

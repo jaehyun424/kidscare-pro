@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Children Hooks
+// Petit Stay - Children Hooks
 // ============================================
 
 import { useState, useEffect, useCallback } from 'react';

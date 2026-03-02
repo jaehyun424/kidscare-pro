@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - TypeScript Type Definitions
+// Petit Stay - TypeScript Type Definitions
 // ============================================
 
 // ----------------------------------------
@@ -223,7 +223,17 @@ export interface EmergencyMedication {
 // ----------------------------------------
 export type BookingStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
 export type PaymentStatus = 'pending' | 'authorized' | 'captured' | 'refunded' | 'failed';
-export type PaymentMethod = 'card' | 'hotel_billing';
+export type PaymentMethodType = 'card' | 'hotel_billing';
+
+export interface PaymentMethodCard {
+  id: string;
+  brand: 'visa' | 'mastercard' | 'amex' | 'other';
+  last4: string;
+  expiryMonth: number;
+  expiryYear: number;
+  holderName: string;
+  isDefault: boolean;
+}
 export type RefundStatus = 'full' | 'partial' | 'none';
 export type BookingSource = 'concierge' | 'parent_app' | 'website';
 export type LocationType = 'room' | 'kids_room';
@@ -292,7 +302,7 @@ export interface BookingPricing {
 
 export interface PaymentInfo {
   status: PaymentStatus;
-  method: PaymentMethod;
+  method: PaymentMethodType;
   transactionId?: string;
   paidAt?: Date;
   refundedAt?: Date;

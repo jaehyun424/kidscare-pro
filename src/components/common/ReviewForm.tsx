@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Review Form Component
+// Petit Stay - Review Form Component
 // ============================================
 
 import { useState } from 'react';

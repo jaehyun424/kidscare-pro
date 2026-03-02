@@ -33,3 +33,4 @@ npm-debug.log*
 
 # Firebase
 .firebase/
+functions/lib/

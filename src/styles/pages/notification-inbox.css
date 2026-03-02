@@ -1,0 +1,141 @@
+.notification-inbox {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.notification-inbox .page-title {
+    margin-bottom: 1.5rem;
+}
+
+.notification-inbox-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.notification-inbox-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.notification-filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+}
+
+.notification-filter-tab {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.notification-filter-tab:hover {
+    border-color: var(--gold-400);
+}
+
+.notification-filter-tab.active {
+    background: var(--gold-500);
+    color: white;
+    border-color: var(--gold-500);
+}
+
+.notification-inbox-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.notification-inbox-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.notification-inbox-item:hover {
+    border-color: var(--gold-400);
+}
+
+.notification-inbox-item.unread {
+    background: var(--surface-hover);
+    border-left: 3px solid var(--gold-500);
+}
+
+.notification-inbox-item-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold-500);
+    margin-top: 0.5rem;
+    flex-shrink: 0;
+}
+
+.notification-inbox-item-dot.read {
+    background: transparent;
+}
+
+.notification-inbox-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-inbox-item-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.notification-inbox-item-body {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.notification-inbox-item-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.notification-inbox-item-actions {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.notification-inbox-item-actions button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.notification-inbox-item-actions button:hover {
+    border-color: var(--gold-400);
+    color: var(--text-primary);
+}
+
+.notification-inbox-item-actions button.delete:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+}

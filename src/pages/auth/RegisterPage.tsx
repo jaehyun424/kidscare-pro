@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Register Page (Hospitality Redesign)
+// Petit Stay - Register Page (Hospitality Redesign)
 // ============================================
 
 import React, { useState } from 'react';
@@ -14,11 +14,27 @@ import type { UserRole } from '../../types';
 import loginBg from '../../assets/login-bg.png';
 import '../../styles/pages/register.css';
 
+const EyeIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeOffIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+    <line x1="1" y1="1" x2="23" y2="23" />
+    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+  </svg>
+);
+
 export default function RegisterPage() {
     const navigate = useNavigate();
     const { signUp } = useAuth();
     const { success, error } = useToast();
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     const ROLE_OPTIONS = [
         { value: 'parent', label: 'Guest Family' },
@@ -41,6 +57,7 @@ export default function RegisterPage() {
         language: i18n.language || 'en',
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -52,13 +69,13 @@ export default function RegisterPage() {
 
     const validate = () => {
         const newErrors: Record<string, string> = {};
-        if (!formData.firstName.trim()) newErrors.firstName = 'Required';
-        if (!formData.lastName.trim()) newErrors.lastName = 'Required';
-        if (!formData.email) newErrors.email = 'Required';
-        else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email';
-        if (!formData.password) newErrors.password = 'Required';
-        else if (formData.password.length < 8) newErrors.password = 'Min 8 chars';
-        if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+        if (!formData.firstName.trim()) newErrors.firstName = t('validation.required');
+        if (!formData.lastName.trim()) newErrors.lastName = t('validation.required');
+        if (!formData.email) newErrors.email = t('validation.required');
+        else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = t('validation.invalidEmail');
+        if (!formData.password) newErrors.password = t('validation.required');
+        else if (formData.password.length < 8) newErrors.password = t('validation.minChars', { count: 8 });
+        if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = t('validation.passwordMismatch');
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -74,7 +91,7 @@ export default function RegisterPage() {
                 lastName: formData.lastName,
                 preferredLanguage: formData.language as 'en' | 'ko' | 'ja' | 'zh',
             });
-            success('Account Created', 'Welcome to the KidsCare Pro network.');
+            success('Account Created', 'Welcome to the Petit Stay network.');
 
             const roleRedirects: Record<string, string> = {
                 parent: '/parent',
@@ -110,7 +127,7 @@ export default function RegisterPage() {
                 <div className="login-header">
                     <div className="brand-logo">
                         <span className="logo-icon">✨</span>
-                        <span className="logo-text">KidsCare<span className="text-gold">Pro</span></span>
+                        <span className="logo-text">Petit<span className="text-gold">Stay</span></span>
                     </div>
                     <LanguageSwitcher />
                 </div>
@@ -130,6 +147,7 @@ export default function RegisterPage() {
                                 onChange={handleChange}
                                 placeholder="Given Name"
                                 error={errors.firstName}
+                                disabled={isLoading}
                             />
                             <Input
                                 label="Last Name"
@@ -138,6 +156,7 @@ export default function RegisterPage() {
                                 onChange={handleChange}
                                 placeholder="Family Name"
                                 error={errors.lastName}
+                                disabled={isLoading}
                             />
                         </div>
 
@@ -149,26 +168,40 @@ export default function RegisterPage() {
                             onChange={handleChange}
                             placeholder="name@example.com"
                             error={errors.email}
+                            disabled={isLoading}
                         />
 
                         <div className="grid grid-cols-2 gap-4">
-                            <Input
-                                label="Password"
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder="Min 8 chars"
-                                error={errors.password}
-                            />
+                            <div className="password-field-wrapper">
+                                <Input
+                                    label="Password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    placeholder="Min 8 chars"
+                                    error={errors.password}
+                                    disabled={isLoading}
+                                />
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    tabIndex={-1}
+                                >
+                                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                                </button>
+                            </div>
                             <Input
                                 label="Confirm"
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
                                 placeholder="Confirm"
                                 error={errors.confirmPassword}
+                                disabled={isLoading}
                             />
                         </div>
 
@@ -195,6 +228,7 @@ export default function RegisterPage() {
                                 variant="gold"
                                 fullWidth
                                 isLoading={isLoading}
+                                disabled={isLoading}
                             >
                                 SUBMIT APPLICATION
                             </Button>

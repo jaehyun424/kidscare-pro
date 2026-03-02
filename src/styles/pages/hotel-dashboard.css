@@ -383,3 +383,45 @@
   color: var(--text-tertiary);
   padding: var(--space-4);
 }
+
+/* Clickable stat cards */
+.stat-card-clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--gold-400);
+}
+
+.stat-card-clickable:active {
+  transform: translateY(-2px);
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: var(--charcoal-400);
+}
+
+.empty-state svg {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--charcoal-500);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-sub {
+  font-size: 0.75rem;
+  color: var(--charcoal-400);
+  margin-bottom: 1rem;
+}

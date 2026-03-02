@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Notification Bell
+// Petit Stay - Notification Bell
 // ============================================
 
 import { useState, useRef, useEffect } from 'react';
@@ -90,13 +90,13 @@ export function NotificationBell() {
             {isOpen && (
                 <div className="notification-dropdown">
                     <div className="notification-dropdown-header">
-                        <span className="notification-dropdown-title">Notifications</span>
+                        <span className="notification-dropdown-title">{t('parent.notifications')}</span>
                         {unreadCount > 0 && (
                             <button
                                 className="notification-mark-all"
                                 onClick={() => markAllAsRead()}
                             >
-                                Mark all read
+                                {t('common.markAllRead')}
                             </button>
                         )}
                     </div>
@@ -104,7 +104,7 @@ export function NotificationBell() {
                     <div className="notification-list">
                         {recentNotifications.length === 0 ? (
                             <div className="notification-empty">
-                                No notifications yet
+                                {t('common.noNotifications')}
                             </div>
                         ) : (
                             recentNotifications.map((n) => (
@@ -140,6 +140,18 @@ export function NotificationBell() {
                                 </div>
                             ))
                         )}
+                    </div>
+                    <div className="notification-dropdown-footer">
+                        <button
+                            className="notification-view-all"
+                            onClick={() => {
+                                setIsOpen(false);
+                                const rolePrefix = user?.role === 'hotel_staff' ? '/hotel' : user?.role === 'sitter' ? '/sitter' : '/parent';
+                                navigate(`${rolePrefix}/notifications`);
+                            }}
+                        >
+                            {t('notifications.viewAll', 'View All')}
+                        </button>
                     </div>
                 </div>
             )}

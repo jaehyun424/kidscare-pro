@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Auth Layout (Login/Register)
+// Petit Stay - Auth Layout (Login/Register)
 // ============================================
 
 
@@ -42,7 +42,7 @@ export function AuthLayout() {
                 <div className="auth-logo">
                     <span className="auth-logo-icon">👶</span>
                     <h1 className="auth-logo-text">
-                        KidsCare<span className="text-gold">Pro</span>
+                        Petit<span className="text-gold">Stay</span>
                     </h1>
                     <p className="auth-logo-tagline">Premium Hotel Childcare Infrastructure</p>
                 </div>
@@ -52,7 +52,7 @@ export function AuthLayout() {
                 </div>
 
                 <footer className="auth-footer">
-                    <p>© 2025 KidsCare Pro. All rights reserved.</p>
+                    <p>© 2025 Petit Stay. All rights reserved.</p>
                 </footer>
             </div>
         </div>

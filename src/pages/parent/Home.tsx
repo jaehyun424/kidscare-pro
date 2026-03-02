@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Parent Home Page
+// Petit Stay - Parent Home Page
 // ============================================
 
 import { Link } from 'react-router-dom';

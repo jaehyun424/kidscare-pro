@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Session Hooks
+// Petit Stay - Session Hooks
 // ============================================
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -28,16 +28,30 @@ function formatElapsed(startTime: Date): string {
     return `${hours}h ${minutes}m ${seconds}s`;
 }
 
-// Cache for sitter name lookups
+// LRU cache for sitter name lookups (capped at 100 entries)
+const CACHE_LIMIT = 100;
 const sitterNameCache = new Map<string, string>();
+
+function cachePut(key: string, value: string) {
+    if (sitterNameCache.size >= CACHE_LIMIT) {
+        const oldest = sitterNameCache.keys().next().value;
+        if (oldest !== undefined) sitterNameCache.delete(oldest);
+    }
+    sitterNameCache.set(key, value);
+}
 
 async function resolveSitterName(sitterId: string): Promise<string> {
     if (!sitterId) return '';
-    if (sitterNameCache.has(sitterId)) return sitterNameCache.get(sitterId)!;
+    if (sitterNameCache.has(sitterId)) {
+        const val = sitterNameCache.get(sitterId)!;
+        sitterNameCache.delete(sitterId);
+        sitterNameCache.set(sitterId, val);
+        return val;
+    }
     try {
         const sitter = await sitterService.getSitter(sitterId);
         const name = sitter?.profile?.displayName || sitterId;
-        sitterNameCache.set(sitterId, name);
+        cachePut(sitterId, name);
         return name;
     } catch {
         return sitterId;

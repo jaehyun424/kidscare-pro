@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Spinner Component
+// Petit Stay - Spinner Component
 // ============================================
 
 

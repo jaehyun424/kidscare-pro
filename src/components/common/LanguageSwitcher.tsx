@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Language Switcher Component
+// Petit Stay - Language Switcher Component
 // 4-language dropdown (EN/KO/JA/ZH)
 // ============================================
 

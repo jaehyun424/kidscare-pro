@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Login Page (Hospitality Redesign)
+// Petit Stay - Login Page (Hospitality Redesign)
 // ============================================
 
 import React, { useState } from 'react';
@@ -20,6 +20,43 @@ const DEMO_ACCOUNTS = [
   { email: 'sitter@demo.com', password: 'demo1234', roleKey: 'sitter', label: 'Specialist' },
 ];
 
+// Firebase error code to friendly message mapping
+function mapFirebaseError(err: unknown, t: (key: string, defaultValue: string) => string): string {
+  if (!(err instanceof Error)) return t('errors.unknownError', 'Authentication failed');
+  const code = (err as { code?: string }).code || err.message;
+  switch (code) {
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return t('errors.invalidCredentials', 'Invalid email or password');
+    case 'auth/too-many-requests':
+      return t('errors.tooManyRequests', 'Too many attempts. Please try again later.');
+    case 'auth/network-request-failed':
+      return t('errors.networkError', 'Network error. Please try again.');
+    case 'auth/user-disabled':
+      return t('errors.userDisabled', 'This account has been disabled.');
+    default:
+      return err.message || t('errors.unknownError', 'Authentication failed');
+  }
+}
+
+// Eye icon components for password toggle
+const EyeIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeOffIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+    <line x1="1" y1="1" x2="23" y2="23" />
+    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+  </svg>
+);
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const { signIn } = useAuth();
@@ -28,15 +65,16 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const validate = () => {
     const newErrors: typeof errors = {};
     if (!email) newErrors.email = t('auth.email') + ' is required';
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Invalid email format';
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = t('errors.invalidEmail', 'Invalid email format');
     if (!password) newErrors.password = t('auth.password') + ' is required';
-    else if (password.length < 6) newErrors.password = 'Minimum 6 characters';
+    else if (password.length < 6) newErrors.password = t('errors.passwordTooShort', 'Minimum 6 characters');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -55,8 +93,7 @@ export default function LoginPage() {
       else if (email.includes('sitter')) navigate('/sitter');
       else navigate('/hotel');
     } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Authentication failed';
-      error('Access Denied', message);
+      error('Access Denied', mapFirebaseError(err, t));
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +111,7 @@ export default function LoginPage() {
         <div className="visual-overlay" />
         <div className="visual-content">
           <h1 className="visual-quote">"Uncompromising care for your most important guests."</h1>
-          <p className="visual-author">— KidsCare Pro Hospitality Standard</p>
+          <p className="visual-author">— Petit Stay Hospitality Standard</p>
         </div>
       </div>
 
@@ -83,7 +120,7 @@ export default function LoginPage() {
         <div className="login-header">
           <div className="brand-logo">
             <span className="logo-icon">✨</span>
-            <span className="logo-text">KidsCare<span className="text-gold">Pro</span></span>
+            <span className="logo-text">Petit<span className="text-gold">Stay</span></span>
           </div>
           <LanguageSwitcher />
         </div>
@@ -103,17 +140,30 @@ export default function LoginPage() {
               placeholder="name@hotel.com"
               error={errors.email}
               autoComplete="email"
+              disabled={isLoading}
             />
 
-            <Input
-              label="Secure Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              error={errors.password}
-              autoComplete="current-password"
-            />
+            <div className="password-field-wrapper">
+              <Input
+                label="Secure Password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                error={errors.password}
+                autoComplete="current-password"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
               <Link to="/forgot-password" className="forgot-password-link">
@@ -127,6 +177,7 @@ export default function LoginPage() {
                 variant="primary"
                 fullWidth
                 isLoading={isLoading}
+                disabled={isLoading}
               >
                 AUTHENTICATE
               </Button>
@@ -143,6 +194,7 @@ export default function LoginPage() {
                   type="button"
                   className="demo-btn"
                   onClick={() => handleDemoLogin(account.email, account.password)}
+                  disabled={isLoading}
                 >
                   <span className="font-semibold text-xs">{account.label}</span>
                 </button>
@@ -158,7 +210,7 @@ export default function LoginPage() {
         </div>
 
         <div className="login-footer">
-            <p>© 2026 KidsCare Pro. Tokyo • Seoul • Singapore.</p>
+            <p>© 2026 Petit Stay. Tokyo • Seoul • Singapore.</p>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Chat Panel Component
+// Petit Stay - Chat Panel Component
 // Real-time messaging UI
 // ============================================
 

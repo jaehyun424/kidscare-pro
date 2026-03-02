@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Sitter Management Page
+// Petit Stay - Sitter Management Page
 // ============================================
 
 

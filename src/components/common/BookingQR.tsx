@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Booking QR Code Component
+// Petit Stay - Booking QR Code Component
 // ============================================
 
 import { QRCodeSVG } from 'qrcode.react';
@@ -20,7 +20,7 @@ export function BookingQR({
     size = 200,
 }: BookingQRProps) {
     const payload = JSON.stringify({
-        type: 'kidscare_checkin',
+        type: 'petitstay_checkin',
         bookingId,
         confirmationCode,
         parentId,

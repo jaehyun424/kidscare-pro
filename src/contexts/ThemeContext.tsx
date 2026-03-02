@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Theme Context
+// Petit Stay - Theme Context
 // ============================================
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
@@ -23,7 +23,7 @@ interface ThemeProviderProps {
 // ----------------------------------------
 // Constants
 // ----------------------------------------
-const THEME_STORAGE_KEY = 'kidscare-theme';
+const THEME_STORAGE_KEY = 'petitstay-theme';
 
 // ----------------------------------------
 // Context

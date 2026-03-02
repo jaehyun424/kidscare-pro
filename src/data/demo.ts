@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Consolidated Demo Data
+// Petit Stay - Consolidated Demo Data
 // Single source of truth for all demo/mock data
 // ============================================
 
@@ -576,6 +576,55 @@ export const DEMO_REVIEWS: DemoReview[] = [
         tags: ['professional', 'punctual'],
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20),
     },
+];
+
+// ----------------------------------------
+// Payment Methods (demo)
+// ----------------------------------------
+export interface DemoPaymentMethod {
+    id: string;
+    brand: 'visa' | 'mastercard' | 'amex' | 'other';
+    last4: string;
+    expiryMonth: number;
+    expiryYear: number;
+    holderName: string;
+    isDefault: boolean;
+}
+
+export const DEMO_PAYMENT_METHODS: DemoPaymentMethod[] = [
+    { id: 'pm1', brand: 'visa', last4: '4242', expiryMonth: 12, expiryYear: 2027, holderName: 'Sarah Johnson', isDefault: true },
+    { id: 'pm2', brand: 'mastercard', last4: '8888', expiryMonth: 6, expiryYear: 2026, holderName: 'Sarah Johnson', isDefault: false },
+];
+
+// ----------------------------------------
+// Sitter Availability (demo)
+// ----------------------------------------
+export const DEMO_SITTER_AVAILABILITY = {
+    monday: [{ start: '09:00', end: '18:00' }],
+    tuesday: [{ start: '09:00', end: '18:00' }],
+    wednesday: [{ start: '09:00', end: '18:00' }],
+    thursday: [{ start: '09:00', end: '18:00' }],
+    friday: [{ start: '09:00', end: '22:00' }],
+    saturday: [{ start: '10:00', end: '22:00' }],
+    sunday: [{ start: '10:00', end: '18:00' }],
+    nightShift: true,
+    holidayAvailable: true,
+};
+
+// ----------------------------------------
+// Sitter Documents (demo)
+// ----------------------------------------
+export interface DemoDocument {
+    id: string;
+    name: string;
+    url: string;
+    uploadedAt: Date;
+    size: number;
+}
+
+export const DEMO_SITTER_DOCUMENTS: DemoDocument[] = [
+    { id: 'doc1', name: 'CPR_Certification_2024.pdf', url: 'https://demo.petitstay.com/docs/cpr.pdf', uploadedAt: new Date('2024-03-15'), size: 245760 },
+    { id: 'doc2', name: 'First_Aid_Certificate.pdf', url: 'https://demo.petitstay.com/docs/firstaid.pdf', uploadedAt: new Date('2024-06-01'), size: 189440 },
 ];
 
 // ----------------------------------------

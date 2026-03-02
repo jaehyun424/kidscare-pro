@@ -1,5 +1,5 @@
 {
-  "name": "kidscare-pro-functions",
+  "name": "petit-stay-functions",
   "private": true,
   "scripts": {
     "build": "tsc",

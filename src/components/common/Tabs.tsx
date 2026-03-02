@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Tabs Component
+// Petit Stay - Tabs Component
 // ============================================
 
 import { useState } from 'react';

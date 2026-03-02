@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Toast Notification Context
+// Petit Stay - Toast Notification Context
 // ============================================
 
 import React, { createContext, useContext, useState, useCallback } from 'react';

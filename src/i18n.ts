@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - i18n Configuration
+// Petit Stay - i18n Configuration
 // English loaded synchronously, others lazy-loaded
 // ============================================
 

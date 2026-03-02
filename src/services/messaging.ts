@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Messaging Service
+// Petit Stay - Messaging Service
 // Firestore-based real-time messaging
 // ============================================
 

@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Reports & Analytics Page
+// Petit Stay - Reports & Analytics Page
 // ============================================
 
 import { useState, useMemo } from 'react';
@@ -173,6 +173,26 @@ export default function Reports() {
         return chartData.reduce((sum, d) => sum + d.bookings, 0);
     }, [chartData]);
 
+    // Period comparison: compare current period revenue vs previous period
+    const periodComparison = useMemo(() => {
+        const currentTotal = chartData.reduce((sum, d) => sum + d.revenue, 0);
+        let prevTotal: number;
+        switch (period) {
+            case 'this_week':
+                prevTotal = DEMO_REVENUE_LAST_MONTH.reduce((sum, d) => sum + d.revenue, 0) / 4; // approx weekly from last month
+                break;
+            case 'this_month':
+                prevTotal = DEMO_REVENUE_LAST_MONTH.reduce((sum, d) => sum + d.revenue, 0);
+                break;
+            case 'last_month':
+                prevTotal = DEMO_REVENUE_THIS_MONTH.reduce((sum, d) => sum + d.revenue, 0);
+                break;
+        }
+        if (prevTotal === 0) return { percent: 0, isUp: true };
+        const change = ((currentTotal - prevTotal) / prevTotal) * 100;
+        return { percent: Math.abs(Math.round(change)), isUp: change >= 0 };
+    }, [chartData, period]);
+
     // Booking stats derived from hook data
     const completionRate = useMemo(() => {
         if (bookings.length === 0) return 0;
@@ -223,7 +243,7 @@ export default function Reports() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `kidscare-report-${period}.csv`;
+        link.download = `petitstay-report-${period}.csv`;
         link.click();
         URL.revokeObjectURL(url);
 
@@ -341,6 +361,9 @@ export default function Reports() {
                             <div className="rpt-chart-total">
                                 <span className="rpt-chart-total-label">{t('reports.totalRevenue')}</span>
                                 <span className="rpt-chart-total-value">{formatCompact(totalChartRevenue)}</span>
+                                <span className={`rpt-chart-change ${periodComparison.isUp ? 'rpt-change-up' : 'rpt-change-down'}`}>
+                                    {periodComparison.isUp ? '+' : '-'}{periodComparison.percent}%
+                                </span>
                             </div>
                             <div className="rpt-chart-total">
                                 <span className="rpt-chart-total-label">{t('nav.bookings')}</span>

@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Hotel Layout (Sidebar + Content)
+// Petit Stay - Hotel Layout (Sidebar + Content)
 // ============================================
 
 import { useState } from 'react';
@@ -174,7 +174,7 @@ export function HotelLayout() {
         <div className="sidebar-header">
           <div className="sidebar-logo">
             <span className="logo-icon">👶</span>
-            {!sidebarCollapsed && <span className="logo-text">KidsCare<span className="text-gold">Pro</span></span>}
+            {!sidebarCollapsed && <span className="logo-text">Petit<span className="text-gold">Stay</span></span>}
           </div>
           <IconButton
             icon={<MenuIcon />}

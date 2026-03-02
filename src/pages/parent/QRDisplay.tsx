@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Parent QR Display Page
+// Petit Stay - Parent QR Display Page
 // Full-screen QR code for hotel check-in
 // ============================================
 

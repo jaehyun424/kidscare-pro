@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Modal Component
+// Petit Stay - Modal Component
 // ============================================
 
 import React, { useEffect, useCallback } from 'react';

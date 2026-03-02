@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Hotel Hooks
+// Petit Stay - Hotel Hooks
 // ============================================
 
 import { useState, useEffect, useCallback } from 'react';

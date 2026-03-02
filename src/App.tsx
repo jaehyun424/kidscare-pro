@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - Main App Router
+// Petit Stay - Main App Router
 // ============================================
 
 import React, { Suspense, lazy } from 'react';
@@ -11,6 +11,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { HotelLayout } from './components/layout/HotelLayout';
 import { ParentLayout } from './components/layout/ParentLayout';
 import { SitterLayout } from './components/layout/SitterLayout';
+import { DemoBanner } from './components/common/DemoBanner';
 import './index.css';
 
 // ----------------------------------------
@@ -45,6 +46,9 @@ const SitterSchedule = lazy(() => import('./pages/sitter/Schedule'));
 const SitterActiveSession = lazy(() => import('./pages/sitter/ActiveSession'));
 const SitterEarnings = lazy(() => import('./pages/sitter/Earnings'));
 const SitterProfile = lazy(() => import('./pages/sitter/Profile'));
+
+// Common
+const NotificationInbox = lazy(() => import('./pages/common/NotificationInbox'));
 
 // 404
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -122,6 +126,7 @@ function AppRoutes() {
           <Route path="safety" element={<HotelSafety />} />
           <Route path="settings" element={<HotelSettings />} />
           <Route path="scan" element={<HotelScanCheckIn />} />
+          <Route path="notifications" element={<NotificationInbox />} />
         </Route>
 
         {/* Parent App Routes */}
@@ -140,6 +145,7 @@ function AppRoutes() {
           <Route path="history" element={<ParentHistory />} />
           <Route path="profile" element={<ParentProfile />} />
           <Route path="qr/:bookingId" element={<ParentQRDisplay />} />
+          <Route path="notifications" element={<NotificationInbox />} />
         </Route>
 
         {/* Sitter App Routes */}
@@ -155,6 +161,7 @@ function AppRoutes() {
           <Route path="active" element={<SitterActiveSession />} />
           <Route path="earnings" element={<SitterEarnings />} />
           <Route path="profile" element={<SitterProfile />} />
+          <Route path="notifications" element={<NotificationInbox />} />
         </Route>
 
         {/* Default Redirect */}
@@ -176,6 +183,7 @@ function App() {
           <AuthProvider>
             <ToastProvider>
               <AppRoutes />
+              <DemoBanner />
             </ToastProvider>
           </AuthProvider>
         </ErrorBoundary>

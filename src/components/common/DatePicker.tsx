@@ -1,5 +1,5 @@
 // ============================================
-// KidsCare Pro - DatePicker Component
+// Petit Stay - DatePicker Component
 // ============================================
 
 import { useRef } from 'react';
