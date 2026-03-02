@@ -5,6 +5,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ChevronDown } from 'lucide-react';
 
 const LANGUAGES = [
     { code: 'en', label: 'English', flag: '🇺🇸' },
@@ -46,9 +47,7 @@ export function LanguageSwitcher() {
             >
                 <span>{currentLang.flag}</span>
                 <span>{currentLang.code.toUpperCase()}</span>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.5 }}>
-                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <ChevronDown size={12} strokeWidth={1.75} style={{ opacity: 0.5 }} />
             </button>
 
             {isOpen && (

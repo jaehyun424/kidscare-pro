@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { MessageCircle } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Button, IconButton } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
@@ -61,7 +62,7 @@ export default function LiveStatus() {
                             variant="ghost"
                             size="md"
                             aria-label="Message Sitter"
-                            icon={<span className="chat-icon">💬</span>}
+                            icon={<MessageCircle size={20} strokeWidth={1.75} />}
                             onClick={() => setChatOpen(true)}
                         />
                     </div>

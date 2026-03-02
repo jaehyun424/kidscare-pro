@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Info } from 'lucide-react';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
@@ -166,7 +167,7 @@ export default function TrustCheckIn() {
                     onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
                 />
                 <div className="info-box">
-                    <span className="info-icon">ℹ️</span>
+                    <span className="info-icon"><Info size={16} strokeWidth={1.75} /></span>
                     <p>{t('trustCheckin.emsInfo')}</p>
                 </div>
             </div>

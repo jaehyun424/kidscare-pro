@@ -130,7 +130,7 @@
 
 .stat-card-label {
   font-size: 0.75rem;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.1em;
   color: var(--charcoal-500);
   font-weight: 600;
@@ -162,7 +162,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--gold-600);
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.05em;
   transition: color 0.2s;
 }
@@ -292,7 +292,7 @@
 .live-item-room {
   font-size: 0.75rem;
   color: var(--charcoal-500);
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.05em;
 }
 

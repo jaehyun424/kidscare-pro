@@ -4,6 +4,7 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Download, Calendar, DollarSign, Radio, CheckCircle, Star } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { TierBadge, SafetyBadge } from '../../components/common/Badge';
@@ -26,46 +27,6 @@ interface RevenueDataPoint {
     revenue: number;
     bookings: number;
 }
-
-// ----------------------------------------
-// Icons
-// ----------------------------------------
-const DownloadIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="7,10 12,15 17,10" />
-        <line x1="12" y1="15" x2="12" y2="3" />
-    </svg>
-);
-
-const CalendarIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="4" width="18" height="18" rx="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-);
-
-const CurrencyIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <line x1="12" y1="1" x2="12" y2="23" />
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-    </svg>
-);
-
-const LiveIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-        <circle cx="12" cy="12" r="3" />
-    </svg>
-);
-
-const CheckIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <polyline points="20,6 9,17 4,12" />
-    </svg>
-);
 
 // ----------------------------------------
 // Demo Revenue Data
@@ -292,7 +253,7 @@ export default function Reports() {
                     <h1 className="page-title">{t('reports.title')}</h1>
                     <p className="page-subtitle">{t('reports.subtitle')}</p>
                 </div>
-                <Button variant="gold" icon={<DownloadIcon />} onClick={handleExport}>
+                <Button variant="gold" icon={<Download size={20} strokeWidth={2} />} onClick={handleExport}>
                     {t('reports.exportReport')}
                 </Button>
             </div>
@@ -318,28 +279,28 @@ export default function Reports() {
             {/* Booking Summary Cards */}
             <div className="rpt-stats-grid">
                 <StatCard
-                    icon={<CalendarIcon />}
+                    icon={<Calendar size={20} strokeWidth={2} />}
                     label={t('reports.totalBookings')}
                     value={stats.todayBookings}
                     subValue={`${stats.pendingBookings} ${t('status.pending').toLowerCase()}`}
                     color="primary"
                 />
                 <StatCard
-                    icon={<LiveIcon />}
+                    icon={<Radio size={20} strokeWidth={2} />}
                     label={t('reports.activeSessions')}
                     value={sessions.length}
                     subValue={t('reports.inProgressNow')}
                     color="warning"
                 />
                 <StatCard
-                    icon={<CheckIcon />}
+                    icon={<CheckCircle size={20} strokeWidth={2} />}
                     label={t('reports.completionRate')}
                     value={`${completionRate}%`}
                     subValue={`${stats.completedToday} ${t('reports.completedToday')}`}
                     color="success"
                 />
                 <StatCard
-                    icon={<CurrencyIcon />}
+                    icon={<DollarSign size={20} strokeWidth={2} />}
                     label={t('reports.todaysRevenue')}
                     value={formatCurrency(stats.todayRevenue)}
                     subValue={`${stats.safetyDays} ${t('reports.daysWithoutIncident')}`}
@@ -427,7 +388,7 @@ export default function Reports() {
                                             </td>
                                             <td>
                                                 <span className="rpt-rating-cell">
-                                                    <span className="rpt-rating-star">&#9733;</span>
+                                                    <Star size={14} strokeWidth={1.75} fill="currentColor" className="rpt-rating-star" />
                                                     {sitter.rating.toFixed(1)}
                                                 </span>
                                             </td>

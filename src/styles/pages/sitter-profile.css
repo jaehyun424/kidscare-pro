@@ -21,7 +21,7 @@
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   color: var(--text-tertiary);
-  text-transform: uppercase;
+  text-transform: none;
   margin-bottom: var(--space-3);
 }
 

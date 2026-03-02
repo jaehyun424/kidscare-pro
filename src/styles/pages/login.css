@@ -51,7 +51,7 @@
   color: var(--gold-400);
   font-size: 0.875rem;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .login-form-container {

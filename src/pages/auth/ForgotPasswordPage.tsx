@@ -75,7 +75,6 @@ export default function ForgotPasswordPage() {
       <div className="login-form-container">
         <div className="login-header">
           <div className="brand-logo">
-            <span className="logo-icon">✨</span>
             <span className="logo-text">Petit<span className="text-gold">Stay</span></span>
           </div>
           <LanguageSwitcher />

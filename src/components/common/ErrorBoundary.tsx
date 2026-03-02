@@ -4,6 +4,7 @@
 
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
+import { AlertCircle } from 'lucide-react';
 
 interface Props {
     children: ReactNode;
@@ -52,11 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <div className="error-boundary-fallback">
                     <div className="error-boundary-content">
                         <div className="error-boundary-icon">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="8" x2="12" y2="12" />
-                                <line x1="12" y1="16" x2="12.01" y2="16" />
-                            </svg>
+                            <AlertCircle size={48} strokeWidth={1.5} />
                         </div>
                         <h2>{this.state.isChunkError ? 'Update Available' : 'Something went wrong'}</h2>
                         <p>

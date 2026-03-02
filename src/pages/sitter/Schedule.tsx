@@ -2,6 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { Building2, Baby, Calendar } from 'lucide-react';
 import { Card, CardBody } from '../../components/common/Card';
 import { StatusBadge, TierBadge, SafetyBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -82,8 +83,8 @@ export default function Schedule() {
                                     <StatusBadge status={session.status} />
                                 </div>
                                 <div className="session-info">
-                                    <span>🏨 {session.hotel} - {t('common.room')} {session.room}</span>
-                                    <span>👶 {session.children.join(', ')}</span>
+                                    <span><Building2 size={14} strokeWidth={1.75} /> {session.hotel} - {t('common.room')} {session.room}</span>
+                                    <span><Baby size={14} strokeWidth={1.75} /> {session.children.join(', ')}</span>
                                 </div>
                                 <div className="session-actions">
                                     {session.status === 'confirmed' && (
@@ -99,7 +100,7 @@ export default function Schedule() {
                 </div>
             ) : (
                 <EmptyState
-                    icon="📅"
+                    icon={<Calendar size={20} strokeWidth={1.75} />}
                     title={t('sitter.noSessionsScheduled', 'No sessions scheduled')}
                     description={t('sitter.noSessionsScheduledDesc', 'You have no sessions scheduled for today. Check back later.')}
                 />

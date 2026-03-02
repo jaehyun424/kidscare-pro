@@ -3,6 +3,7 @@
 // ============================================
 
 import { useState } from 'react';
+import { Star } from 'lucide-react';
 import { Button } from './Button';
 import { Modal } from './Modal';
 import '../../styles/components/review-form.css';
@@ -66,7 +67,11 @@ export function ReviewForm({ isOpen, onClose, onSubmit, bookingInfo }: ReviewFor
                             onMouseLeave={() => setHoverRating(0)}
                             aria-label={`${star} star${star !== 1 ? 's' : ''}`}
                         >
-                            ★
+                            <Star
+                                size={28}
+                                strokeWidth={1.5}
+                                fill={star <= (hoverRating || rating) ? 'currentColor' : 'none'}
+                            />
                         </button>
                     ))}
                     <span className="review-stars-label">
@@ -119,17 +124,21 @@ interface StarRatingProps {
     showValue?: boolean;
 }
 
+const starSizeMap = { sm: 14, md: 18, lg: 22 };
+
 export function StarRating({ rating, size = 'md', showValue = false }: StarRatingProps) {
+    const px = starSizeMap[size];
     return (
         <span className={`star-rating star-rating-${size}`}>
             {[1, 2, 3, 4, 5].map((star) => (
-                <span
+                <Star
                     key={star}
+                    size={px}
+                    strokeWidth={1.5}
                     className={star <= rating ? 'star-filled' : 'star-empty'}
+                    fill={star <= rating ? 'currentColor' : 'none'}
                     aria-hidden="true"
-                >
-                    ★
-                </span>
+                />
             ))}
             {showValue && (
                 <span className="star-value">

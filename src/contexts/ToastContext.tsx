@@ -3,6 +3,7 @@
 // ============================================
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { Check, X, AlertTriangle, Info } from 'lucide-react';
 import type { ToastMessage } from '../types';
 
 // ----------------------------------------
@@ -121,10 +122,10 @@ interface ToastProps {
 
 function Toast({ toast, onRemove }: ToastProps) {
     const icons = {
-        success: '✓',
-        error: '✕',
-        warning: '⚠',
-        info: 'ℹ',
+        success: <Check size={18} strokeWidth={2.5} />,
+        error: <X size={18} strokeWidth={2.5} />,
+        warning: <AlertTriangle size={18} strokeWidth={2} />,
+        info: <Info size={18} strokeWidth={2} />,
     };
 
     return (
@@ -139,7 +140,7 @@ function Toast({ toast, onRemove }: ToastProps) {
                 onClick={() => onRemove(toast.id)}
                 aria-label="Close"
             >
-                ×
+                <X size={16} strokeWidth={2} />
             </button>
         </div>
     );

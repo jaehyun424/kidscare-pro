@@ -35,7 +35,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--error-600);
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.05em;
   font-family: var(--font-sans);
 }
@@ -179,7 +179,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--charcoal-400);
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.05em;
   margin-bottom: 1rem;
 }

@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Bell } from 'lucide-react';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { EmptyState } from '../../components/common/EmptyState';
@@ -76,7 +77,7 @@ export default function NotificationInbox() {
                 <Card>
                     <CardBody>
                         <EmptyState
-                            icon="🔔"
+                            icon={<Bell size={20} strokeWidth={1.75} />}
                             title={t('notifications.noNotifications')}
                             description={t('notifications.noNotificationsDesc')}
                         />

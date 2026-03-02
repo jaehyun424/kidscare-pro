@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Calendar, Radio, CheckCircle, DollarSign, Plus, ArrowRight, Clock, DoorOpen, User } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Badge, StatusBadge, TierBadge, SafetyBadge } from '../../components/common/Badge';
@@ -21,52 +22,6 @@ import { useHotelSessions } from '../../hooks/useSessions';
 import { useHotelSitters } from '../../hooks/useSitters';
 import type { DemoBooking } from '../../data/demo';
 import '../../styles/pages/hotel-dashboard.css';
-
-// ----------------------------------------
-// Icons
-// ----------------------------------------
-const CalendarIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="3" y="4" width="18" height="18" rx="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
-  </svg>
-);
-
-const LiveIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="10" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const CheckIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polyline points="20,6 9,17 4,12" />
-  </svg>
-);
-
-const CurrencyIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <line x1="12" y1="1" x2="12" y2="23" />
-    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-  </svg>
-);
-
-const PlusIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
-
-const ArrowRightIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12,5 19,12 12,19" />
-  </svg>
-);
 
 // ----------------------------------------
 // Stat Card Component
@@ -189,7 +144,7 @@ export default function Dashboard() {
         </div>
         <div className="dashboard-header-actions">
           <PeriodSelector value={period} onChange={setPeriod} />
-          <Button variant="gold" icon={<PlusIcon />} onClick={() => setShowNewBooking(true)}>
+          <Button variant="gold" icon={<Plus size={20} strokeWidth={2} />} onClick={() => setShowNewBooking(true)}>
             {t('hotel.newBooking')}
           </Button>
         </div>
@@ -212,7 +167,7 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="stats-grid animate-stagger">
         <StatCard
-          icon={<CalendarIcon />}
+          icon={<Calendar size={20} strokeWidth={2} />}
           label={t('hotel.totalBookings')}
           value={stats.todayBookings}
           subValue={`${stats.pendingBookings} ${t('status.pending').toLowerCase()}`}
@@ -220,7 +175,7 @@ export default function Dashboard() {
           to="/hotel/bookings"
         />
         <StatCard
-          icon={<LiveIcon />}
+          icon={<Radio size={20} strokeWidth={2} />}
           label={t('hotel.activeSessions')}
           value={stats.activeNow}
           subValue={t('status.inProgress')}
@@ -228,14 +183,14 @@ export default function Dashboard() {
           to="/hotel/live"
         />
         <StatCard
-          icon={<CheckIcon />}
+          icon={<CheckCircle size={20} strokeWidth={2} />}
           label={t('status.completed')}
           value={stats.completedToday}
           color="success"
           to="/hotel/reports"
         />
         <StatCard
-          icon={<CurrencyIcon />}
+          icon={<DollarSign size={20} strokeWidth={2} />}
           label={t('hotel.totalRevenue')}
           value={formatCurrency(stats.todayRevenue)}
           color="gold"
@@ -249,7 +204,7 @@ export default function Dashboard() {
         <Card className="animate-fade-in-up stagger-2">
           <CardHeader action={
             <Link to="/hotel/bookings" className="card-link">
-              {t('parent.viewAll')} <ArrowRightIcon />
+              {t('parent.viewAll')} <ArrowRight size={16} strokeWidth={2} />
             </Link>
           }>
             <CardTitle subtitle={t('hotel.upcomingAndInProgress')}>
@@ -260,7 +215,7 @@ export default function Dashboard() {
             <div className="booking-list">
               {todayBookings.length === 0 ? (
                 <div className="empty-state">
-                  <CalendarIcon />
+                  <Calendar size={20} strokeWidth={2} />
                   <p className="empty-state-text">{t('parent.noUpcomingBookings')}</p>
                   <Button variant="gold" size="sm" onClick={() => setShowNewBooking(true)}>
                     {t('hotel.newBooking')}
@@ -275,9 +230,9 @@ export default function Dashboard() {
                         <StatusBadge status={booking.status} />
                       </div>
                       <div className="booking-item-details">
-                        <span>🕐 {booking.time}</span>
-                        <span>🚪 {t('common.room')} {booking.room}</span>
-                        <span>👤 {booking.parent.name}</span>
+                        <span><Clock size={16} strokeWidth={1.75} /> {booking.time}</span>
+                        <span><DoorOpen size={16} strokeWidth={1.75} /> {t('common.room')} {booking.room}</span>
+                        <span><User size={16} strokeWidth={1.75} /> {booking.parent.name}</span>
                       </div>
                       <div className="booking-item-children">
                         {booking.children.map((child, i) => (
@@ -313,7 +268,7 @@ export default function Dashboard() {
         <Card className="animate-fade-in-up stagger-3">
           <CardHeader action={
             <Link to="/hotel/live" className="card-link">
-              {t('nav.liveMonitor')} <ArrowRightIcon />
+              {t('nav.liveMonitor')} <ArrowRight size={16} strokeWidth={2} />
             </Link>
           }>
             <CardTitle subtitle={t('hotel.recentActivity')}>
@@ -327,7 +282,7 @@ export default function Dashboard() {
             <div className="live-list">
               {activeSessions.length === 0 ? (
                 <div className="empty-state">
-                  <LiveIcon />
+                  <Radio size={20} strokeWidth={2} />
                   <p className="empty-state-text">{t('liveMonitor.noActiveSessions')}</p>
                   <p className="empty-state-sub">{t('liveMonitor.noActiveSessionsDesc')}</p>
                 </div>

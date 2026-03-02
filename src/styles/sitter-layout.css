@@ -10,11 +10,18 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4);
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   position: sticky;
   top: 0;
   z-index: var(--z-fixed-nav);
+}
+
+:root[data-theme="dark"] .sitter-header {
+  background: rgba(30, 30, 30, 0.85);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 .sitter-header-left {

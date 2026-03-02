@@ -2,6 +2,7 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ClipboardEdit, Camera, Apple, AlertTriangle } from 'lucide-react';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
@@ -137,10 +138,10 @@ export default function ActiveSession() {
 
             {/* Quick Actions */}
             <div className="quick-actions-grid">
-                <Button variant="primary" onClick={logActivity}>📝 {t('activeSession.logActivity')}</Button>
-                <Button variant="secondary" onClick={handleAddPhoto}>📸 {t('activeSession.addPhoto')}</Button>
-                <Button variant="secondary" onClick={logSnack}>🍎 {t('activeSession.logSnack')}</Button>
-                <Button variant="danger" onClick={() => setShowReportIssue(true)}>🚨 {t('activeSession.reportIssue')}</Button>
+                <Button variant="primary" onClick={logActivity}><ClipboardEdit size={16} strokeWidth={1.75} /> {t('activeSession.logActivity')}</Button>
+                <Button variant="secondary" onClick={handleAddPhoto}><Camera size={16} strokeWidth={1.75} /> {t('activeSession.addPhoto')}</Button>
+                <Button variant="secondary" onClick={logSnack}><Apple size={16} strokeWidth={1.75} /> {t('activeSession.logSnack')}</Button>
+                <Button variant="danger" onClick={() => setShowReportIssue(true)}><AlertTriangle size={16} strokeWidth={1.75} /> {t('activeSession.reportIssue')}</Button>
                 <input
                     ref={fileInputRef}
                     type="file"

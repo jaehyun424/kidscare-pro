@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Star, Building2, BadgeCheck, Scale, Moon, Sun, Calendar, Wallet, FileText, HelpCircle, Check } from 'lucide-react';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
@@ -121,7 +122,7 @@ export default function Profile() {
                         <div className="profile-info">
                             <h2>{profile.name}</h2>
                             <TierBadge tier={profile.tier} />
-                            <div className="profile-rating">⭐ {profile.rating} ({profile.reviewCount} reviews)</div>
+                            <div className="profile-rating"><Star size={14} strokeWidth={1.75} fill="currentColor" /> {profile.rating} ({profile.reviewCount} reviews)</div>
                             <Button variant="ghost" size="sm" onClick={openEditModal}>
                                 {t('common.edit')} {t('sitter.profile.title', 'Profile')}
                             </Button>
@@ -141,28 +142,28 @@ export default function Profile() {
                     <h3 className="section-title">{t('profile.identityVerification')}</h3>
                     <div className="verification-grid">
                         <div className="verify-item verified">
-                            <span className="verify-icon" aria-hidden="true">🏨</span>
+                            <span className="verify-icon" aria-hidden="true"><Building2 size={16} strokeWidth={1.75} /></span>
                             <div className="verify-text">
                                 <span className="verify-label">{t('profile.hotelPartnerVerified')}</span>
                                 <span className="verify-sub">Grand Hyatt • 2024</span>
                             </div>
-                            <span className="verify-check" aria-label="Verified">✓</span>
+                            <span className="verify-check" aria-label="Verified"><Check size={16} strokeWidth={2.5} /></span>
                         </div>
                         <div className="verify-item verified">
-                            <span className="verify-icon" aria-hidden="true">🆔</span>
+                            <span className="verify-icon" aria-hidden="true"><BadgeCheck size={16} strokeWidth={1.75} /></span>
                             <div className="verify-text">
                                 <span className="verify-label">{t('profile.govIdChecked')}</span>
                                 <span className="verify-sub">{t('profile.nationalRegistry')}</span>
                             </div>
-                            <span className="verify-check" aria-label="Verified">✓</span>
+                            <span className="verify-check" aria-label="Verified"><Check size={16} strokeWidth={2.5} /></span>
                         </div>
                         <div className="verify-item verified">
-                            <span className="verify-icon" aria-hidden="true">⚖️</span>
+                            <span className="verify-icon" aria-hidden="true"><Scale size={16} strokeWidth={1.75} /></span>
                             <div className="verify-text">
                                 <span className="verify-label">{t('profile.backgroundClear')}</span>
                                 <span className="verify-sub">Valid until Dec 2025</span>
                             </div>
-                            <span className="verify-check" aria-label="Verified">✓</span>
+                            <span className="verify-check" aria-label="Verified"><Check size={16} strokeWidth={2.5} /></span>
                         </div>
                     </div>
                 </CardBody>
@@ -174,7 +175,7 @@ export default function Profile() {
                     <h3 className="section-title">Certifications</h3>
                     <div className="certs-list">
                         {profile.certifications.map((cert, i) => (
-                            <Badge key={i} variant="success">✓ {cert}</Badge>
+                            <Badge key={i} variant="success" icon={<Check size={12} strokeWidth={2.5} />}>{cert}</Badge>
                         ))}
                     </div>
                 </CardBody>
@@ -232,13 +233,13 @@ export default function Profile() {
                 <CardBody>
                     <div className="settings-menu" role="navigation" aria-label={t('profile.settings')}>
                         <button className="menu-btn" onClick={toggleTheme}>
-                            <span aria-hidden="true">{isDark ? '🌙' : '☀️'}</span> {t('common.theme')}
+                            <span aria-hidden="true">{isDark ? <Moon size={20} strokeWidth={1.75} /> : <Sun size={20} strokeWidth={1.75} />}</span> {t('common.theme')}
                             <span className="menu-item-value">{isDark ? t('common.dark') : t('common.light')}</span>
                         </button>
-                        <button className="menu-btn" onClick={() => setShowAvailModal(true)}><span aria-hidden="true">📅</span> {t('profile.availability')}</button>
-                        <button className="menu-btn" onClick={() => setShowBankModal(true)}><span aria-hidden="true">💰</span> {t('profile.bankAccount')}</button>
-                        <button className="menu-btn" onClick={() => setShowDocsModal(true)}><span aria-hidden="true">📄</span> {t('profile.documents')}</button>
-                        <button className="menu-btn" onClick={() => success(t('profile.helpLabel'), t('profile.supportEmail'))}><span aria-hidden="true">❓</span> {t('profile.helpLabel')}</button>
+                        <button className="menu-btn" onClick={() => setShowAvailModal(true)}><span aria-hidden="true"><Calendar size={20} strokeWidth={1.75} /></span> {t('profile.availability')}</button>
+                        <button className="menu-btn" onClick={() => setShowBankModal(true)}><span aria-hidden="true"><Wallet size={20} strokeWidth={1.75} /></span> {t('profile.bankAccount')}</button>
+                        <button className="menu-btn" onClick={() => setShowDocsModal(true)}><span aria-hidden="true"><FileText size={20} strokeWidth={1.75} /></span> {t('profile.documents')}</button>
+                        <button className="menu-btn" onClick={() => success(t('profile.helpLabel'), t('profile.supportEmail'))}><span aria-hidden="true"><HelpCircle size={20} strokeWidth={1.75} /></span> {t('profile.helpLabel')}</button>
                     </div>
                 </CardBody>
             </Card>

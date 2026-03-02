@@ -59,7 +59,7 @@
   border-bottom: 1px solid var(--cream-300);
   font-size: 0.75rem;
   font-weight: 700;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.05em;
   color: var(--charcoal-500);
   text-align: left;
@@ -218,7 +218,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--charcoal-400);
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.1em;
   margin-bottom: 1rem;
 }

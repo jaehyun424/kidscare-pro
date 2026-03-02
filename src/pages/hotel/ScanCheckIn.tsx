@@ -4,6 +4,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { QrCode, CameraOff, CheckCircle } from 'lucide-react';
 import jsQR from 'jsqr';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -248,7 +249,7 @@ export default function ScanCheckIn() {
                         {scanStatus === 'idle' && !cameraError && (
                             <div className="scan-idle">
                                 <div className="scan-icon">
-                                    <QRIcon />
+                                    <QrCode size={48} strokeWidth={1.5} />
                                 </div>
                                 <p>{t('scan.tapToStart')}</p>
                                 <Button variant="gold" onClick={startCamera}>
@@ -260,7 +261,7 @@ export default function ScanCheckIn() {
                         {cameraError && (
                             <div className="scan-idle scan-error-state">
                                 <div className="scan-icon error">
-                                    <CameraOffIcon />
+                                    <CameraOff size={48} strokeWidth={1.5} />
                                 </div>
                                 <p>{cameraError}</p>
                                 <Button variant="primary" onClick={startCamera}>
@@ -297,7 +298,7 @@ export default function ScanCheckIn() {
                         {scanStatus === 'success' && scannedData && (
                             <div className="scan-result">
                                 <div className="scan-success-icon">
-                                    <CheckCircleIcon />
+                                    <CheckCircle size={48} strokeWidth={2} style={{ color: 'var(--success-500)' }} />
                                 </div>
                                 <h3>{t('scan.bookingVerified')}</h3>
                                 <Badge variant="success" size="sm">{t('scan.validQRCode')}</Badge>
@@ -351,37 +352,3 @@ export default function ScanCheckIn() {
     );
 }
 
-// ----------------------------------------
-// Icons
-// ----------------------------------------
-function QRIcon() {
-    return (
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="3" height="3" />
-            <line x1="21" y1="14" x2="21" y2="21" />
-            <line x1="14" y1="21" x2="21" y2="21" />
-        </svg>
-    );
-}
-
-function CameraOffIcon() {
-    return (
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <line x1="1" y1="1" x2="23" y2="23" />
-            <path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l2-3h6l2 3h3a2 2 0 0 1 2 2v9" />
-            <circle cx="12" cy="13" r="4" />
-        </svg>
-    );
-}
-
-function CheckCircleIcon() {
-    return (
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--success-500)" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="9,12 11,14 15,10" />
-        </svg>
-    );
-}

@@ -4,6 +4,7 @@
 
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Calendar, ClipboardList, Baby, Building2, Star, User } from 'lucide-react';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { StatusBadge } from '../../components/common/Badge';
@@ -74,15 +75,15 @@ export default function Home() {
       {/* Quick Actions */}
       <div className="quick-actions animate-stagger" role="navigation" aria-label="Quick actions">
         <Link to="/parent/book" className="quick-action-btn">
-          <span className="icon" aria-hidden="true">📅</span>
+          <span className="icon" aria-hidden="true"><Calendar size={20} strokeWidth={1.75} /></span>
           <span>{t('parent.bookNow')}</span>
         </Link>
         <Link to="/parent/history" className="quick-action-btn">
-          <span className="icon" aria-hidden="true">📋</span>
+          <span className="icon" aria-hidden="true"><ClipboardList size={20} strokeWidth={1.75} /></span>
           <span>{t('nav.history')}</span>
         </Link>
         <Link to="/parent/profile" className="quick-action-btn">
-          <span className="icon" aria-hidden="true">👶</span>
+          <span className="icon" aria-hidden="true"><Baby size={20} strokeWidth={1.75} /></span>
           <span>{t('parent.children')}</span>
         </Link>
       </div>
@@ -116,18 +117,18 @@ export default function Home() {
               <StatusBadge status={upcomingBooking.status} />
             </div>
             <div className="upcoming-details">
-              <span aria-hidden="true">📅</span>
+              <span aria-hidden="true"><Calendar size={20} strokeWidth={1.75} /></span>
               <span>{t('parent.tonight')} • {upcomingBooking.time}</span>
               <div className="detail-row">
-                <span aria-hidden="true">🏨</span>
+                <span aria-hidden="true"><Building2 size={16} strokeWidth={1.75} /></span>
                 <span>{upcomingBooking.hotel} - {t('common.room')} {upcomingBooking.room}</span>
               </div>
               <div className="detail-row">
-                <span aria-hidden="true">👩‍🍼</span>
-                <span>{upcomingBooking.sitter.name} <span aria-label={`rated ${upcomingBooking.sitter.rating} stars`}>⭐ {upcomingBooking.sitter.rating}</span></span>
+                <span aria-hidden="true"><User size={16} strokeWidth={1.75} /></span>
+                <span>{upcomingBooking.sitter.name} <span aria-label={`rated ${upcomingBooking.sitter.rating} stars`}><Star size={14} strokeWidth={1.75} fill="currentColor" /> {upcomingBooking.sitter.rating}</span></span>
               </div>
               <div className="detail-row">
-                <span aria-hidden="true">👶</span>
+                <span aria-hidden="true"><Baby size={16} strokeWidth={1.75} /></span>
                 <span>{upcomingBooking.childrenIds.length} {t('parent.children').toLowerCase()}</span>
               </div>
             </div>
@@ -147,7 +148,7 @@ export default function Home() {
         </Card>
       ) : (
         <EmptyState
-          icon="📅"
+          icon={<Calendar size={20} strokeWidth={1.75} />}
           title={t('parent.noUpcomingBookings', 'No upcoming bookings')}
           description={t('parent.noUpcomingBookingsDesc', 'Book a trusted sitter for your next hotel stay.')}
           action={
@@ -172,7 +173,7 @@ export default function Home() {
                   </div>
                   <div className="session-meta">
                     <span>{session.durationHours}h</span>
-                    <span aria-label={`${session.rating} star rating`}>{'⭐'.repeat(session.rating)}</span>
+                    <span aria-label={`${session.rating} star rating`}>{Array.from({ length: session.rating }, (_, i) => <Star key={i} size={14} strokeWidth={1.75} fill="currentColor" />)}</span>
                   </div>
                 </div>
               </CardBody>
@@ -180,7 +181,7 @@ export default function Home() {
           ))
         ) : (
           <EmptyState
-            icon="📋"
+            icon={<ClipboardList size={20} strokeWidth={1.75} />}
             title={t('parent.noRecentSessions', 'No recent sessions')}
             description={t('parent.noRecentSessionsDesc', 'Your completed sessions will appear here.')}
           />

@@ -102,19 +102,25 @@
   --space-8: 2rem;
 
   /* Radius */
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
-  --radius-2xl: 16px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 2px 4px rgba(28, 28, 28, 0.05);
-  --shadow-md: 0 6px 16px rgba(28, 28, 28, 0.08);
-  --shadow-lg: 0 12px 32px rgba(28, 28, 28, 0.12);
-  --shadow-xl: 0 20px 48px rgba(28, 28, 28, 0.15);
-  --shadow-gold: 0 4px 20px rgba(197, 160, 89, 0.2);
+  /* Shadows - multi-layer for depth */
+  --shadow-xs: 0 1px 2px rgba(28, 28, 28, 0.04);
+  --shadow-sm: 0 1px 3px rgba(28, 28, 28, 0.06), 0 2px 6px rgba(28, 28, 28, 0.04);
+  --shadow-md: 0 2px 8px rgba(28, 28, 28, 0.06), 0 8px 20px rgba(28, 28, 28, 0.06);
+  --shadow-lg: 0 4px 12px rgba(28, 28, 28, 0.06), 0 16px 40px rgba(28, 28, 28, 0.1);
+  --shadow-xl: 0 8px 24px rgba(28, 28, 28, 0.08), 0 24px 56px rgba(28, 28, 28, 0.14);
+  --shadow-gold: 0 4px 16px rgba(197, 160, 89, 0.18), 0 8px 32px rgba(197, 160, 89, 0.1);
+  --shadow-card-hover: 0 4px 12px rgba(28, 28, 28, 0.06), 0 20px 48px rgba(28, 28, 28, 0.12);
+
+  /* Gradients */
+  --gradient-card: linear-gradient(135deg, white, var(--cream-50));
+  --gradient-gold: linear-gradient(135deg, var(--cream-50), var(--gold-100));
 
   /* Transitions */
   --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
@@ -214,14 +220,15 @@ p {
   font-family: var(--font-action);
   font-weight: 600;
   font-size: var(--text-sm);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  border-radius: var(--radius-md);
   transition: all var(--duration-fast) var(--ease-out);
   cursor: pointer;
   border: 1px solid transparent;
 }
 
+.btn:hover:not(:disabled) { transform: translateY(-1px); }
 .btn:active:not(:disabled) { transform: scale(0.98); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -232,7 +239,7 @@ p {
 .btn-primary:hover:not(:disabled) {
   background-color: var(--charcoal-800);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-secondary {
@@ -251,7 +258,7 @@ p {
 }
 .btn-gold:hover:not(:disabled) {
   background-color: var(--gold-600);
-  box-shadow: 0 4px 12px rgba(185, 156, 107, 0.3);
+  box-shadow: var(--shadow-gold);
 }
 
 .btn-ghost {
@@ -289,17 +296,34 @@ p {
    4. Cards
    ---------------------------------------- */
 .card {
-  background-color: white;
-  border-radius: var(--radius-md);
+  background: var(--gradient-card);
+  border-radius: var(--radius-lg);
   padding: 2rem;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--cream-300);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+}
+
+.card-hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--gold-300);
+}
+
+.card-elevated {
+  box-shadow: var(--shadow-md);
+  border-color: transparent;
+}
+
+.card-outlined {
+  background: transparent;
+  box-shadow: none;
+  border: 1px solid var(--cream-400);
 }
 
 .card-gold {
   border-color: var(--gold-300);
-  background: linear-gradient(135deg, white, var(--gold-100));
+  background: var(--gradient-gold);
 }
 
 /* ----------------------------------------
@@ -313,8 +337,8 @@ p {
   font-family: var(--font-action);
   font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-transform: none;
   border-radius: var(--radius-full);
   white-space: nowrap;
 }
@@ -366,10 +390,10 @@ p {
 
 .form-label {
   font-family: var(--font-action);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--charcoal-600);
 }
 
@@ -499,8 +523,12 @@ p {
 .toast-info { border-left-color: var(--charcoal-900); }
 
 .toast-icon {
-  font-size: 1.25rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
 }
 
 .toast-content {
@@ -779,11 +807,17 @@ p {
   --error-600: #B85555;
 
   /* Shadows - stronger for dark */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.6);
-  --shadow-gold: 0 4px 20px rgba(197, 160, 89, 0.15);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.25), 0 8px 20px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.2), 0 16px 40px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.25), 0 24px 56px rgba(0, 0, 0, 0.35);
+  --shadow-gold: 0 4px 16px rgba(197, 160, 89, 0.12), 0 8px 32px rgba(197, 160, 89, 0.08);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.2), 0 20px 48px rgba(0, 0, 0, 0.25);
+
+  /* Gradients */
+  --gradient-card: linear-gradient(135deg, #252525, #282828);
+  --gradient-gold: linear-gradient(135deg, #252525, #2A2518);
 
   /* Glass Effect - dark glass */
   --glass-bg: rgba(30, 30, 30, 0.85);
@@ -842,7 +876,7 @@ p {
 
 :root[data-theme="dark"] .card-gold {
   border-color: var(--gold-600);
-  background: linear-gradient(135deg, #252525, #2A2518);
+  background: var(--gradient-gold);
 }
 
 /* Dark mode - Forms */
@@ -1184,10 +1218,12 @@ p {
 .review-star {
   background: none;
   border: none;
-  font-size: 2rem;
   color: var(--cream-400);
   cursor: pointer;
-  padding: 0;
+  padding: 0.125rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: color 0.15s, transform 0.15s;
 }
 
@@ -1335,7 +1371,7 @@ p {
 .auth-theme-toggle { position: absolute; top: var(--space-4); right: var(--space-4); }
 .auth-content { width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; }
 .auth-logo { text-align: center; margin-bottom: var(--space-8); }
-.auth-logo-icon { font-size: 4rem; display: block; margin-bottom: var(--space-4); animation: bounce 2s ease infinite; }
+.auth-logo-icon { display: flex; justify-content: center; margin-bottom: var(--space-4); animation: bounce 2s ease infinite; }
 .auth-logo-text { font-family: var(--font-family-display); font-size: var(--text-3xl); font-weight: var(--font-bold); margin-bottom: var(--space-2); }
 .auth-logo-tagline { font-size: var(--text-sm); color: var(--text-tertiary); }
 .auth-card { width: 100%; background: var(--bg-card); backdrop-filter: var(--glass-blur); border: 1px solid var(--border-color); border-radius: var(--radius-2xl); padding: var(--space-8); animation: fadeInUp var(--transition-slow); }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Building2, User, Star, ClipboardList } from 'lucide-react';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { StatusBadge } from '../../components/common/Badge';
@@ -68,13 +69,13 @@ export default function History() {
                                     <StatusBadge status={item.status} />
                                 </div>
                                 <div className="history-details">
-                                    <span>🏨 {item.hotel}</span>
-                                    <span>👩‍🍼 {item.sitter}</span>
+                                    <span><Building2 size={14} strokeWidth={1.75} /> {item.hotel}</span>
+                                    <span><User size={14} strokeWidth={1.75} /> {item.sitter}</span>
                                 </div>
                                 <div className="history-footer">
                                     <div className="history-footer-left">
                                         {item.rating > 0 ? (
-                                            <span className="history-rating" aria-label={`${item.rating} star rating`}>{'⭐'.repeat(item.rating)}</span>
+                                            <span className="history-rating" aria-label={`${item.rating} star rating`}>{Array.from({ length: item.rating }, (_, i) => <Star key={i} size={14} strokeWidth={1.75} fill="currentColor" />)}</span>
                                         ) : (
                                             <Button
                                                 variant="ghost"
@@ -101,7 +102,7 @@ export default function History() {
                 </div>
             ) : (
                 <EmptyState
-                    icon="📋"
+                    icon={<ClipboardList size={20} strokeWidth={1.75} />}
                     title={t('parent.noSessionHistory', 'No session history yet')}
                     description={t('parent.noSessionHistoryDesc', 'Your past bookings and sessions will appear here once completed.')}
                 />

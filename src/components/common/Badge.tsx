@@ -2,8 +2,9 @@
 // Petit Stay - Badge Component
 // ============================================
 
-
+import { Star, Shield } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
 // ----------------------------------------
 // Types
 // ----------------------------------------
@@ -86,7 +87,7 @@ export function TierBadge({ tier, showLabel = true }: TierBadgeProps) {
 
     return (
         <span className={`badge-tier-${tier}`}>
-            {isGold ? '★' : '☆'}
+            <Star size={14} strokeWidth={0} fill="currentColor" />
             {showLabel && <span style={{ marginLeft: '4px' }}>{isGold ? 'GOLD' : 'SILVER'}</span>}
         </span>
     );
@@ -103,7 +104,7 @@ export function SafetyBadge({ days }: SafetyBadgeProps) {
     const { t } = useTranslation();
     return (
         <div className="safety-badge">
-            <span className="safety-badge-icon">🛡️</span>
+            <span className="safety-badge-icon"><Shield size={16} strokeWidth={1.75} /></span>
             <span className="safety-badge-text">
                 <strong style={{ marginRight: '4px' }}>{days}</strong>
                 {t('hotel.daysWithoutIncident').replace('{{count}}', '')}

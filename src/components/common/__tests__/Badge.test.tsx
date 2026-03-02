@@ -62,22 +62,19 @@ describe('StatusBadge', () => {
 });
 
 describe('TierBadge', () => {
-    it('renders gold tier with star and label', () => {
+    it('renders gold tier with label', () => {
         render(<TierBadge tier="gold" />);
         expect(screen.getByText('GOLD')).toBeInTheDocument();
-        expect(screen.getByText('★')).toBeInTheDocument();
     });
 
-    it('renders silver tier with star and label', () => {
+    it('renders silver tier with label', () => {
         render(<TierBadge tier="silver" />);
         expect(screen.getByText('SILVER')).toBeInTheDocument();
-        expect(screen.getByText('☆')).toBeInTheDocument();
     });
 
     it('hides label when showLabel is false', () => {
         render(<TierBadge tier="gold" showLabel={false} />);
         expect(screen.queryByText('GOLD')).not.toBeInTheDocument();
-        expect(screen.getByText('★')).toBeInTheDocument();
     });
 });
 

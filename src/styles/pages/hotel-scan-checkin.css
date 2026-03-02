@@ -124,7 +124,7 @@
 
 .scan-data-label {
     font-size: var(--text-xs);
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.06em;
     color: var(--text-tertiary);
     font-weight: var(--font-semibold);

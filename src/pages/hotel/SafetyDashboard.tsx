@@ -4,6 +4,7 @@
 
 import { useState, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Plus, ShieldCheck } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { SafetyBadge, Badge } from '../../components/common/Badge';
@@ -22,23 +23,6 @@ import '../../styles/pages/hotel-safety.css';
 // Types
 // ----------------------------------------
 type FilterTab = 'all' | 'open' | 'investigating' | 'resolved' | 'closed';
-
-// ----------------------------------------
-// Icons
-// ----------------------------------------
-const PlusIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-        <line x1="12" y1="5" x2="12" y2="19" />
-        <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-);
-
-const ShieldIcon = () => (
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        <polyline points="9,12 11,14 15,10" />
-    </svg>
-);
 
 // ----------------------------------------
 // Helpers
@@ -246,7 +230,7 @@ export default function SafetyDashboard() {
                     <Button
                         variant="danger"
                         size="sm"
-                        icon={<PlusIcon />}
+                        icon={<Plus size={16} strokeWidth={2.5} />}
                         onClick={openModal}
                     >
                         {t('safety.reportIncident')}
@@ -326,7 +310,7 @@ export default function SafetyDashboard() {
             <Card>
                 <CardHeader
                     action={
-                        <Button variant="ghost" size="sm" icon={<PlusIcon />} onClick={openModal}>
+                        <Button variant="ghost" size="sm" icon={<Plus size={16} strokeWidth={2.5} />} onClick={openModal}>
                             {t('safety.reportNewIncident')}
                         </Button>
                     }
@@ -359,7 +343,7 @@ export default function SafetyDashboard() {
                     {/* Incident List */}
                     {filteredIncidents.length === 0 ? (
                         <div className="empty-incidents">
-                            <span className="empty-icon"><ShieldIcon /></span>
+                            <span className="empty-icon"><ShieldCheck size={48} strokeWidth={1.5} /></span>
                             <h4>{t('safety.noIncidents')}</h4>
                             <p>
                                 {activeFilter === 'all'

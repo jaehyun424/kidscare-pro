@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Bell, Globe, Moon, Sun, CreditCard, FileText, Lock, HelpCircle } from 'lucide-react';
 import { Card, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
@@ -31,9 +32,9 @@ const GENDER_OPTIONS = [
 ];
 
 const GENDER_AVATAR: Record<string, string> = {
-    female: '👧',
-    male: '👦',
-    other: '🧒',
+    female: 'F',
+    male: 'M',
+    other: 'O',
 };
 
 type ChildFormData = {
@@ -254,7 +255,7 @@ export default function Profile() {
                         ) : (
                             children.map((child) => (
                                 <div className="child-item" key={child.id}>
-                                    <span className="child-avatar">{GENDER_AVATAR[child.gender] || '🧒'}</span>
+                                    <span className="child-avatar">{GENDER_AVATAR[child.gender] || 'O'}</span>
                                     <div className="child-info">
                                         <span className="child-name">{child.name}</span>
                                         <span className="child-age">{t('common.yearsOld', { count: child.age })}</span>
@@ -286,23 +287,23 @@ export default function Profile() {
             <Card>
                 <CardBody>
                     <div className="settings-menu" role="navigation" aria-label="Settings">
-                        <button className="menu-item" onClick={() => setShowNotifModal(true)}><span aria-hidden="true">🔔</span> {t('parent.notifications')}</button>
+                        <button className="menu-item" onClick={() => setShowNotifModal(true)}><span aria-hidden="true"><Bell size={20} strokeWidth={1.75} /></span> {t('parent.notifications')}</button>
                         <button className="menu-item" onClick={() => setShowLanguagePicker(true)}>
-                            <span aria-hidden="true">🌐</span> {t('auth.preferredLanguage')}
+                            <span aria-hidden="true"><Globe size={20} strokeWidth={1.75} /></span> {t('auth.preferredLanguage')}
                             <span className="menu-item-value">
                                 {currentLang.flag} {currentLang.label}
                             </span>
                         </button>
                         <button className="menu-item" onClick={toggleTheme}>
-                            <span aria-hidden="true">{isDark ? '🌙' : '☀️'}</span> {t('common.theme')}
+                            <span aria-hidden="true">{isDark ? <Moon size={20} strokeWidth={1.75} /> : <Sun size={20} strokeWidth={1.75} />}</span> {t('common.theme')}
                             <span className="menu-item-value">
                                 {isDark ? t('common.dark') : t('common.light')}
                             </span>
                         </button>
-                        <button className="menu-item" onClick={() => setShowPaymentModal(true)}><span aria-hidden="true">💳</span> {t('parent.paymentMethods')}</button>
-                        <button className="menu-item" onClick={() => window.open('https://petitstay.com/terms', '_blank')}><span aria-hidden="true">📄</span> {t('parent.termsOfService')}</button>
-                        <button className="menu-item" onClick={() => window.open('https://petitstay.com/privacy', '_blank')}><span aria-hidden="true">🔒</span> {t('parent.privacyPolicy')}</button>
-                        <button className="menu-item" onClick={() => toast.info(t('parent.help'), t('profile.supportEmail'))}><span aria-hidden="true">❓</span> {t('parent.help')}</button>
+                        <button className="menu-item" onClick={() => setShowPaymentModal(true)}><span aria-hidden="true"><CreditCard size={20} strokeWidth={1.75} /></span> {t('parent.paymentMethods')}</button>
+                        <button className="menu-item" onClick={() => window.open('https://petitstay.com/terms', '_blank')}><span aria-hidden="true"><FileText size={20} strokeWidth={1.75} /></span> {t('parent.termsOfService')}</button>
+                        <button className="menu-item" onClick={() => window.open('https://petitstay.com/privacy', '_blank')}><span aria-hidden="true"><Lock size={20} strokeWidth={1.75} /></span> {t('parent.privacyPolicy')}</button>
+                        <button className="menu-item" onClick={() => toast.info(t('parent.help'), t('profile.supportEmail'))}><span aria-hidden="true"><HelpCircle size={20} strokeWidth={1.75} /></span> {t('parent.help')}</button>
                     </div>
                 </CardBody>
             </Card>

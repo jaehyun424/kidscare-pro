@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Star, Check } from 'lucide-react';
 import { Card, CardBody } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
 import { TierBadge, Badge, SafetyBadge } from '../../components/common/Badge';
@@ -77,10 +78,10 @@ export default function SitterManagement() {
                   <h3 className="sitter-name">{sitter.name}</h3>
                   <TierBadge tier={sitter.tier} />
                   <div className="sitter-rating">
-                    ⭐ {sitter.rating} ({t('sitterMgmt.sessionsCount', { count: sitter.sessionsCompleted })})
+                    <Star size={14} strokeWidth={1.75} fill="currentColor" /> {sitter.rating} ({t('sitterMgmt.sessionsCount', { count: sitter.sessionsCompleted })})
                     {sitter.tier === 'gold' && (
                       <span className="verified-badge">
-                        ✓ {t('sitterMgmt.verified')}
+                        <Check size={14} strokeWidth={2.5} /> {t('sitterMgmt.verified')}
                       </span>
                     )}
                   </div>

@@ -61,7 +61,7 @@
 .quick-action-btn span:last-child {
   font-size: 0.875rem;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.05em;
   color: var(--charcoal-700);
 }
@@ -228,7 +228,7 @@
 .stat-label {
   font-size: 0.75rem;
   color: var(--charcoal-500);
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.05em;
   font-weight: 500;
 }

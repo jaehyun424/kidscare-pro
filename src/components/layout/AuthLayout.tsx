@@ -2,25 +2,11 @@
 // Petit Stay - Auth Layout (Login/Register)
 // ============================================
 
-
 import { Outlet } from 'react-router-dom';
+import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { IconButton } from '../common/Button';
-
-// Icons
-const SunIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="5" />
-        <line x1="12" y1="1" x2="12" y2="3" />
-        <line x1="12" y1="21" x2="12" y2="23" />
-    </svg>
-);
-
-const MoonIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-);
+import { BrandLogo } from '../common/BrandLogo';
 
 // Component
 export function AuthLayout() {
@@ -31,7 +17,7 @@ export function AuthLayout() {
             {/* Theme toggle */}
             <div className="auth-theme-toggle">
                 <IconButton
-                    icon={isDark ? <SunIcon /> : <MoonIcon />}
+                    icon={isDark ? <Sun size={20} strokeWidth={1.75} /> : <Moon size={20} strokeWidth={1.75} />}
                     onClick={toggleTheme}
                     aria-label="Toggle theme"
                 />
@@ -40,7 +26,9 @@ export function AuthLayout() {
             {/* Content */}
             <div className="auth-content">
                 <div className="auth-logo">
-                    <span className="auth-logo-icon">👶</span>
+                    <div className="auth-logo-icon">
+                        <BrandLogo size="lg" />
+                    </div>
                     <h1 className="auth-logo-text">
                         Petit<span className="text-gold">Stay</span>
                     </h1>
@@ -52,7 +40,7 @@ export function AuthLayout() {
                 </div>
 
                 <footer className="auth-footer">
-                    <p>© 2025 Petit Stay. All rights reserved.</p>
+                    <p>&copy; 2025 Petit Stay. All rights reserved.</p>
                 </footer>
             </div>
         </div>

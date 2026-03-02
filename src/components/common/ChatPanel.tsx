@@ -4,6 +4,7 @@
 // ============================================
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { CheckCheck } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMessaging } from '../../hooks/useMessaging';
 import type { Message } from '../../services/messaging';
@@ -105,7 +106,7 @@ export function ChatPanel({ isOpen, onClose, otherUserId, otherUserName, booking
                                 <p>{msg.text}</p>
                                 <span className="chat-time">{formatTime(msg.createdAt)}</span>
                                 {msg.senderId === user?.id && msg.readBy && msg.readBy.length > 0 && (
-                                    <span className="read-receipt" title="Read">✓✓</span>
+                                    <span className="read-receipt" title="Read"><CheckCheck size={14} strokeWidth={2} /></span>
                                 )}
                             </div>
                         </div>

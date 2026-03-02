@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Moon, Sun } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Input, Select, Textarea } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
@@ -344,7 +345,7 @@ export default function Settings() {
                                 checked={isDark}
                                 onChange={toggleTheme}
                             />
-                            <span>{isDark ? `🌙 ${t('common.dark')}` : `☀️ ${t('common.light')}`}</span>
+                            <span>{isDark ? <><Moon size={20} strokeWidth={1.75} /> {t('common.dark')}</> : <><Sun size={20} strokeWidth={1.75} /> {t('common.light')}</>}</span>
                         </label>
                     </CardBody>
                 </Card>

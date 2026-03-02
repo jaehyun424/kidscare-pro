@@ -3,15 +3,9 @@
 // ============================================
 
 import { useTranslation } from 'react-i18next';
+import { CreditCard } from 'lucide-react';
 import { Button } from './Button';
 import type { PaymentMethodCard as PaymentMethodType } from '../../types';
-
-const BRAND_ICONS: Record<string, string> = {
-    visa: '💳',
-    mastercard: '💳',
-    amex: '💳',
-    other: '💳',
-};
 
 const BRAND_LABELS: Record<string, string> = {
     visa: 'Visa',
@@ -30,7 +24,7 @@ export function PaymentMethodCardDisplay({ card, onRemove }: PaymentMethodCardPr
 
     return (
         <div className="payment-card-item">
-            <span className="payment-card-icon">{BRAND_ICONS[card.brand]}</span>
+            <span className="payment-card-icon"><CreditCard size={20} strokeWidth={1.75} /></span>
             <div className="payment-card-info">
                 <span className="payment-card-brand">
                     {BRAND_LABELS[card.brand]} **** {card.last4}

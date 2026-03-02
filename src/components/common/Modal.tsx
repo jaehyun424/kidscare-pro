@@ -3,6 +3,7 @@
 // ============================================
 
 import React, { useEffect, useCallback } from 'react';
+import { X } from 'lucide-react';
 import { IconButton } from './Button';
 
 // ----------------------------------------
@@ -75,7 +76,7 @@ export function Modal({
                         {title && <h2 id="modal-title" className="modal-title">{title}</h2>}
                         {showCloseButton && (
                             <IconButton
-                                icon={<CloseIcon />}
+                                icon={<X size={20} strokeWidth={1.75} />}
                                 onClick={onClose}
                                 aria-label="Close modal"
                                 variant="ghost"
@@ -87,18 +88,6 @@ export function Modal({
                 {footer && <div className="modal-footer">{footer}</div>}
             </div>
         </div>
-    );
-}
-
-// ----------------------------------------
-// Close Icon
-// ----------------------------------------
-function CloseIcon() {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
     );
 }
 
