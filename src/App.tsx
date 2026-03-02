@@ -12,11 +12,15 @@ import { HotelLayout } from './components/layout/HotelLayout';
 import { ParentLayout } from './components/layout/ParentLayout';
 import { SitterLayout } from './components/layout/SitterLayout';
 import { DemoBanner } from './components/common/DemoBanner';
+import { BrandLogo } from './components/common/BrandLogo';
 import './index.css';
 
 // ----------------------------------------
 // Lazy-loaded Pages
 // ----------------------------------------
+// Landing
+const LandingPage = lazy(() => import('./pages/landing/LandingPage'));
+
 // Auth
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
@@ -58,8 +62,9 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 // ----------------------------------------
 function PageLoader() {
   return (
-    <div className="page-spinner">
-      <div className="spinner" style={{ width: 40, height: 40 }} />
+    <div className="page-spinner" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+      <BrandLogo size="md" />
+      <div className="spinner" style={{ width: 32, height: 32 }} />
     </div>
   );
 }
@@ -164,8 +169,8 @@ function AppRoutes() {
           <Route path="notifications" element={<NotificationInbox />} />
         </Route>
 
-        {/* Default Redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Landing Page */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

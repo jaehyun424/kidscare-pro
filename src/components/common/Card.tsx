@@ -1,13 +1,13 @@
 // ============================================
-// Petit Stay - Card Component
+// Petit Stay - Card Component (Motion)
 // ============================================
 
-
+import { motion } from 'framer-motion';
 
 // ----------------------------------------
 // Types
 // ----------------------------------------
-interface CardProps {
+interface CardProps extends React.AriaAttributes {
     children: React.ReactNode;
     className?: string;
     variant?: 'default' | 'gold' | 'hover';
@@ -46,6 +46,7 @@ export function Card({
     variant = 'default',
     padding = 'md',
     onClick,
+    ...ariaProps
 }: CardProps) {
     const variantClass = variant === 'gold' ? 'card-gold' : '';
     const paddingClass = padding === 'none' ? 'p-0' : padding === 'sm' ? 'p-sm' : padding === 'lg' ? 'p-lg' : '';
@@ -59,12 +60,18 @@ export function Card({
         className,
     ].filter(Boolean).join(' ');
 
-    const Component = onClick ? 'button' : 'div';
-
     return (
-        <Component className={classes} onClick={onClick}>
+        <motion.div
+            className={classes}
+            onClick={onClick}
+            role={onClick ? 'button' : undefined}
+            tabIndex={onClick ? 0 : undefined}
+            whileHover={{ y: -2, boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)' }}
+            transition={{ duration: 0.2 }}
+            {...ariaProps}
+        >
             {children}
-        </Component>
+        </motion.div>
     );
 }
 

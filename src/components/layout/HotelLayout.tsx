@@ -3,7 +3,7 @@
 // ============================================
 
 import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, Calendar, Radio, Users, FileText, QrCode,
@@ -16,6 +16,8 @@ import { Avatar } from '../common/Avatar';
 import { BrandLogo } from '../common/BrandLogo';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { NotificationBell } from '../common/NotificationBell';
+import { PageTransition } from '../common/PageTransition';
+import { AnimatePresence } from 'framer-motion';
 import '../../styles/hotel-layout.css';
 
 // ----------------------------------------
@@ -26,6 +28,7 @@ export function HotelLayout() {
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -125,7 +128,11 @@ export function HotelLayout() {
 
         {/* Page Content */}
         <div className="page-content">
-          <Outlet />
+          <AnimatePresence mode="wait">
+            <PageTransition key={location.pathname}>
+              <Outlet />
+            </PageTransition>
+          </AnimatePresence>
         </div>
       </main>
     </div>

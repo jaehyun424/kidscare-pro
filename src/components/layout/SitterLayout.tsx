@@ -2,7 +2,7 @@
 // Petit Stay - Sitter App Layout
 // ============================================
 
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, DollarSign, User, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -12,12 +12,15 @@ import { BrandLogo } from '../common/BrandLogo';
 import { useAuth } from '../../contexts/AuthContext';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { NotificationBell } from '../common/NotificationBell';
+import { PageTransition } from '../common/PageTransition';
+import { AnimatePresence } from 'framer-motion';
 import '../../styles/sitter-layout.css';
 
 // Component
 export function SitterLayout() {
     const { isDark, toggleTheme } = useTheme();
     const { t } = useTranslation();
+    const location = useLocation();
     useAuth(); // Keep auth context active
 
     const navItems = [
@@ -49,7 +52,11 @@ export function SitterLayout() {
 
             {/* Main Content */}
             <main className="sitter-content">
-                <Outlet />
+                <AnimatePresence mode="wait">
+                    <PageTransition key={location.pathname}>
+                        <Outlet />
+                    </PageTransition>
+                </AnimatePresence>
             </main>
 
             {/* Bottom Navigation */}

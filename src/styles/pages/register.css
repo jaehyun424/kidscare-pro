@@ -16,13 +16,29 @@
   .register-visual {
     display: flex;
     flex: 1;
-    background-size: cover;
-    background-position: center;
     position: relative;
     flex-direction: column;
     justify-content: center;
     padding: 4rem;
+    overflow: hidden;
   }
+}
+
+.register-visual-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.register-visual .visual-overlay {
+  z-index: 1;
+}
+
+.register-visual .visual-content {
+  z-index: 2;
 }
 
 .visual-title {
@@ -30,6 +46,7 @@
   font-size: 3rem;
   margin-bottom: 2rem;
   line-height: 1.1;
+  color: white;
 }
 
 .visual-list {
@@ -43,6 +60,10 @@
   margin-bottom: 1rem;
   letter-spacing: 0.05em;
   color: var(--cream-200);
+}
+
+.visual-list li::before {
+  content: "• ";
 }
 
 .register-form-container {

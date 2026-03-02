@@ -1,9 +1,10 @@
 // ============================================
-// Petit Stay - Modal Component
+// Petit Stay - Modal Component (Motion)
 // ============================================
 
 import React, { useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { IconButton } from './Button';
 
 // ----------------------------------------
@@ -54,40 +55,50 @@ export function Modal({
         };
     }, [isOpen, handleKeyDown]);
 
-    if (!isOpen) return null;
-
     const sizeClass = `modal-${size}`;
 
     return (
-        <div className="modal-root">
-            <div
-                className="overlay"
-                onClick={closeOnOverlayClick ? onClose : undefined}
-                aria-hidden="true"
-            />
-            <div
-                className={`modal ${sizeClass}`}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={title ? 'modal-title' : undefined}
-            >
-                {(title || showCloseButton) && (
-                    <div className="modal-header">
-                        {title && <h2 id="modal-title" className="modal-title">{title}</h2>}
-                        {showCloseButton && (
-                            <IconButton
-                                icon={<X size={20} strokeWidth={1.75} />}
-                                onClick={onClose}
-                                aria-label="Close modal"
-                                variant="ghost"
-                            />
+        <AnimatePresence>
+            {isOpen && (
+                <div className="modal-root">
+                    <motion.div
+                        className="overlay"
+                        onClick={closeOnOverlayClick ? onClose : undefined}
+                        aria-hidden="true"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                    />
+                    <motion.div
+                        className={`modal ${sizeClass}`}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby={title ? 'modal-title' : undefined}
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                        transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    >
+                        {(title || showCloseButton) && (
+                            <div className="modal-header">
+                                {title && <h2 id="modal-title" className="modal-title">{title}</h2>}
+                                {showCloseButton && (
+                                    <IconButton
+                                        icon={<X size={20} strokeWidth={1.75} />}
+                                        onClick={onClose}
+                                        aria-label="Close modal"
+                                        variant="ghost"
+                                    />
+                                )}
+                            </div>
                         )}
-                    </div>
-                )}
-                <div className="modal-body">{children}</div>
-                {footer && <div className="modal-footer">{footer}</div>}
-            </div>
-        </div>
+                        <div className="modal-body">{children}</div>
+                        {footer && <div className="modal-footer">{footer}</div>}
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
     );
 }
 

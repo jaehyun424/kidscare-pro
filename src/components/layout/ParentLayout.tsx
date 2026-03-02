@@ -2,7 +2,7 @@
 // Petit Stay - Parent App Layout (Bottom Nav)
 // ============================================
 
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, Layers, Clock, User, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -10,6 +10,8 @@ import { IconButton } from '../common/Button';
 import { BrandLogo } from '../common/BrandLogo';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { NotificationBell } from '../common/NotificationBell';
+import { PageTransition } from '../common/PageTransition';
+import { AnimatePresence } from 'framer-motion';
 import '../../styles/parent-layout.css';
 
 // ----------------------------------------
@@ -18,6 +20,7 @@ import '../../styles/parent-layout.css';
 export function ParentLayout() {
     const { isDark, toggleTheme } = useTheme();
     const { t } = useTranslation();
+    const location = useLocation();
 
     const navItems = [
         { to: '/parent', icon: <Home size={22} strokeWidth={1.75} />, labelKey: 'nav.home', end: true },
@@ -47,7 +50,11 @@ export function ParentLayout() {
 
             {/* Main Content */}
             <main className="parent-content">
-                <Outlet />
+                <AnimatePresence mode="wait">
+                    <PageTransition key={location.pathname}>
+                        <Outlet />
+                    </PageTransition>
+                </AnimatePresence>
             </main>
 
             {/* Bottom Navigation */}

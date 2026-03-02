@@ -1,18 +1,21 @@
 // ============================================
-// Petit Stay - Login Page (Hospitality Redesign)
+// Petit Stay - Login Page (Video + Motion)
 // ============================================
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { LanguageSwitcher } from '../../components/common/LanguageSwitcher';
-import loginBg from '../../assets/login-bg.png';
 import '../../styles/pages/login.css';
+
+const LOGIN_VIDEO = 'https://videos.pexels.com/video-files/3209211/3209211-uhd_2560_1440_25fps.mp4';
+const LOGIN_POSTER = 'https://images.pexels.com/photos/3209045/pexels-photo-3209045.jpeg?auto=compress&cs=tinysrgb&w=1920';
 
 // Demo accounts for testing
 const DEMO_ACCOUNTS = [
@@ -41,6 +44,15 @@ function mapFirebaseError(err: unknown, t: (key: string, defaultValue: string) =
   }
 }
 
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08 } },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
+};
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -91,12 +103,36 @@ export default function LoginPage() {
 
   return (
     <div className="login-container login-page">
-      {/* Client Access Column (Left - Image) */}
-      <div className="login-visual" style={{ backgroundImage: `url(${loginBg})` }}>
+      {/* Video Visual Column (Left) */}
+      <div className="login-visual">
+        <video
+          className="login-visual-video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster={LOGIN_POSTER}
+        >
+          <source src={LOGIN_VIDEO} type="video/mp4" />
+        </video>
         <div className="visual-overlay" />
         <div className="visual-content">
-          <h1 className="visual-quote">"Uncompromising care for your most important guests."</h1>
-          <p className="visual-author">— Petit Stay Hospitality Standard</p>
+          <motion.h1
+            className="visual-quote"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
+            "Uncompromising care for your most important guests."
+          </motion.h1>
+          <motion.p
+            className="visual-author"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            — Petit Stay Hospitality Standard
+          </motion.p>
         </div>
       </div>
 
@@ -109,25 +145,32 @@ export default function LoginPage() {
           <LanguageSwitcher />
         </div>
 
-        <div className="form-wrapper">
-          <div className="text-center mb-8">
+        <motion.div
+          className="form-wrapper"
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+        >
+          <motion.div className="text-center mb-8" variants={fadeUp}>
             <h2 className="text-3xl font-serif mb-2">Concierge Access</h2>
             <p className="text-charcoal-500">Please authenticate to access the console.</p>
-          </div>
+          </motion.div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input
-              label="Email Access ID"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@hotel.com"
-              error={errors.email}
-              autoComplete="email"
-              disabled={isLoading}
-            />
+            <motion.div variants={fadeUp}>
+              <Input
+                label="Email Access ID"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@hotel.com"
+                error={errors.email}
+                autoComplete="email"
+                disabled={isLoading}
+              />
+            </motion.div>
 
-            <div className="password-field-wrapper">
+            <motion.div className="password-field-wrapper" variants={fadeUp}>
               <Input
                 label="Secure Password"
                 type={showPassword ? 'text' : 'password'}
@@ -147,15 +190,15 @@ export default function LoginPage() {
               >
                 {showPassword ? <EyeOff size={20} strokeWidth={1.75} /> : <Eye size={20} strokeWidth={1.75} />}
               </button>
-            </div>
+            </motion.div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
+            <motion.div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.25rem' }} variants={fadeUp}>
               <Link to="/forgot-password" className="forgot-password-link">
                 {t('auth.forgotPassword', 'Forgot password?')}
               </Link>
-            </div>
+            </motion.div>
 
-            <div className="mt-4">
+            <motion.div className="mt-4" variants={fadeUp}>
               <Button
                 type="submit"
                 variant="primary"
@@ -165,11 +208,11 @@ export default function LoginPage() {
               >
                 Sign In
               </Button>
-            </div>
+            </motion.div>
           </form>
 
           {/* Demo Accounts */}
-          <div className="mt-8 border-t border-cream-300 pt-6">
+          <motion.div className="mt-8 border-t border-cream-300 pt-6" variants={fadeUp}>
             <p className="text-xs text-charcoal-400 text-center uppercase tracking-widest mb-4">Quick Access Simulation</p>
             <div className="grid grid-cols-3 gap-2">
               {DEMO_ACCOUNTS.map((account) => (
@@ -184,17 +227,17 @@ export default function LoginPage() {
                 </button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          <div className="mt-8 text-center">
+          <motion.div className="mt-8 text-center" variants={fadeUp}>
             <p className="text-sm text-charcoal-500">
               Not a partner hotel yet? <Link to="/register" className="text-charcoal-900 border-b border-gold-500 pb-0.5 hover:text-gold-600">Request Partnership</Link>
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         <div className="login-footer">
-            <p>© 2026 Petit Stay. Tokyo • Seoul • Singapore.</p>
+            <p>&copy; 2026 Petit Stay. Tokyo &bull; Seoul &bull; Singapore.</p>
         </div>
       </div>
     </div>

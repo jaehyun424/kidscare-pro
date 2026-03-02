@@ -1486,3 +1486,76 @@ p {
 .password-field-wrapper { position: relative; }
 .password-field-wrapper .form-input,
 .password-field-wrapper .input { padding-right: 2.5rem; }
+
+/* ----------------------------------------
+   Motion Design Tokens & Utilities
+   ---------------------------------------- */
+
+/* Shimmer animation for loading states */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Section utility classes */
+.section-fullscreen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.section-padded {
+  padding: clamp(4rem, 8vw, 8rem) clamp(1.5rem, 5vw, 4rem);
+}
+
+.section-dark {
+  background-color: var(--charcoal-950);
+  color: white;
+}
+
+.section-cream {
+  background-color: var(--cream-100);
+}
+
+/* Video background utility */
+.video-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.video-overlay-dark {
+  background: linear-gradient(to bottom,
+    rgba(15, 15, 15, 0.6) 0%,
+    rgba(15, 15, 15, 0.4) 50%,
+    rgba(15, 15, 15, 0.7) 100%
+  );
+}
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .shimmer { animation: none; }
+}

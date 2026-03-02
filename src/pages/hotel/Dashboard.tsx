@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 import { Calendar, Radio, CheckCircle, DollarSign, Plus, ArrowRight, Clock, DoorOpen, User } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -45,12 +46,14 @@ function StatCard({ icon, label, value, subValue, color, to }: StatCardProps) {
   };
 
   return (
-    <div
+    <motion.div
       className={`stat-card ${colorClasses[color]} ${to ? 'stat-card-clickable' : ''}`}
       role="group"
       aria-label={label}
       onClick={to ? () => navigate(to) : undefined}
       style={to ? { cursor: 'pointer' } : undefined}
+      whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)' }}
+      transition={{ duration: 0.2 }}
     >
       <div className="stat-card-icon" aria-hidden="true">{icon}</div>
       <div className="stat-card-content">
@@ -58,7 +61,7 @@ function StatCard({ icon, label, value, subValue, color, to }: StatCardProps) {
         <div className="stat-card-label">{label}</div>
         {subValue && <div className="stat-card-sub">{subValue}</div>}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -165,38 +168,26 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="stats-grid animate-stagger">
-        <StatCard
-          icon={<Calendar size={20} strokeWidth={2} />}
-          label={t('hotel.totalBookings')}
-          value={stats.todayBookings}
-          subValue={`${stats.pendingBookings} ${t('status.pending').toLowerCase()}`}
-          color="primary"
-          to="/hotel/bookings"
-        />
-        <StatCard
-          icon={<Radio size={20} strokeWidth={2} />}
-          label={t('hotel.activeSessions')}
-          value={stats.activeNow}
-          subValue={t('status.inProgress')}
-          color="warning"
-          to="/hotel/live"
-        />
-        <StatCard
-          icon={<CheckCircle size={20} strokeWidth={2} />}
-          label={t('status.completed')}
-          value={stats.completedToday}
-          color="success"
-          to="/hotel/reports"
-        />
-        <StatCard
-          icon={<DollarSign size={20} strokeWidth={2} />}
-          label={t('hotel.totalRevenue')}
-          value={formatCurrency(stats.todayRevenue)}
-          color="gold"
-          to="/hotel/reports"
-        />
-      </div>
+      <motion.div
+        className="stats-grid"
+        initial="hidden"
+        animate="visible"
+        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}
+      >
+        {[
+          { icon: <Calendar size={20} strokeWidth={2} />, label: t('hotel.totalBookings'), value: stats.todayBookings, subValue: `${stats.pendingBookings} ${t('status.pending').toLowerCase()}`, color: 'primary' as const, to: '/hotel/bookings' },
+          { icon: <Radio size={20} strokeWidth={2} />, label: t('hotel.activeSessions'), value: stats.activeNow, subValue: t('status.inProgress'), color: 'warning' as const, to: '/hotel/live' },
+          { icon: <CheckCircle size={20} strokeWidth={2} />, label: t('status.completed'), value: stats.completedToday, color: 'success' as const, to: '/hotel/reports' },
+          { icon: <DollarSign size={20} strokeWidth={2} />, label: t('hotel.totalRevenue'), value: formatCurrency(stats.todayRevenue), color: 'gold' as const, to: '/hotel/reports' },
+        ].map((stat, i) => (
+          <motion.div
+            key={i}
+            variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } }}
+          >
+            <StatCard {...stat} />
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Main Content Grid */}
       <div className="dashboard-grid">

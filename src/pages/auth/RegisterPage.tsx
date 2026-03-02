@@ -1,19 +1,32 @@
 // ============================================
-// Petit Stay - Register Page (Hospitality Redesign)
+// Petit Stay - Register Page (Video + Motion)
 // ============================================
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { Button } from '../../components/common/Button';
 import { Input, Select } from '../../components/common/Input';
 import { LanguageSwitcher } from '../../components/common/LanguageSwitcher';
 import type { UserRole } from '../../types';
-import loginBg from '../../assets/login-bg.png';
 import '../../styles/pages/register.css';
+
+const REGISTER_VIDEO = 'https://videos.pexels.com/video-files/3209297/3209297-uhd_2560_1440_25fps.mp4';
+const REGISTER_POSTER = 'https://images.pexels.com/photos/3661351/pexels-photo-3661351.jpeg?auto=compress&cs=tinysrgb&w=1920';
+
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07 } },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
+};
 
 export default function RegisterPage() {
     const navigate = useNavigate();
@@ -94,16 +107,38 @@ export default function RegisterPage() {
 
     return (
         <div className="register-container">
-            {/* Visual Column (Left) */}
-            <div className="register-visual" style={{ backgroundImage: `url(${loginBg})` }}>
+            {/* Video Visual Column (Left) */}
+            <div className="register-visual">
+                <video
+                    className="register-visual-video"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    poster={REGISTER_POSTER}
+                >
+                    <source src={REGISTER_VIDEO} type="video/mp4" />
+                </video>
                 <div className="visual-overlay" />
                 <div className="visual-content">
-                    <h1 className="visual-title">Join the Standard of Excellence</h1>
-                    <ul className="visual-list">
-                        <li>• Exclusive Hotel Partnerships</li>
-                        <li>• Vetted Childcare Specialists</li>
-                        <li>• Comprehensive Liability Coverage</li>
-                    </ul>
+                    <motion.h1
+                        className="visual-title"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                    >
+                        Join the Standard of Excellence
+                    </motion.h1>
+                    <motion.ul
+                        className="visual-list"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.6, delay: 0.6 }}
+                    >
+                        <li>Exclusive Hotel Partnerships</li>
+                        <li>Vetted Childcare Specialists</li>
+                        <li>Comprehensive Liability Coverage</li>
+                    </motion.ul>
                 </div>
             </div>
 
@@ -116,14 +151,19 @@ export default function RegisterPage() {
                     <LanguageSwitcher />
                 </div>
 
-                <div className="form-wrapper">
-                    <div className="text-center mb-6">
+                <motion.div
+                    className="form-wrapper"
+                    variants={stagger}
+                    initial="hidden"
+                    animate="show"
+                >
+                    <motion.div className="text-center mb-6" variants={fadeUp}>
                         <h2 className="text-2xl font-serif text-charcoal-900">Request Membership</h2>
                         <p className="text-sm text-charcoal-500">Create your secure profile.</p>
-                    </div>
+                    </motion.div>
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <motion.div className="grid grid-cols-2 gap-4" variants={fadeUp}>
                             <Input
                                 label="First Name"
                                 name="firstName"
@@ -142,20 +182,22 @@ export default function RegisterPage() {
                                 error={errors.lastName}
                                 disabled={isLoading}
                             />
-                        </div>
+                        </motion.div>
 
-                        <Input
-                            label="Email Address"
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="name@example.com"
-                            error={errors.email}
-                            disabled={isLoading}
-                        />
+                        <motion.div variants={fadeUp}>
+                            <Input
+                                label="Email Address"
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="name@example.com"
+                                error={errors.email}
+                                disabled={isLoading}
+                            />
+                        </motion.div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <motion.div className="grid grid-cols-2 gap-4" variants={fadeUp}>
                             <div className="password-field-wrapper">
                                 <Input
                                     label="Password"
@@ -187,9 +229,9 @@ export default function RegisterPage() {
                                 error={errors.confirmPassword}
                                 disabled={isLoading}
                             />
-                        </div>
+                        </motion.div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <motion.div className="grid grid-cols-2 gap-4" variants={fadeUp}>
                             <Select
                                 label="Account Type"
                                 name="role"
@@ -204,9 +246,9 @@ export default function RegisterPage() {
                                 onChange={handleChange}
                                 options={LANGUAGE_OPTIONS}
                             />
-                        </div>
+                        </motion.div>
 
-                        <div className="mt-4">
+                        <motion.div className="mt-4" variants={fadeUp}>
                             <Button
                                 type="submit"
                                 variant="gold"
@@ -216,17 +258,16 @@ export default function RegisterPage() {
                             >
                                 SUBMIT APPLICATION
                             </Button>
-                        </div>
+                        </motion.div>
                     </form>
 
-                    <div className="mt-6 text-center">
+                    <motion.div className="mt-6 text-center" variants={fadeUp}>
                         <p className="text-sm text-charcoal-500">
                             Already a member? <Link to="/login" className="text-charcoal-900 border-b border-gold-500 pb-0.5 hover:text-gold-600">Sign In</Link>
                         </p>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             </div>
-
         </div>
     );
 }

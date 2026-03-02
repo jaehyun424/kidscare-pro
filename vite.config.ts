@@ -60,6 +60,7 @@ export default defineConfig({
           'i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
           'qr': ['qrcode.react', 'jsqr'],
           'pdf': ['jspdf'],
+          'animation': ['framer-motion'],
         },
       },
     },
