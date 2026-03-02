@@ -13,8 +13,9 @@
   font-size: 2.5rem;
   color: var(--charcoal-900);
   text-align: center;
-  margin-bottom: 3rem;
-  font-weight: 500;
+  margin-bottom: 3.5rem;
+  font-weight: 400;
+  letter-spacing: -0.03em;
 }
 
 /* Progress Steps */
@@ -34,7 +35,7 @@
   transform: translateX(-50%);
   width: 60%;
   height: 1px;
-  background: var(--cream-300);
+  background: var(--cream-200);
   z-index: -1;
 }
 
@@ -86,9 +87,9 @@
 /* Card Overrides for "Paper" Look */
 .booking-card {
   background: var(--bg-card) !important;
-  border: 1px solid var(--cream-300) !important;
-  box-shadow: var(--shadow-sm) !important;
-  border-radius: var(--radius-sm) !important;
+  border: 1px solid var(--cream-200) !important;
+  box-shadow: var(--shadow-xs) !important;
+  border-radius: var(--radius-xl) !important;
 }
 
 .booking-card h2 {
@@ -97,7 +98,8 @@
   color: var(--charcoal-900);
   text-align: center;
   margin-bottom: 2rem;
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: -0.03em;
 }
 
 .booking-page .form-stack {
@@ -126,10 +128,10 @@
   align-items: center;
   gap: 1rem;
   padding: 1.25rem;
-  border: 1px solid var(--cream-300);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--cream-200);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
   background: var(--bg-card);
 }
 
@@ -159,8 +161,8 @@
 /* Summary "Receipt" */
 .confirmation-summary {
   background: var(--cream-50);
-  border: 1px solid var(--cream-300);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--cream-200);
+  border-radius: var(--radius-xl);
   padding: 2rem;
   margin-bottom: 2rem;
   position: relative;

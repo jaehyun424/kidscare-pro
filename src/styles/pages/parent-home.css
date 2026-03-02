@@ -6,16 +6,17 @@
 }
 
 .welcome-section {
-  margin-bottom: 3rem;
+  margin-bottom: 3.5rem;
   text-align: center;
 }
 
 .welcome-section h1 {
   font-family: var(--font-serif);
-  font-size: 2.5rem;
-  font-weight: 500;
+  font-size: 2.75rem;
+  font-weight: 400;
   color: var(--charcoal-900);
   margin-bottom: 0.5rem;
+  letter-spacing: -0.03em;
 }
 
 .welcome-section p {
@@ -28,7 +29,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
-  margin-bottom: 3rem;
+  margin-bottom: 3.5rem;
 }
 
 .quick-action-btn {
@@ -39,18 +40,18 @@
   gap: 0.75rem;
   padding: 1.5rem 1rem;
   background: var(--bg-card);
-  border: 1px solid var(--cream-300);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--cream-200);
+  border-radius: var(--radius-lg);
   text-decoration: none;
   color: var(--charcoal-900);
   transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .quick-action-btn:hover {
-  transform: translateY(-4px);
-  border-color: var(--gold-300);
-  box-shadow: var(--shadow-gold);
+  transform: translateY(-1px);
+  border-color: var(--cream-300);
+  box-shadow: var(--shadow-xs);
 }
 
 .quick-action-btn .icon {
@@ -60,9 +61,9 @@
 
 .quick-action-btn span:last-child {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: none;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   color: var(--charcoal-700);
 }
 
@@ -131,24 +132,25 @@
 .parent-home .section-title {
   font-family: var(--font-serif);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--charcoal-900);
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--cream-300);
+  border-bottom: 1px solid var(--cream-200);
+  letter-spacing: -0.03em;
 }
 
 /* Recent Sessions */
 .session-card {
   margin-bottom: 1rem;
   background: var(--bg-card) !important;
-  border: 1px solid var(--cream-300) !important;
-  transition: all 0.2s;
+  border: 1px solid var(--cream-200) !important;
+  transition: all 0.3s;
 }
 
 .session-card:hover {
   background: var(--cream-50) !important;
-  border-color: var(--cream-400) !important;
+  border-color: var(--cream-300) !important;
 }
 
 .session-info {
@@ -210,10 +212,10 @@
   justify-content: center;
   padding: 1.25rem 1rem;
   background: var(--bg-card);
-  border: 1px solid var(--cream-300);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--cream-200);
+  border-radius: var(--radius-xl);
   text-align: center;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .stat-value {
@@ -235,5 +237,5 @@
 
 :root[data-theme="dark"] .stat-card {
   background: var(--bg-card);
-  border-color: var(--cream-300);
+  border-color: var(--cream-200);
 }

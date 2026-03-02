@@ -15,7 +15,7 @@
 }
 
 .sitter-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-1px);
 }
 
 .sitter-management-page .sitter-header {
@@ -32,7 +32,7 @@
 
 .sitter-management-page .sitter-name {
   font-size: var(--text-lg);
-  font-weight: var(--font-bold);
+  font-weight: 500;
 }
 
 .sitter-management-page .sitter-rating {

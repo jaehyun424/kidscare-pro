@@ -8,18 +8,19 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 3rem;
+  margin-bottom: 3.5rem;
   flex-wrap: wrap;
   gap: 1rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid var(--cream-300);
+  border-bottom: 1px solid var(--cream-200);
 }
 
 .dashboard-title {
   font-size: 2.5rem;
-  font-weight: 500;
+  font-weight: 400;
   margin-bottom: 0.5rem;
   color: var(--charcoal-900);
+  letter-spacing: -0.03em;
 }
 
 .dashboard-subtitle {
@@ -39,10 +40,10 @@
   background: var(--bg-card);
   border: 1px solid var(--success-500);
   border-left: 4px solid var(--success-500);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: 1rem 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-xs);
 }
 
 .safety-banner-content {
@@ -82,17 +83,17 @@
 .stat-card {
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
+  padding: 1.75rem;
   background: var(--bg-card);
-  border: 1px solid var(--cream-300);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--cream-200);
+  border-radius: var(--radius-xl);
   transition: all var(--duration-fast);
 }
 
 .stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--gold-300);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--cream-300);
 }
 
 .stat-card-header {
@@ -122,10 +123,11 @@
 .stat-card-value {
   font-size: 2.5rem;
   font-family: var(--font-serif);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1;
   color: var(--charcoal-900);
   margin-bottom: 0.25rem;
+  letter-spacing: -0.03em;
 }
 
 .stat-card-label {
@@ -243,7 +245,7 @@
   gap: 0.75rem;
   flex-shrink: 0;
   padding-left: 1rem;
-  border-left: 1px solid var(--cream-300);
+  border-left: 1px solid var(--cream-200);
 }
 
 .dashboard .sitter-info {
@@ -267,8 +269,8 @@
 .live-item {
   padding: 1.25rem;
   background: var(--cream-50);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--cream-300);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--cream-200);
 }
 
 .live-item-header {
@@ -386,13 +388,13 @@
 
 /* Clickable stat cards */
 .stat-card-clickable:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--gold-400);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--cream-300);
 }
 
 .stat-card-clickable:active {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 /* Empty state */

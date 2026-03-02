@@ -97,9 +97,9 @@
   align-items: flex-start;
   cursor: pointer;
   padding: 1rem;
-  border: 1px solid var(--cream-300);
-  border-radius: var(--radius-md);
-  transition: all 0.2s;
+  border: 1px solid var(--cream-200);
+  border-radius: var(--radius-lg);
+  transition: all 0.3s;
 }
 
 .checkbox-row:hover {
@@ -159,6 +159,12 @@
   margin-top: var(--space-8);
   padding-top: var(--space-6);
   border-top: 1px solid var(--cream-200);
+}
+
+/* Section titles */
+.section-title {
+  font-weight: 400;
+  letter-spacing: -0.03em;
 }
 
 /* Dark mode */
